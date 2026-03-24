@@ -1,0 +1,21 @@
+CREATE TABLE IF NOT EXISTS `seat` (
+                                      `id` BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '座位ID',
+                                      `room_id` BIGINT NOT NULL COMMENT '自习室ID',
+                                      `area_id` BIGINT COMMENT '区域ID',
+                                      `seat_number` VARCHAR(20) NOT NULL COMMENT '座位编号',
+    `seat_type` TINYINT COMMENT '类型：1-普通 2-沙发 3-隔间 4-包厢',
+    `row_num` INT COMMENT '座位图行坐标',
+    `col_num` INT COMMENT '座位图列坐标',
+    `has_power` TINYINT(1) DEFAULT 0 COMMENT '是否有电源',
+    `has_lamp` TINYINT(1) DEFAULT 0 COMMENT '是否有台灯',
+    `is_window` TINYINT(1) DEFAULT 0 COMMENT '是否靠窗',
+    `is_quiet` TINYINT(1) DEFAULT 0 COMMENT '是否静音区',
+    `status` TINYINT DEFAULT 1 COMMENT '状态：0-禁用 1-启用 2-维护中',
+    `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    FOREIGN KEY (`room_id`) REFERENCES `study_room` (`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`area_id`) REFERENCES `area` (`id`) ON DELETE SET NULL,
+    INDEX `idx_room_id` (`room_id`),
+    INDEX `idx_area_id` (`area_id`),
+    INDEX `idx_status` (`status`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='座位表';
