@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+<style name="Theme.IStudySpot" parent="Theme.MaterialComponents.Light.NoActionBar">
+    <!-- colorPrimary / colorPrimaryDark / colorAccent 等自定义 -->
+</style>
+</resources>
