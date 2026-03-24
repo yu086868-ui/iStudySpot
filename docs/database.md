@@ -23,7 +23,9 @@
 | `seat_status_log` | 座位状态流水表 | seat, order, user |
 | `blacklist`       | 黑名单表       | user, study_room  |
 
----
+### 1.3数据库ER图
+
+![p1](https://raw.githubusercontent.com/Siangus/pictures/14e5d13e27a2d44ac27dc61659cb41eb45cc71a9/p1.png)
 
 ## 二、详细表结构
 
