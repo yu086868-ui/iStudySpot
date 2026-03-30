@@ -1,5 +1,6 @@
 package com.ycyu.istudyspotbackend.entity;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class Seat {
@@ -7,126 +8,61 @@ public class Seat {
     private Long roomId;
     private Long areaId;
     private String seatNumber;
-    private Integer seatType;
     private Integer rowNum;
     private Integer colNum;
+    private Integer seatType;  // 1-普通 2-VIP
+    private String status;     // available, booked, occupied, unavailable
+    private BigDecimal pricePerHour;
+    private String description;
     private Integer hasPower;
     private Integer hasLamp;
     private Integer isWindow;
-    private Integer isQuiet;
-    private Integer status;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
 
-    public Long getId() {
-        return id;
-    }
+    // Getter and Setter
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public Long getRoomId() { return roomId; }
+    public void setRoomId(Long roomId) { this.roomId = roomId; }
 
-    public Long getRoomId() {
-        return roomId;
-    }
+    public Long getAreaId() { return areaId; }
+    public void setAreaId(Long areaId) { this.areaId = areaId; }
 
-    public void setRoomId(Long roomId) {
-        this.roomId = roomId;
-    }
+    public String getSeatNumber() { return seatNumber; }
+    public void setSeatNumber(String seatNumber) { this.seatNumber = seatNumber; }
 
-    public Long getAreaId() {
-        return areaId;
-    }
+    public Integer getRowNum() { return rowNum; }
+    public void setRowNum(Integer rowNum) { this.rowNum = rowNum; }
 
-    public void setAreaId(Long areaId) {
-        this.areaId = areaId;
-    }
+    public Integer getColNum() { return colNum; }
+    public void setColNum(Integer colNum) { this.colNum = colNum; }
 
-    public String getSeatNumber() {
-        return seatNumber;
-    }
+    public Integer getSeatType() { return seatType; }
+    public void setSeatType(Integer seatType) { this.seatType = seatType; }
 
-    public void setSeatNumber(String seatNumber) {
-        this.seatNumber = seatNumber;
-    }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 
-    public Integer getSeatType() {
-        return seatType;
-    }
+    public BigDecimal getPricePerHour() { return pricePerHour; }
+    public void setPricePerHour(BigDecimal pricePerHour) { this.pricePerHour = pricePerHour; }
 
-    public void setSeatType(Integer seatType) {
-        this.seatType = seatType;
-    }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
-    public Integer getRowNum() {
-        return rowNum;
-    }
+    public Integer getHasPower() { return hasPower; }
+    public void setHasPower(Integer hasPower) { this.hasPower = hasPower; }
 
-    public void setRowNum(Integer rowNum) {
-        this.rowNum = rowNum;
-    }
+    public Integer getHasLamp() { return hasLamp; }
+    public void setHasLamp(Integer hasLamp) { this.hasLamp = hasLamp; }
 
-    public Integer getColNum() {
-        return colNum;
-    }
+    public Integer getIsWindow() { return isWindow; }
+    public void setIsWindow(Integer isWindow) { this.isWindow = isWindow; }
 
-    public void setColNum(Integer colNum) {
-        this.colNum = colNum;
-    }
+    public LocalDateTime getCreateTime() { return createTime; }
+    public void setCreateTime(LocalDateTime createTime) { this.createTime = createTime; }
 
-    public Integer getHasPower() {
-        return hasPower;
-    }
-
-    public void setHasPower(Integer hasPower) {
-        this.hasPower = hasPower;
-    }
-
-    public Integer getHasLamp() {
-        return hasLamp;
-    }
-
-    public void setHasLamp(Integer hasLamp) {
-        this.hasLamp = hasLamp;
-    }
-
-    public Integer getIsWindow() {
-        return isWindow;
-    }
-
-    public void setIsWindow(Integer isWindow) {
-        this.isWindow = isWindow;
-    }
-
-    public Integer getIsQuiet() {
-        return isQuiet;
-    }
-
-    public void setIsQuiet(Integer isQuiet) {
-        this.isQuiet = isQuiet;
-    }
-
-    public Integer getStatus() {
-        return status;
-    }
-
-    public void setStatus(Integer status) {
-        this.status = status;
-    }
-
-    public LocalDateTime getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(LocalDateTime createTime) {
-        this.createTime = createTime;
-    }
-
-    public LocalDateTime getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(LocalDateTime updateTime) {
-        this.updateTime = updateTime;
-    }
+    public LocalDateTime getUpdateTime() { return updateTime; }
+    public void setUpdateTime(LocalDateTime updateTime) { this.updateTime = updateTime; }
 }

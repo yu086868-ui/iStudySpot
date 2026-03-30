@@ -2,29 +2,41 @@ package com.ycyu.istudyspotbackend.entity;
 
 public class Result<T> {
     private Integer code;
-    private String msg;
+    private String message;
     private T data;
 
-    public Result(Integer code, String msg, T data) {
+    public Result(Integer code, String message, T data) {
         this.code = code;
-        this.msg = msg;
+        this.message = message;
         this.data = data;
     }
 
     public static <T> Result<T> success(T data) {
-        return new Result<>(200, "success", data);
+        return new Result<>(200, "操作成功", data);
     }
 
-    public static <T> Result<T> success(String msg, T data) {
-        return new Result<>(200, msg, data);
+    public static <T> Result<T> success(String message, T data) {
+        return new Result<>(200, message, data);
     }
 
-    public static <T> Result<T> error(Integer code, String msg) {
-        return new Result<>(code, msg, null);
+    public static <T> Result<T> created(T data) {
+        return new Result<>(201, "创建成功", data);
     }
 
-    public static <T> Result<T> error(String msg) {
-        return new Result<>(500, msg, null);
+    public static <T> Result<T> error(Integer code, String message) {
+        return new Result<>(code, message, null);
+    }
+
+    public static <T> Result<T> error(String message) {
+        return new Result<>(400, message, null);
+    }
+
+    public static <T> Result<T> unauthorized(String message) {
+        return new Result<>(401, message, null);
+    }
+
+    public static <T> Result<T> notFound(String message) {
+        return new Result<>(404, message, null);
     }
 
     public Integer getCode() {
@@ -35,12 +47,12 @@ public class Result<T> {
         this.code = code;
     }
 
-    public String getMsg() {
-        return msg;
+    public String getMessage() {
+        return message;
     }
 
-    public void setMsg(String msg) {
-        this.msg = msg;
+    public void setMessage(String message) {
+        this.message = message;
     }
 
     public T getData() {
