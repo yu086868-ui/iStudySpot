@@ -16,20 +16,40 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+    buildFeatures {
+        buildConfig = true
+    }
 
     buildTypes {
-        release {
+        getByName("debug") {
+            buildConfigField(
+                "String",
+                "BASE_URL",
+                "\"http://10.0.2.2:8080/\""
+            )
+        }
+
+        getByName("release") {
             isMinifyEnabled = false
+
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+
+            buildConfigField(
+                "String",
+                "BASE_URL",
+                "\"https://api.yourdomain.com/\""
+            )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
     kotlinOptions {
         jvmTarget = "11"
     }
@@ -42,7 +62,22 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.google.android.material)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
+    // Network dependencies
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.gson)
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging)
+    implementation(libs.gson)
+
+    // Coroutines
+    implementation(libs.coroutines.core)
+    implementation(libs.coroutines.android)
+
+    // MockWebServer for testing
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.9.3")
 }
