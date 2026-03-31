@@ -1,10 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AndroidLayouts">
+    <shared>
+      <config />
+    </shared>
+    <layouts>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/fragment_more.xml">
+        <config>
+          <theme>@style/Theme.IStudySpot</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/fragment_profile.xml">
+        <config>
+          <theme>@style/Theme.IStudySpot</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/fragment_rules.xml">
+        <config>
+          <theme>@style/Theme.IStudySpot</theme>
+        </config>
+      </layout>
+    </layouts>
+  </component>
   <component name="AutoImportSettings">
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7fb01acc-ed7b-4c80-a21d-e647d4d3226c" name="Changes" comment="" />
+    <list default="true" id="3a6b51a8-f9c9-41fb-82aa-c7da64a37e8a" name="Changes" comment="修改了MoreFragment并把其中一些View进行了解耦">
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/scylier/istudyspot/fragment/RulesFragment.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/scylier/istudyspot/fragment/RulesFragment.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/scylier/istudyspot/viewmodel/RulesViewModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/scylier/istudyspot/viewmodel/RulesViewModel.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/fragment_rules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/fragment_rules.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -15,7 +41,7 @@
   </component>
   <component name="CopilotPersistence">
     <persistenceIdMap>
-      <entry key="_F:/SomeWork/iStudySpot-Android" value="3BOLAFtFHjakwTSDhE1g3RzaQN0" />
+      <entry key="_F:/SomeWork/iStudySpot-Android" value="3BZRfsmfTJim9aizOGG1J6V8bWT" />
     </persistenceIdMap>
   </component>
   <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[]" />
@@ -27,46 +53,47 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="main" />
+        <entry key="$PROJECT_DIR$" value="0.0.4-feature" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "Siangus"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;Siangus&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/Scylier-project/iStudySpot-Android",
-    "accountId": "b3d4ac99-7716-424b-9f5e-91ecc9ada4b4"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/Scylier-project/iStudySpot-Android&quot;,
+    &quot;accountId&quot;: &quot;b3d4ac99-7716-424b-9f5e-91ecc9ada4b4&quot;
   }
-}]]></component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 1
-}]]></component>
-  <component name="ProjectId" id="3BOLAFtFHjakwTSDhE1g3RzaQN0" />
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 1
+}</component>
+  <component name="ProjectId" id="3BZRfsmfTJim9aizOGG1J6V8bWT" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.cidr.known.project.marker": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.readMode.enableVisualFormatting": "true",
-    "cf.first.check.clang-format": "false",
-    "cidr.known.project.marker": "true",
-    "git-widget-placeholder": "0.0.2-feature",
-    "last_opened_file_path": "F:/SomeWork/iStudySpot-Android"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Android App.app.executor&quot;: &quot;Android Profiler Group#1&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
+    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;0.0.3-feature&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager">
     <configuration name="app" type="AndroidRunConfigurationType" factoryName="Android App" activateToolWindowBeforeRun="false">
-      <module name="My_Application.app" />
+      <module name="IStudySpot.app" />
       <option name="ANDROID_RUN_CONFIGURATION_SCHEMA_VERSION" value="1" />
       <option name="DEPLOY" value="true" />
       <option name="DEPLOY_APK_FROM_BUNDLE" value="false" />
@@ -140,13 +167,26 @@
   </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="7fb01acc-ed7b-4c80-a21d-e647d4d3226c" name="Changes" comment="" />
-      <created>1774355025405</created>
+      <changelist id="3a6b51a8-f9c9-41fb-82aa-c7da64a37e8a" name="Changes" comment="" />
+      <created>1774694713126</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1774355025405</updated>
+      <updated>1774694713126</updated>
     </task>
+    <task id="LOCAL-00001" summary="修改了MoreFragment并把其中一些View进行了解耦">
+      <option name="closed" value="true" />
+      <created>1774697311843</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1774697311843</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="修改了MoreFragment并把其中一些View进行了解耦" />
+    <option name="LAST_COMMIT_MESSAGE" value="修改了MoreFragment并把其中一些View进行了解耦" />
   </component>
   <component name="github-copilot-workspace">
     <instructionFileLocations>
@@ -155,5 +195,31 @@
     <promptFileLocations>
       <option value=".github/prompts" />
     </promptFileLocations>
+  </component>
+  <component name="play_dynamic_filters_status">
+    <option name="appIdToCheckInfo">
+      <map>
+        <entry key="com.example.scylier.istudyspot">
+          <value>
+            <CheckInfo lastCheckTimestamp="1774696061523" />
+          </value>
+        </entry>
+        <entry key="com.example.scylier.istudyspot.test">
+          <value>
+            <CheckInfo lastCheckTimestamp="1774696061523" />
+          </value>
+        </entry>
+        <entry key="com.example.scylier.nmbxd">
+          <value>
+            <CheckInfo lastCheckTimestamp="1774695839307" />
+          </value>
+        </entry>
+        <entry key="com.example.scylier.nmbxd.test">
+          <value>
+            <CheckInfo lastCheckTimestamp="1774695839307" />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
 </project>
