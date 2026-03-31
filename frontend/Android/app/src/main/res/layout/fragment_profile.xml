@@ -26,6 +26,7 @@
                 android:layout_height="80dp">
 
                 <ImageView
+                    android:id="@+id/iv_avatar"
                     android:layout_width="80dp"
                     android:layout_height="80dp"
                     android:src="@mipmap/ic_launcher"
@@ -56,6 +57,7 @@
                 android:gravity="center_vertical">
 
                 <TextView
+                    android:id="@+id/tv_username"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="张三"
@@ -65,6 +67,7 @@
                     android:layout_marginBottom="4dp" />
 
                 <TextView
+                    android:id="@+id/tv_nickname"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="学号: 2024001234"
@@ -72,12 +75,29 @@
                     android:textColor="@color/blue_100"
                     android:layout_marginBottom="4dp" />
 
-                <TextView
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="积分: 1280 | 等级: LV5"
-                    android:textSize="12sp"
-                    android:textColor="@color/blue_100" />
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tv_phone"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="13800138000"
+                        android:textSize="12sp"
+                        android:textColor="@color/blue_100"
+                        android:layout_marginRight="16dp" />
+
+                    <TextView
+                        android:id="@+id/tv_email"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="zhangsan@example.com"
+                        android:textSize="12sp"
+                        android:textColor="@color/blue_100" />
+
+                </LinearLayout>
 
             </LinearLayout>
 
@@ -205,10 +225,9 @@
                 <LinearLayout
                     android:layout_width="48dp"
                     android:layout_height="48dp"
-                    android:background="@color/blue_50"
+                    android:background="@drawable/rounded_corners"
                     android:gravity="center"
-                    android:layout_marginRight="16dp"
-                    android:radius="12dp">
+                    android:layout_marginRight="16dp">
 
                     <ImageView
                         android:layout_width="24dp"
@@ -275,10 +294,9 @@
                 <LinearLayout
                     android:layout_width="48dp"
                     android:layout_height="48dp"
-                    android:background="@color/green_50"
+                    android:background="@drawable/rounded_corners"
                     android:gravity="center"
-                    android:layout_marginRight="16dp"
-                    android:radius="12dp">
+                    android:layout_marginRight="16dp">
 
                     <ImageView
                         android:layout_width="24dp"
@@ -339,10 +357,9 @@
                 <LinearLayout
                     android:layout_width="48dp"
                     android:layout_height="48dp"
-                    android:background="@color/gray_50"
+                    android:background="@drawable/rounded_corners"
                     android:gravity="center"
-                    android:layout_marginRight="16dp"
-                    android:radius="12dp">
+                    android:layout_marginRight="16dp">
 
                     <ImageView
                         android:layout_width="24dp"
@@ -389,10 +406,9 @@
                 <LinearLayout
                     android:layout_width="48dp"
                     android:layout_height="48dp"
-                    android:background="@color/red_50"
+                    android:background="@drawable/rounded_corners"
                     android:gravity="center"
-                    android:layout_marginRight="16dp"
-                    android:radius="12dp">
+                    android:layout_marginRight="16dp">
 
                     <ImageView
                         android:layout_width="24dp"

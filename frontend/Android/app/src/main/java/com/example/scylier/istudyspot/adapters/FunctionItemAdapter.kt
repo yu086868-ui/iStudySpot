@@ -6,7 +6,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.scylier.istudyspot.models.FunctionItem
 import com.example.scylier.istudyspot.views.FunctionItemView
 
-class FunctionItemAdapter(private val items: List<FunctionItem>) : RecyclerView.Adapter<FunctionItemAdapter.FunctionItemViewHolder>() {
+class FunctionItemAdapter(
+    private val items: List<FunctionItem>,
+    private val onItemClick: (FunctionItem) -> Unit
+) : RecyclerView.Adapter<FunctionItemAdapter.FunctionItemViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FunctionItemViewHolder {
         val functionItemView = FunctionItemView(parent.context)
@@ -18,6 +21,9 @@ class FunctionItemAdapter(private val items: List<FunctionItem>) : RecyclerView.
         holder.functionItemView.setIcon(item.icon)
         holder.functionItemView.setTitle(item.title)
         holder.functionItemView.setColor(item.color)
+        holder.functionItemView.setOnClickListener {
+            onItemClick(item)
+        }
     }
 
     override fun getItemCount(): Int {

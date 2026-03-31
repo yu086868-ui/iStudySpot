@@ -4,7 +4,7 @@ import com.example.scylier.istudyspot.models.ApiResponse
 import com.example.scylier.istudyspot.network.ApiManager
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
-import org.mockito.Mockito.mock
+
 
 class ApiTest {
     private val apiManager = ApiManager()
