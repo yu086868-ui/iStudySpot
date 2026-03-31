@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:layout_marginBottom="16dp">
+
+    <View
+        android:layout_width="4dp"
+        android:layout_height="match_parent"
+        android:background="@color/blue_500"
+        android:layout_marginRight="16dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/rule_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="预约规则"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/rule_content"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="每位用户每天最多可预约一个座位，预约时间段为开馆至闭馆时间。请在预约成功后30分钟内到达座位签到，否则预约将自动取消。"
+            android:textSize="12sp"
+            android:textColor="@color/gray_600"
+            android:lineSpacingMultiplier="1.4" />
+
+    </LinearLayout>
+
+</LinearLayout>
