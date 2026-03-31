@@ -1,0 +1,1778 @@
+openapi: 3.0.0
+info:
+  title: 自习室小程序用户端 API
+  version: 1.0.0
+  description: iStudySpot 小程序用户端完整 API 接口文档
+
+servers:
+  - url: http://localhost:3000/api
+    description: 开发环境
+  - url: https://api.istudyspot.com/api
+    description: 生产环境
+
+tags:
+  - name: 认证
+    description: 用户认证相关接口
+  - name: 用户
+    description: 用户信息管理接口
+  - name: 自习室
+    description: 自习室管理接口
+  - name: 座位
+    description: 座位管理接口
+  - name: 预约
+    description: 预约管理接口
+  - name: 签到
+    description: 签到打卡接口
+  - name: 公告
+    description: 公告管理接口
+  - name: 规则
+    description: 规则管理接口
+
+paths:
+  /auth/login:
+    post:
+      tags:
+        - 认证
+      summary: 用户登录
+      description: 使用用户名和密码登录系统
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  description: 用户名
+                  example: user001
+                password:
+                  type: string
+                  description: 密码
+                  example: password123
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                code: 200
+                message: 登录成功
+                data:
+                  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                  refreshToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                  user:
+                    id: user_001
+                    username: user001
+                    nickname: 张三
+                    avatar: https://example.com/avatar.jpg
+                timestamp: 1711920000000
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/register:
+    post:
+      tags:
+        - 认证
+      summary: 用户注册
+      description: 新用户注册账号
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+                - nickname
+                - phone
+                - studentId
+              properties:
+                username:
+                  type: string
+                  description: 用户名
+                  example: user001
+                password:
+                  type: string
+                  description: 密码
+                  example: password123
+                nickname:
+                  type: string
+                  description: 昵称
+                  example: 张三
+                phone:
+                  type: string
+                  description: 手机号
+                  example: 13800138000
+                studentId:
+                  type: string
+                  description: 学号
+                  example: 20240001
+      responses:
+        '200':
+          description: 注册成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                code: 200
+                message: 注册成功
+                data:
+                  userId: user_001
+                timestamp: 1711920000000
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: 用户已存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 409
+                message: 用户名已存在
+                data: null
+                timestamp: 1711920000000
+
+  /auth/refresh:
+    post:
+      tags:
+        - 认证
+      summary: 刷新Token
+      description: 使用RefreshToken刷新Access Token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refreshToken
+              properties:
+                refreshToken:
+                  type: string
+                  description: 刷新令牌
+                  example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+      responses:
+        '200':
+          description: 刷新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                code: 200
+                message: 刷新成功
+                data:
+                  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                  refreshToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                timestamp: 1711920000000
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          description: RefreshToken无效或已过期
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 10003
+                message: Token已过期
+                data: null
+                timestamp: 1711920000000
+
+  /auth/logout:
+    post:
+      tags:
+        - 认证
+      summary: 登出
+      description: 用户登出系统
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 登出成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                code: 200
+                message: 登出成功
+                data: null
+                timestamp: 1711920000000
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /users/me:
+    get:
+      tags:
+        - 用户
+      summary: 获取当前用户信息
+      description: 获取当前登录用户的详细信息
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/User'
+              example:
+                code: 200
+                message: success
+                data:
+                  id: user_001
+                  username: user001
+                  nickname: 张三
+                  avatar: https://example.com/avatar.jpg
+                  phone: 13800138000
+                  email: user@example.com
+                  studentId: 20240001
+                  creditScore: 100
+                  status: active
+                  createdAt: 2024-01-01T00:00:00Z
+                  updatedAt: 2024-01-01T00:00:00Z
+                timestamp: 1711920000000
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    put:
+      tags:
+        - 用户
+      summary: 更新用户信息
+      description: 更新当前登录用户的信息
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nickname:
+                  type: string
+                  description: 昵称
+                  example: 张三
+                avatar:
+                  type: string
+                  description: 头像URL
+                  example: https://example.com/avatar.jpg
+                phone:
+                  type: string
+                  description: 手机号
+                  example: 13800138000
+                email:
+                  type: string
+                  description: 邮箱
+                  example: user@example.com
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /users/me/password:
+    put:
+      tags:
+        - 用户
+      summary: 修改密码
+      description: 修改当前登录用户的密码
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - oldPassword
+                - newPassword
+              properties:
+                oldPassword:
+                  type: string
+                  description: 旧密码
+                  example: oldpassword123
+                newPassword:
+                  type: string
+                  description: 新密码
+                  example: newpassword123
+      responses:
+        '200':
+          description: 修改成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                code: 200
+                message: 密码修改成功
+                data: null
+                timestamp: 1711920000000
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /studyrooms:
+    get:
+      tags:
+        - 自习室
+      summary: 获取自习室列表
+      description: 获取自习室列表，支持分页和筛选
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: status
+          in: query
+          description: 状态筛选
+          schema:
+            type: string
+            enum: [open, closed]
+            example: open
+        - name: floor
+          in: query
+          description: 楼层筛选
+          schema:
+            type: integer
+            example: 1
+        - name: keyword
+          in: query
+          description: 关键词搜索
+          schema:
+            type: string
+            example: 图书馆
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PaginatedResponse'
+                        properties:
+                          list:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/StudyRoom'
+              example:
+                code: 200
+                message: success
+                data:
+                  list:
+                    - id: room_001
+                      name: 图书馆一楼自习室
+                      description: 安静舒适的学习环境
+                      location: 图书馆一楼东侧
+                      floor: 1
+                      capacity: 50
+                      openTime: 08:00
+                      closeTime: 22:00
+                      facilities:
+                        - WiFi
+                        - 空调
+                        - 插座
+                      image: https://example.com/room.jpg
+                      status: open
+                  total: 10
+                  page: 1
+                  pageSize: 20
+                timestamp: 1711920000000
+
+  /studyrooms/{id}:
+    get:
+      tags:
+        - 自习室
+      summary: 获取自习室详情
+      description: 根据ID获取自习室详细信息
+      parameters:
+        - $ref: '#/components/parameters/StudyRoomId'
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/StudyRoomDetail'
+              example:
+                code: 200
+                message: success
+                data:
+                  id: room_001
+                  name: 图书馆一楼自习室
+                  description: 安静舒适的学习环境
+                  location: 图书馆一楼东侧
+                  floor: 1
+                  capacity: 50
+                  openTime: 08:00
+                  closeTime: 22:00
+                  facilities:
+                    - WiFi
+                    - 空调
+                    - 插座
+                  image: https://example.com/room.jpg
+                  status: open
+                  rules:
+                    - id: rule_001
+                      category: booking
+                      title: 预约规则
+                      content: 请提前15分钟签到
+                      priority: 1
+                  createdAt: 2024-01-01T00:00:00Z
+                  updatedAt: 2024-01-01T00:00:00Z
+                timestamp: 1711920000000
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /studyrooms/{studyRoomId}/seats:
+    get:
+      tags:
+        - 座位
+      summary: 获取座位列表
+      description: 获取指定自习室的座位列表
+      parameters:
+        - $ref: '#/components/parameters/StudyRoomId'
+        - name: status
+          in: query
+          description: 状态筛选
+          schema:
+            type: string
+            enum: [available, occupied, reserved]
+            example: available
+        - name: type
+          in: query
+          description: 类型筛选
+          schema:
+            type: string
+            enum: [normal, vip, quiet]
+            example: normal
+        - name: row
+          in: query
+          description: 行号筛选
+          schema:
+            type: integer
+            example: 1
+        - name: col
+          in: query
+          description: 列号筛选
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Seat'
+              example:
+                code: 200
+                message: success
+                data:
+                  - id: seat_001
+                    studyRoomId: room_001
+                    row: 1
+                    col: 1
+                    seatNumber: A1
+                    type: normal
+                    status: available
+                    facilities:
+                      - 插座
+                      - 台灯
+                    lastUsedAt: 2024-01-01T00:00:00Z
+                timestamp: 1711920000000
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /seats/{id}:
+    get:
+      tags:
+        - 座位
+      summary: 获取座位详情
+      description: 根据ID获取座位详细信息
+      parameters:
+        - $ref: '#/components/parameters/SeatId'
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Seat'
+              example:
+                code: 200
+                message: success
+                data:
+                  id: seat_001
+                  studyRoomId: room_001
+                  row: 1
+                  col: 1
+                  seatNumber: A1
+                  type: normal
+                  status: available
+                  facilities:
+                    - 插座
+                    - 台灯
+                  lastUsedAt: 2024-01-01T00:00:00Z
+                timestamp: 1711920000000
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /reservations:
+    post:
+      tags:
+        - 预约
+      summary: 创建预约
+      description: 创建新的座位预约
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - studyRoomId
+                - seatId
+                - startTime
+                - endTime
+              properties:
+                studyRoomId:
+                  type: string
+                  description: 自习室ID
+                  example: room_001
+                seatId:
+                  type: string
+                  description: 座位ID
+                  example: seat_001
+                startTime:
+                  type: string
+                  format: date-time
+                  description: 开始时间
+                  example: 2024-01-01T09:00:00Z
+                endTime:
+                  type: string
+                  format: date-time
+                  description: 结束时间
+                  example: 2024-01-01T12:00:00Z
+      responses:
+        '200':
+          description: 预约成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Reservation'
+              example:
+                code: 200
+                message: 预约成功
+                data:
+                  id: res_001
+                  userId: user_001
+                  studyRoomId: room_001
+                  seatId: seat_001
+                  startTime: 2024-01-01T09:00:00Z
+                  endTime: 2024-01-01T12:00:00Z
+                  status: confirmed
+                  checkInTime: null
+                  checkOutTime: null
+                  createdAt: 2024-01-01T00:00:00Z
+                  updatedAt: 2024-01-01T00:00:00Z
+                timestamp: 1711920000000
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: 预约时间冲突
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 40001
+                message: 预约时间冲突
+                data: null
+                timestamp: 1711920000000
+
+  /reservations/my:
+    get:
+      tags:
+        - 预约
+      summary: 获取我的预约列表
+      description: 获取当前用户的预约列表
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: status
+          in: query
+          description: 状态筛选
+          schema:
+            type: string
+            enum: [pending, confirmed, checked_in, completed, cancelled, expired]
+            example: confirmed
+        - name: startDate
+          in: query
+          description: 开始日期
+          schema:
+            type: string
+            format: date
+            example: 2024-01-01
+        - name: endDate
+          in: query
+          description: 结束日期
+          schema:
+            type: string
+            format: date
+            example: 2024-01-31
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PaginatedResponse'
+                        properties:
+                          list:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Reservation'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /reservations/{id}:
+    get:
+      tags:
+        - 预约
+      summary: 获取预约详情
+      description: 根据ID获取预约详细信息
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ReservationId'
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Reservation'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /reservations/{id}/cancel:
+    post:
+      tags:
+        - 预约
+      summary: 取消预约
+      description: 取消指定的预约
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ReservationId'
+      responses:
+        '200':
+          description: 取消成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                code: 200
+                message: 预约已取消
+                data: null
+                timestamp: 1711920000000
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          description: 无法取消（已签到或已过期）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 40007
+                message: 预约已签到，无法取消
+                data: null
+                timestamp: 1711920000000
+
+  /reservations/rules:
+    get:
+      tags:
+        - 预约
+      summary: 获取预约规则
+      description: 获取预约相关的规则信息
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ReservationRules'
+              example:
+                code: 200
+                message: success
+                data:
+                  maxAdvanceDays: 7
+                  maxDailyReservations: 2
+                  maxDurationHours: 4
+                  minDurationMinutes: 30
+                  cancellationDeadlineMinutes: 15
+                  noShowPenalty: 5
+                timestamp: 1711920000000
+
+  /checkin:
+    post:
+      tags:
+        - 签到
+      summary: 签到
+      description: 用户签到开始学习
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reservationId
+                - seatId
+              properties:
+                reservationId:
+                  type: string
+                  description: 预约ID
+                  example: res_001
+                seatId:
+                  type: string
+                  description: 座位ID
+                  example: seat_001
+      responses:
+        '200':
+          description: 签到成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          checkInRecordId:
+                            type: string
+                            description: 签到记录ID
+                          checkInTime:
+                            type: string
+                            format: date-time
+                            description: 签到时间
+                          reservationId:
+                            type: string
+                            description: 预约ID
+                          seatId:
+                            type: string
+                            description: 座位ID
+              example:
+                code: 200
+                message: 签到成功
+                data:
+                  checkInRecordId: checkin_001
+                  checkInTime: 2024-01-01T09:00:00Z
+                  reservationId: res_001
+                  seatId: seat_001
+                timestamp: 1711920000000
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          description: 未找到有效预约或已经签到
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 50001
+                message: 未找到有效预约
+                data: null
+                timestamp: 1711920000000
+
+  /checkout:
+    post:
+      tags:
+        - 签到
+      summary: 签退
+      description: 用户签退结束学习
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - checkInRecordId
+              properties:
+                checkInRecordId:
+                  type: string
+                  description: 签到记录ID
+                  example: checkin_001
+      responses:
+        '200':
+          description: 签退成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          checkOutTime:
+                            type: string
+                            format: date-time
+                            description: 签退时间
+                          duration:
+                            type: integer
+                            description: 学习时长（分钟）
+              example:
+                code: 200
+                message: 签退成功
+                data:
+                  checkOutTime: 2024-01-01T12:00:00Z
+                  duration: 180
+                timestamp: 1711920000000
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          description: 签到记录不存在或已经签退
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: 50004
+                message: 已经签退
+                data: null
+                timestamp: 1711920000000
+
+  /checkin/records:
+    get:
+      tags:
+        - 签到
+      summary: 获取我的签到记录
+      description: 获取当前用户的签到记录列表
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: startDate
+          in: query
+          description: 开始日期
+          schema:
+            type: string
+            format: date
+            example: 2024-01-01
+        - name: endDate
+          in: query
+          description: 结束日期
+          schema:
+            type: string
+            format: date
+            example: 2024-01-31
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PaginatedResponse'
+                        properties:
+                          list:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/CheckInRecord'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /checkin/current:
+    get:
+      tags:
+        - 签到
+      summary: 获取当前签到状态
+      description: 获取当前用户的签到状态
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          isCheckedIn:
+                            type: boolean
+                            description: 是否已签到
+                          checkInRecord:
+                            $ref: '#/components/schemas/CheckInRecord'
+              example:
+                code: 200
+                message: success
+                data:
+                  isCheckedIn: true
+                  checkInRecord:
+                    id: checkin_001
+                    userId: user_001
+                    reservationId: res_001
+                    studyRoomId: room_001
+                    seatId: seat_001
+                    checkInTime: 2024-01-01T09:00:00Z
+                    checkOutTime: null
+                    duration: 0
+                    status: active
+                timestamp: 1711920000000
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /announcements:
+    get:
+      tags:
+        - 公告
+      summary: 获取公告列表
+      description: 获取公告列表，支持分页和筛选
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: type
+          in: query
+          description: 类型筛选
+          schema:
+            type: string
+            enum: [notice, maintenance, event, emergency]
+            example: notice
+        - name: priority
+          in: query
+          description: 优先级筛选
+          schema:
+            type: string
+            enum: [low, medium, high]
+            example: high
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PaginatedResponse'
+                        properties:
+                          list:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Announcement'
+              example:
+                code: 200
+                message: success
+                data:
+                  list:
+                    - id: ann_001
+                      title: 自习室开放时间调整通知
+                      content: 从即日起，自习室开放时间调整为...
+                      type: notice
+                      priority: high
+                      publishTime: 2024-01-01T00:00:00Z
+                      expireTime: 2024-01-31T23:59:59Z
+                      author: 管理员
+                      status: published
+                  total: 10
+                  page: 1
+                  pageSize: 20
+                timestamp: 1711920000000
+
+  /announcements/{id}:
+    get:
+      tags:
+        - 公告
+      summary: 获取公告详情
+      description: 根据ID获取公告详细信息
+      parameters:
+        - $ref: '#/components/parameters/AnnouncementId'
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Announcement'
+              example:
+                code: 200
+                message: success
+                data:
+                  id: ann_001
+                  title: 自习室开放时间调整通知
+                  content: 从即日起，自习室开放时间调整为...
+                  type: notice
+                  priority: high
+                  publishTime: 2024-01-01T00:00:00Z
+                  expireTime: 2024-01-31T23:59:59Z
+                  author: 管理员
+                  status: published
+                timestamp: 1711920000000
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /rules:
+    get:
+      tags:
+        - 规则
+      summary: 获取规则列表
+      description: 获取规则列表，支持筛选
+      parameters:
+        - name: studyRoomId
+          in: query
+          description: 自习室ID，不传则获取通用规则
+          schema:
+            type: string
+            example: room_001
+        - name: category
+          in: query
+          description: 规则分类
+          schema:
+            type: string
+            enum: [booking, usage, penalty, general]
+            example: booking
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Rule'
+              example:
+                code: 200
+                message: success
+                data:
+                  - id: rule_001
+                    studyRoomId: null
+                    category: booking
+                    title: 预约规则
+                    content: 请提前15分钟签到
+                    priority: 1
+                    createdAt: 2024-01-01T00:00:00Z
+                    updatedAt: 2024-01-01T00:00:00Z
+                timestamp: 1711920000000
+
+  /rules/{id}:
+    get:
+      tags:
+        - 规则
+      summary: 获取规则详情
+      description: 根据ID获取规则详细信息
+      parameters:
+        - $ref: '#/components/parameters/RuleId'
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Rule'
+              example:
+                code: 200
+                message: success
+                data:
+                  id: rule_001
+                  studyRoomId: null
+                  category: booking
+                  title: 预约规则
+                  content: 请提前15分钟签到
+                  priority: 1
+                  createdAt: 2024-01-01T00:00:00Z
+                  updatedAt: 2024-01-01T00:00:00Z
+                timestamp: 1711920000000
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT Token认证
+
+  parameters:
+    Page:
+      name: page
+      in: query
+      description: 页码
+      schema:
+        type: integer
+        default: 1
+        minimum: 1
+      example: 1
+
+    PageSize:
+      name: pageSize
+      in: query
+      description: 每页数量
+      schema:
+        type: integer
+        default: 20
+        minimum: 1
+        maximum: 100
+      example: 20
+
+    StudyRoomId:
+      name: id
+      in: path
+      description: 自习室ID
+      required: true
+      schema:
+        type: string
+      example: room_001
+
+    SeatId:
+      name: id
+      in: path
+      description: 座位ID
+      required: true
+      schema:
+        type: string
+      example: seat_001
+
+    ReservationId:
+      name: id
+      in: path
+      description: 预约ID
+      required: true
+      schema:
+        type: string
+      example: res_001
+
+    AnnouncementId:
+      name: id
+      in: path
+      description: 公告ID
+      required: true
+      schema:
+        type: string
+      example: ann_001
+
+    RuleId:
+      name: id
+      in: path
+      description: 规则ID
+      required: true
+      schema:
+        type: string
+      example: rule_001
+
+  schemas:
+    SuccessResponse:
+      type: object
+      required:
+        - code
+        - message
+        - timestamp
+      properties:
+        code:
+          type: integer
+          description: 业务状态码
+          example: 200
+        message:
+          type: string
+          description: 响应消息
+          example: success
+        data:
+          type: object
+          description: 业务数据
+          nullable: true
+        timestamp:
+          type: integer
+          description: 服务器时间戳（毫秒）
+          example: 1711920000000
+
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+        - timestamp
+      properties:
+        code:
+          type: integer
+          description: 业务状态码
+          example: 400
+        message:
+          type: string
+          description: 错误消息
+          example: 请求参数错误
+        data:
+          type: object
+          nullable: true
+          description: 错误详情
+        timestamp:
+          type: integer
+          description: 服务器时间戳（毫秒）
+          example: 1711920000000
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 用户ID
+          example: user_001
+        username:
+          type: string
+          description: 用户名
+          example: user001
+        nickname:
+          type: string
+          description: 昵称
+          example: 张三
+        avatar:
+          type: string
+          description: 头像URL
+          example: https://example.com/avatar.jpg
+        phone:
+          type: string
+          description: 手机号
+          example: 13800138000
+        email:
+          type: string
+          description: 邮箱
+          example: user@example.com
+        studentId:
+          type: string
+          description: 学号
+          example: 20240001
+        creditScore:
+          type: integer
+          description: 信用分
+          example: 100
+        status:
+          type: string
+          enum: [active, banned]
+          description: 状态
+          example: active
+        createdAt:
+          type: string
+          format: date-time
+          description: 创建时间
+          example: 2024-01-01T00:00:00Z
+        updatedAt:
+          type: string
+          format: date-time
+          description: 更新时间
+          example: 2024-01-01T00:00:00Z
+
+    StudyRoom:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 自习室ID
+          example: room_001
+        name:
+          type: string
+          description: 自习室名称
+          example: 图书馆一楼自习室
+        description:
+          type: string
+          description: 描述
+          example: 安静舒适的学习环境
+        location:
+          type: string
+          description: 位置
+          example: 图书馆一楼东侧
+        floor:
+          type: integer
+          description: 楼层
+          example: 1
+        capacity:
+          type: integer
+          description: 容量
+          example: 50
+        openTime:
+          type: string
+          description: 开放时间
+          example: 08:00
+        closeTime:
+          type: string
+          description: 关闭时间
+          example: 22:00
+        facilities:
+          type: array
+          description: 设施列表
+          items:
+            type: string
+          example:
+            - WiFi
+            - 空调
+            - 插座
+        image:
+          type: string
+          description: 图片URL
+          example: https://example.com/room.jpg
+        status:
+          type: string
+          enum: [open, closed, maintenance]
+          description: 状态
+          example: open
+
+    StudyRoomDetail:
+      allOf:
+        - $ref: '#/components/schemas/StudyRoom'
+        - type: object
+          properties:
+            rules:
+              type: array
+              description: 规则列表
+              items:
+                $ref: '#/components/schemas/Rule'
+            createdAt:
+              type: string
+              format: date-time
+              description: 创建时间
+              example: 2024-01-01T00:00:00Z
+            updatedAt:
+              type: string
+              format: date-time
+              description: 更新时间
+              example: 2024-01-01T00:00:00Z
+
+    Seat:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 座位ID
+          example: seat_001
+        studyRoomId:
+          type: string
+          description: 自习室ID
+          example: room_001
+        row:
+          type: integer
+          description: 行号
+          example: 1
+        col:
+          type: integer
+          description: 列号
+          example: 1
+        seatNumber:
+          type: string
+          description: 座位号
+          example: A1
+        type:
+          type: string
+          enum: [normal, vip, quiet]
+          description: 类型
+          example: normal
+        status:
+          type: string
+          enum: [available, occupied, reserved, maintenance]
+          description: 状态
+          example: available
+        facilities:
+          type: array
+          description: 设施列表
+          items:
+            type: string
+          example:
+            - 插座
+            - 台灯
+        lastUsedAt:
+          type: string
+          format: date-time
+          description: 最后使用时间
+          example: 2024-01-01T00:00:00Z
+
+    Reservation:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 预约ID
+          example: res_001
+        userId:
+          type: string
+          description: 用户ID
+          example: user_001
+        studyRoomId:
+          type: string
+          description: 自习室ID
+          example: room_001
+        seatId:
+          type: string
+          description: 座位ID
+          example: seat_001
+        startTime:
+          type: string
+          format: date-time
+          description: 开始时间
+          example: 2024-01-01T09:00:00Z
+        endTime:
+          type: string
+          format: date-time
+          description: 结束时间
+          example: 2024-01-01T12:00:00Z
+        status:
+          type: string
+          enum: [pending, confirmed, checked_in, completed, cancelled, expired]
+          description: 状态
+          example: confirmed
+        checkInTime:
+          type: string
+          format: date-time
+          nullable: true
+          description: 签到时间
+          example: null
+        checkOutTime:
+          type: string
+          format: date-time
+          nullable: true
+          description: 签退时间
+          example: null
+        createdAt:
+          type: string
+          format: date-time
+          description: 创建时间
+          example: 2024-01-01T00:00:00Z
+        updatedAt:
+          type: string
+          format: date-time
+          description: 更新时间
+          example: 2024-01-01T00:00:00Z
+
+    ReservationRules:
+      type: object
+      properties:
+        maxAdvanceDays:
+          type: integer
+          description: 最大提前预约天数
+          example: 7
+        maxDailyReservations:
+          type: integer
+          description: 每日最大预约次数
+          example: 2
+        maxDurationHours:
+          type: integer
+          description: 最大预约时长（小时）
+          example: 4
+        minDurationMinutes:
+          type: integer
+          description: 最小预约时长（分钟）
+          example: 30
+        cancellationDeadlineMinutes:
+          type: integer
+          description: 取消预约截止时间（分钟）
+          example: 15
+        noShowPenalty:
+          type: integer
+          description: 违约扣分
+          example: 5
+
+    CheckInRecord:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 签到记录ID
+          example: checkin_001
+        userId:
+          type: string
+          description: 用户ID
+          example: user_001
+        reservationId:
+          type: string
+          description: 预约ID
+          example: res_001
+        studyRoomId:
+          type: string
+          description: 自习室ID
+          example: room_001
+        seatId:
+          type: string
+          description: 座位ID
+          example: seat_001
+        checkInTime:
+          type: string
+          format: date-time
+          description: 签到时间
+          example: 2024-01-01T09:00:00Z
+        checkOutTime:
+          type: string
+          format: date-time
+          nullable: true
+          description: 签退时间
+          example: 2024-01-01T12:00:00Z
+        duration:
+          type: integer
+          description: 学习时长（分钟）
+          example: 180
+        status:
+          type: string
+          enum: [active, completed]
+          description: 状态
+          example: completed
+
+    Announcement:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 公告ID
+          example: ann_001
+        title:
+          type: string
+          description: 标题
+          example: 自习室开放时间调整通知
+        content:
+          type: string
+          description: 内容
+          example: 从即日起，自习室开放时间调整为...
+        type:
+          type: string
+          enum: [notice, maintenance, event, emergency]
+          description: 类型
+          example: notice
+        priority:
+          type: string
+          enum: [low, medium, high]
+          description: 优先级
+          example: high
+        publishTime:
+          type: string
+          format: date-time
+          description: 发布时间
+          example: 2024-01-01T00:00:00Z
+        expireTime:
+          type: string
+          format: date-time
+          nullable: true
+          description: 过期时间
+          example: 2024-01-31T23:59:59Z
+        author:
+          type: string
+          description: 作者
+          example: 管理员
+        status:
+          type: string
+          enum: [published, draft, archived]
+          description: 状态
+          example: published
+
+    Rule:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 规则ID
+          example: rule_001
+        studyRoomId:
+          type: string
+          nullable: true
+          description: 自习室ID，null表示通用规则
+          example: null
+        category:
+          type: string
+          enum: [booking, usage, penalty, general]
+          description: 规则分类
+          example: booking
+        title:
+          type: string
+          description: 规则标题
+          example: 预约规则
+        content:
+          type: string
+          description: 规则内容
+          example: 请提前15分钟签到
+        priority:
+          type: integer
+          description: 优先级
+          example: 1
+        createdAt:
+          type: string
+          format: date-time
+          description: 创建时间
+          example: 2024-01-01T00:00:00Z
+        updatedAt:
+          type: string
+          format: date-time
+          description: 更新时间
+          example: 2024-01-01T00:00:00Z
+
+    PaginatedResponse:
+      type: object
+      properties:
+        list:
+          type: array
+          description: 数据列表
+          items:
+            type: object
+        total:
+          type: integer
+          description: 总数
+          example: 100
+        page:
+          type: integer
+          description: 当前页码
+          example: 1
+        pageSize:
+          type: integer
+          description: 每页数量
+          example: 20
+
+  responses:
+    BadRequest:
+      description: 请求参数错误
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: 400
+            message: 请求参数错误
+            data: null
+            timestamp: 1711920000000
+
+    Unauthorized:
+      description: 未授权或Token失效
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: 401
+            message: 未登录或Token失效
+            data: null
+            timestamp: 1711920000000
+
+    NotFound:
+      description: 资源不存在
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: 404
+            message: 资源不存在
+            data: null
+            timestamp: 1711920000000
