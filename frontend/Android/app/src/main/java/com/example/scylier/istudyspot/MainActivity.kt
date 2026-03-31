@@ -10,15 +10,24 @@ import com.example.scylier.istudyspot.fragment.ProfileFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var token: String
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        // 获取从登录页面传递过来的token
+        token = intent.getStringExtra("token") ?: ""
 
         val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottom_navigation)
         bottomNavigationView.setOnItemSelectedListener {
             when (it.itemId) {
                 R.id.nav_home -> {
-                    replaceFragment(HomeFragment())
+                    replaceFragment(HomeFragment().apply {
+                        arguments = Bundle().apply {
+                            putString("token", token)
+                        }
+                    })
                     true
                 }
                 R.id.nav_rules -> {
@@ -26,11 +35,19 @@ class MainActivity : AppCompatActivity() {
                     true
                 }
                 R.id.nav_more -> {
-                    replaceFragment(MoreFragment())
+                    replaceFragment(MoreFragment().apply {
+                        arguments = Bundle().apply {
+                            putString("token", token)
+                        }
+                    })
                     true
                 }
                 R.id.nav_profile -> {
-                    replaceFragment(ProfileFragment())
+                    replaceFragment(ProfileFragment().apply {
+                        arguments = Bundle().apply {
+                            putString("token", token)
+                        }
+                    })
                     true
                 }
                 else -> false
@@ -38,7 +55,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         // 默认显示首页
-        replaceFragment(HomeFragment())
+        replaceFragment(HomeFragment().apply {
+            arguments = Bundle().apply {
+                putString("token", token)
+            }
+        })
     }
 
     fun replaceFragment(fragment: Fragment) {

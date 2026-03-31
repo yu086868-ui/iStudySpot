@@ -13,6 +13,7 @@ import java.net.SocketTimeoutException
 
 class ApiManager(private val token: String? = null, private val context: Context? = null) {
     private val apiService = ApiClient.createService(ApiService::class.java, token)
+    private val useMockData = true // 控制是否使用Mock数据
 
     suspend fun <T> executeRequest(request: suspend () -> Response<BaseResponse<T>>): ApiResponse<T> {
         return withContext(Dispatchers.IO) {
@@ -48,6 +49,8 @@ class ApiManager(private val token: String? = null, private val context: Context
         }
     }
 
+
+
     private fun isNetworkAvailable(context: Context): Boolean {
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val network = connectivityManager.activeNetwork
@@ -61,19 +64,97 @@ class ApiManager(private val token: String? = null, private val context: Context
 
     // 认证相关 API
     suspend fun login(username: String, password: String) = executeRequest {
+        // 为login提供专门的Mock数据
+        if (useMockData) {
+            return@executeRequest Response.success(
+                BaseResponse(
+                    code = 200,
+                    message = "登录成功",
+                    data = com.example.scylier.istudyspot.models.auth.LoginResponse(
+                        token = "mock_token",
+                        user = com.example.scylier.istudyspot.models.auth.UserInfo(
+                            id = "1",
+                            username = username,
+                            nickname = "测试用户",
+                            avatar = "https://example.com/avatar.jpg"
+                        )
+                    )
+                )
+            )
+        }
         apiService.login(com.example.scylier.istudyspot.models.auth.LoginRequest(username, password))
     }
 
     suspend fun register(username: String, password: String, nickname: String) = executeRequest {
+        // 为register提供专门的Mock数据
+        if (useMockData) {
+            return@executeRequest Response.success(
+                BaseResponse(
+                    code = 201,
+                    message = "注册成功",
+                    data = com.example.scylier.istudyspot.models.auth.RegisterResponse(
+                        token = "mock_token",
+                        user = com.example.scylier.istudyspot.models.auth.UserInfo(
+                            id = "1",
+                            username = username,
+                            nickname = nickname,
+                            avatar = "https://example.com/avatar.jpg"
+                        )
+                    )
+                )
+            )
+        }
         apiService.register(com.example.scylier.istudyspot.models.auth.RegisterRequest(username, password, nickname))
     }
 
     suspend fun refreshToken() = executeRequest {
+        // 为refreshToken提供专门的Mock数据
+        if (useMockData) {
+            return@executeRequest Response.success(
+                BaseResponse(
+                    code = 200,
+                    message = "刷新成功",
+                    data = com.example.scylier.istudyspot.models.auth.TokenResponse(
+                        token = "mock_token"
+                    )
+                )
+            )
+        }
         apiService.refreshToken()
     }
 
     // 自习室相关 API
     suspend fun getStudyRooms(page: Int = 1, size: Int = 10) = executeRequest {
+        // 为getStudyRooms提供专门的Mock数据
+        if (useMockData) {
+            return@executeRequest Response.success(
+                BaseResponse(
+                    code = 200,
+                    message = "获取成功",
+                    data = com.example.scylier.istudyspot.models.studyroom.StudyRoomListResponse(
+                        total = 2,
+                        list = listOf(
+                            com.example.scylier.istudyspot.models.studyroom.StudyRoomItem(
+                                id = "1",
+                                name = "自习室1",
+                                address = "图书馆三楼",
+                                openingHours = "08:00-22:00",
+                                occupancyRate = 0.8,
+                                imageUrl = "https://example.com/room1.jpg"
+                            ),
+                            com.example.scylier.istudyspot.models.studyroom.StudyRoomItem(
+                                id = "2",
+                                name = "自习室2",
+                                address = "图书馆四楼",
+                                openingHours = "08:00-22:00",
+                                occupancyRate = 0.6,
+                                imageUrl = "https://example.com/room2.jpg"
+                            )
+                        )
+                    )
+                )
+            )
+        }
         apiService.getStudyRooms(page, size)
     }
 
@@ -118,6 +199,23 @@ class ApiManager(private val token: String? = null, private val context: Context
 
     // 用户相关 API
     suspend fun getUserInfo() = executeRequest {
+        // 为getUserInfo提供专门的Mock数据
+        if (useMockData) {
+            return@executeRequest Response.success(
+                BaseResponse(
+                    code = 200,
+                    message = "获取成功",
+                    data = com.example.scylier.istudyspot.models.auth.UserInfo(
+                        id = "1",
+                        username = "test",
+                        nickname = "测试用户",
+                        avatar = "https://example.com/avatar.jpg",
+                        phone = "13800138000",
+                        email = "test@example.com"
+                    )
+                )
+            )
+        }
         apiService.getUserInfo()
     }
 
