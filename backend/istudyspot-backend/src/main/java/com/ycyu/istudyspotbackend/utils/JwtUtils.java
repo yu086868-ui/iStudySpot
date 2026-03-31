@@ -6,20 +6,19 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 @Component
 public class JwtUtils {
 
-    @Value("${jwt.secret}")
-    private String secret;
-
     @Value("${jwt.expire}")
     private Long expire;
 
+    // 使用固定的安全密钥（32字节以上）
+    private static final String SECRET_KEY = "iStudySpotSecretKey2024IsVeryLongAndSecure1234567890";
+
     private SecretKey getKey() {
-        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
     }
 
     public String generateToken(Long userId) {
