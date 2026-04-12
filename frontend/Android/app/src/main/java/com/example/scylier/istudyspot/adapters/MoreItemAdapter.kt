@@ -15,7 +15,10 @@ sealed class MoreAdapterItem {
     data class FunctionItem(val moreItem: MoreItem) : MoreAdapterItem()
 }
 
-class MoreItemAdapter(private val groupedItems: Map<String, List<MoreItem>>) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class MoreItemAdapter(
+    private val groupedItems: Map<String, List<MoreItem>>,
+    private val onItemClickListener: (MoreItem) -> Unit
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     // 创建一个扁平化的项目列表
     private val items: List<MoreAdapterItem> by lazy {
@@ -82,13 +85,17 @@ class MoreItemAdapter(private val groupedItems: Map<String, List<MoreItem>>) : R
     }
 
     // 功能项ViewHolder
-    class FunctionViewHolder(private val moreItemView: MoreItemView) : RecyclerView.ViewHolder(moreItemView) {
+    inner class FunctionViewHolder(private val moreItemView: MoreItemView) : RecyclerView.ViewHolder(moreItemView) {
         fun bind(item: MoreItem) {
             moreItemView.setIcon(item.icon)
             moreItemView.setTitle(item.title)
             moreItemView.setDescription(item.description)
             moreItemView.setIconBackgroundColor(item.bgColor)
             moreItemView.setIconColor(item.iconColor)
+            
+            moreItemView.setOnClickListener {
+                onItemClickListener(item)
+            }
         }
     }
 }

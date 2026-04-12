@@ -78,6 +78,12 @@ dependencies {
     implementation(libs.coroutines.core)
     implementation(libs.coroutines.android)
 
+    // RecyclerView
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
+
+    // CardView
+    implementation("androidx.cardview:cardview:1.0.0")
+
     // MockWebServer for testing
     testImplementation("com.squareup.okhttp3:mockwebserver:4.9.3")
 }

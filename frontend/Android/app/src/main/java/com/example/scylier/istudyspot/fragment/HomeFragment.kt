@@ -59,42 +59,67 @@ class HomeFragment : Fragment() {
     }
 
     private fun handleFunctionItemClick(item: FunctionItem) {
-        when (item.title) {
-            "预约座位" -> {
-                // 跳转到预约座位页面
-                Toast.makeText(requireContext(), "跳转到预约座位页面", Toast.LENGTH_SHORT).show()
-                // 这里可以添加获取自习室列表的API调用
-                getStudyRooms()
+        when (item.id) {
+            "booking" -> {
+                // 预约座位 - 跳转到自习室列表页面
+                val studyRoomFragment = StudyRoomFragment()
+                parentFragmentManager.beginTransaction()
+                    .replace(R.id.fragment_container, studyRoomFragment)
+                    .addToBackStack(null)
+                    .commit()
             }
-            "签到" -> {
-                // 跳转到签到页面
-                Toast.makeText(requireContext(), "跳转到签到页面", Toast.LENGTH_SHORT).show()
+            "checkin" -> {
+                // 签到 - 跳转到订单列表页面（从订单中签到）
+                val orderListFragment = OrderListFragment()
+                parentFragmentManager.beginTransaction()
+                    .replace(R.id.fragment_container, orderListFragment)
+                    .addToBackStack(null)
+                    .commit()
+                Toast.makeText(requireContext(), "请在订单详情中签到", Toast.LENGTH_SHORT).show()
             }
-            "场馆导览" -> {
-                // 跳转到场馆导览页面
-                Toast.makeText(requireContext(), "跳转到场馆导览页面", Toast.LENGTH_SHORT).show()
+            "guide" -> {
+                // 场馆导览 - 跳转到场馆导览页面
+                val guideFragment = GuideFragment()
+                parentFragmentManager.beginTransaction()
+                    .replace(R.id.fragment_container, guideFragment)
+                    .addToBackStack(null)
+                    .commit()
             }
-            "我的预约" -> {
-                // 跳转到我的预约页面
-                Toast.makeText(requireContext(), "跳转到我的预约页面", Toast.LENGTH_SHORT).show()
-                // 这里可以添加获取用户订单列表的API调用
-                getUserOrders()
+            "my_booking" -> {
+                // 我的预约 - 跳转到订单列表页面
+                val orderListFragment = OrderListFragment()
+                parentFragmentManager.beginTransaction()
+                    .replace(R.id.fragment_container, orderListFragment)
+                    .addToBackStack(null)
+                    .commit()
             }
-            "学习记录" -> {
-                // 跳转到学习记录页面
-                Toast.makeText(requireContext(), "跳转到学习记录页面", Toast.LENGTH_SHORT).show()
+            "study_record" -> {
+                // 学习记录 - 跳转到学习记录页面
+                val studyRecordFragment = StudyRecordFragment()
+                parentFragmentManager.beginTransaction()
+                    .replace(R.id.fragment_container, studyRecordFragment)
+                    .addToBackStack(null)
+                    .commit()
             }
-            "团队预约" -> {
-                // 跳转到团队预约页面
-                Toast.makeText(requireContext(), "跳转到团队预约页面", Toast.LENGTH_SHORT).show()
+            "team_booking" -> {
+                // 团队预约 - 团队预约功能
+                Toast.makeText(requireContext(), "团队预约功能开发中", Toast.LENGTH_SHORT).show()
             }
-            "通知提醒" -> {
-                // 跳转到通知提醒页面
-                Toast.makeText(requireContext(), "跳转到通知提醒页面", Toast.LENGTH_SHORT).show()
+            "notification" -> {
+                // 通知提醒 - 跳转到通知提醒页面
+                val notificationFragment = NotificationFragment()
+                parentFragmentManager.beginTransaction()
+                    .replace(R.id.fragment_container, notificationFragment)
+                    .addToBackStack(null)
+                    .commit()
             }
-            "偏好设置" -> {
-                // 跳转到偏好设置页面
-                Toast.makeText(requireContext(), "跳转到偏好设置页面", Toast.LENGTH_SHORT).show()
+            "settings" -> {
+                // 偏好设置 - 跳转到更多页面
+                val moreFragment = MoreFragment()
+                parentFragmentManager.beginTransaction()
+                    .replace(R.id.fragment_container, moreFragment)
+                    .addToBackStack(null)
+                    .commit()
             }
         }
     }
