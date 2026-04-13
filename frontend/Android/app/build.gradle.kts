@@ -73,7 +73,7 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging)
     implementation(libs.gson)
-
+    implementation(libs.kotlin.stdlib)
     // Coroutines
     implementation(libs.coroutines.core)
     implementation(libs.coroutines.android)
@@ -83,6 +83,10 @@ dependencies {
 
     // CardView
     implementation("androidx.cardview:cardview:1.0.0")
+
+    // Navigation 组件
+    implementation("androidx.navigation:navigation-fragment-ktx:2.7.7")
+    implementation("androidx.navigation:navigation-ui-ktx:2.7.7")
 
     // MockWebServer for testing
     testImplementation("com.squareup.okhttp3:mockwebserver:4.9.3")

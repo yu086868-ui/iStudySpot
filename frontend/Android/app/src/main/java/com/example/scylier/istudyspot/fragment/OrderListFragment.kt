@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.scylier.istudyspot.R
@@ -54,15 +55,9 @@ class OrderListFragment : Fragment() {
                 is ApiResponse.Success -> {
                     val orders = response.data.list
                     adapter = OrderAdapter(orders) {
-                        // 跳转到订单详情页面
-                        val orderFragment = OrderFragment()
                         val bundle = Bundle()
                         bundle.putString("orderId", it.id)
-                        orderFragment.arguments = bundle
-                        parentFragmentManager.beginTransaction()
-                            .replace(R.id.fragment_container, orderFragment)
-                            .addToBackStack(null)
-                            .commit()
+                        findNavController().navigate(R.id.action_orderListFragment_to_orderFragment, bundle)
                     }
                     recyclerView.adapter = adapter
                 }
@@ -92,11 +87,11 @@ class OrderListFragment : Fragment() {
         override fun getItemCount(): Int = orders.size
 
         inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-            private val tvStudyRoomName = itemView.findViewById<TextView>(R.id.tv_study_room_name)
-            private val tvSeatPosition = itemView.findViewById<TextView>(R.id.tv_seat_position)
-            private val tvStartTime = itemView.findViewById<TextView>(R.id.tv_start_time)
-            private val tvEndTime = itemView.findViewById<TextView>(R.id.tv_end_time)
-            private val tvStatus = itemView.findViewById<TextView>(R.id.tv_status)
+            private val tvStudyRoomName: TextView = itemView.findViewById(R.id.tv_study_room_name)
+            private val tvSeatPosition: TextView = itemView.findViewById(R.id.tv_seat_position)
+            private val tvStartTime: TextView = itemView.findViewById(R.id.tv_start_time)
+            private val tvEndTime: TextView = itemView.findViewById(R.id.tv_end_time)
+            private val tvStatus: TextView = itemView.findViewById(R.id.tv_status)
 
             fun bind(order: OrderItem) {
                 tvStudyRoomName.text = order.studyRoomName

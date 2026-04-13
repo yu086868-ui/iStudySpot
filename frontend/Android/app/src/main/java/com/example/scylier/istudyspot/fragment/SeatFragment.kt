@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.example.scylier.istudyspot.R
 import com.example.scylier.istudyspot.customview.SeatMapView
 import com.example.scylier.istudyspot.models.ApiResponse
@@ -50,18 +51,13 @@ class SeatFragment : Fragment() {
         seatMapView.setOnSeatClickListener {
             if (it.status == "available") {
                 // 跳转到预订页面
-                val bookingFragment = BookingFragment()
                 val bundle = Bundle()
                 bundle.putString("seatId", it.id)
                 bundle.putString("studyRoomId", studyRoomId)
                 bundle.putString("studyRoomName", studyRoomName)
                 bundle.putString("seatPosition", "${it.row}-${it.col}")
                 bundle.putDouble("pricePerHour", it.pricePerHour)
-                bookingFragment.arguments = bundle
-                parentFragmentManager.beginTransaction()
-                    .replace(R.id.fragment_container, bookingFragment)
-                    .addToBackStack(null)
-                    .commit()
+                findNavController().navigate(R.id.action_seatFragment_to_bookingFragment, bundle)
             } else {
                 Toast.makeText(requireContext(), "该座位不可预订", Toast.LENGTH_SHORT).show()
             }

@@ -4,14 +4,16 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.example.scylier.istudyspot.R
 import com.example.scylier.istudyspot.models.ApiResponse
-import com.example.scylier.istudyspot.network.ApiManager
-import com.example.scylier.istudyspot.network.ErrorHandler
+import com.example.scylier.istudyspot.infra.network.ApiManager
+import com.example.scylier.istudyspot.infra.network.ErrorHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -34,11 +36,8 @@ class ProfileFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        // 初始化UI组件
         initUI(view)
-        // 获取token
         token = arguments?.getString("token", "") ?: ""
-        // 获取用户信息
         getUserInfo()
     }
 
@@ -49,18 +48,13 @@ class ProfileFragment : Fragment() {
         tvPhone = view.findViewById(R.id.tv_phone)
         tvEmail = view.findViewById(R.id.tv_email)
 
-        // 添加头像点击事件
         ivAvatar.setOnClickListener {
             showLoginFragment()
         }
     }
 
     private fun showLoginFragment() {
-        val loginFragment = LoginFragment()
-        parentFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container, loginFragment)
-            .addToBackStack(null)
-            .commit()
+        findNavController().navigate(R.id.action_nav_profile_to_loginFragment)
     }
 
     fun getUserInfo() {
@@ -75,7 +69,6 @@ class ProfileFragment : Fragment() {
                     tvNickname.text = userInfo.nickname
                     tvPhone.text = userInfo.phone ?: "未设置"
                     tvEmail.text = userInfo.email ?: "未设置"
-                    // 这里可以添加头像加载逻辑
                 }
                 is ApiResponse.Error -> {
                     val errorMessage = ErrorHandler.getErrorMessage(response)

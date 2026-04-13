@@ -1,4 +1,4 @@
-package com.example.scylier.istudyspot.network
+package com.example.scylier.istudyspot.infra.network
 
 import android.content.Context
 import android.net.ConnectivityManager

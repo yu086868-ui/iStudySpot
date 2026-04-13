@@ -1,4 +1,4 @@
-package com.example.scylier.istudyspot.network
+package com.example.scylier.istudyspot.infra.network
 import com.example.scylier.istudyspot.BuildConfig
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient

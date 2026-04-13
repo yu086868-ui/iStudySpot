@@ -6,12 +6,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.example.scylier.istudyspot.R
 import com.example.scylier.istudyspot.models.ApiResponse
-import com.example.scylier.istudyspot.network.ApiManager
-import com.example.scylier.istudyspot.network.ErrorHandler
+import com.example.scylier.istudyspot.infra.network.ApiManager
+import com.example.scylier.istudyspot.infra.network.ErrorHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -51,11 +53,7 @@ class LoginFragment : Fragment() {
         }
 
         btnRegister.setOnClickListener {
-            val registerFragment = RegisterFragment()
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, registerFragment)
-                .addToBackStack(null)
-                .commit()
+            findNavController().navigate(R.id.action_loginFragment_to_registerFragment)
         }
     }
 

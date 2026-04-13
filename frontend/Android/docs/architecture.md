@@ -68,8 +68,10 @@ iStudySpot 是一个面向付费自习室的在线座位预订系统，主要服
 
 ### 2.2技术栈约束
 
-- 客户端必须使用 Kotlin 开发
-- UI 层必须使用 View/XML，不允许使用 Jetpack Compose
+\- 客户端必须使用 Kotlin 开发
+\- UI 层必须使用 View/XML（禁止使用 Jetpack Compose）
+\- 必须使用 Jetpack Navigation 组件管理页面跳转
+\- 必须使用 Hilt 进行依赖注入
 
 ------
 
@@ -136,16 +138,24 @@ class B1 backend
 
 # 4.解决方案策略
 
-采用 MVVM 架构模式，结合 Jetpack 组件（ViewModel, LiveData / Flow），
+
+采用 MVVM 架构模式，结合 Jetpack 组件（ViewModel, StateFlow），
 实现 UI 与业务逻辑解耦。
 
-\- View：负责 UI 展示（Activity / Fragment / Compose）
-\- ViewModel：管理 UI 状态
-\- Model：由 Repository 提供数据
+\- View：负责 UI 展示（Activity / Fragment + XML）
+\- ViewModel：管理 UI 状态（StateFlow）
+\- Domain：封装业务逻辑（UseCase）
+\- Repository：统一数据访问
+
+\### 补充策略
+
+\- 使用 Jetpack Navigation 管理 Fragment 跳转与回退栈
+\- 使用 Hilt 实现依赖注入，降低模块耦合
+\- 采用单向数据流（Unidirectional Data Flow）
 
 
 
-# 5.Building Block View
+# 5.构建块视图
 
 ## 5.1 系统分解
 
@@ -240,9 +250,10 @@ state/
 
 说明：
 
-- 每个功能模块对应独立 ViewModel
-- 状态采用单一数据源（Single Source of Truth）
-- UI 仅通过观察状态更新界面
+- \- 每个功能模块对应独立 ViewModel
+  \- 状态采用单一数据源（Single Source of Truth）
+  \- 使用 StateFlow 替代 LiveData（更适合协程）
+  \- UI 仅通过 collect 状态更新界面
 
 示例状态模型：
 
@@ -292,7 +303,7 @@ infra/
  └── renderer/    # 3D座位渲染
 ```
 
-## 5.3 核心模块详细设计（Level 3）
+## 5.3 核心模块详细设计
 
 ### 5.3.1 座位选择模块（SeatMap）
 
@@ -333,6 +344,14 @@ ViewModel --> Renderer
 
 - 负责 3D 座位图绘制与交互
 
+  #### 并发与一致性补充
+
+  \- 客户端不直接决定选座结果，必须依赖服务端锁定
+  \- 所有选座请求必须携带唯一请求ID（requestId），用于幂等控制
+  \- ViewModel 层保证：
+    \- 防重复点击（Debounce）
+    \- 同一座位请求串行化
+
 ## 5.4 关键设计决策
 
 ### 5.4.1 状态一致性策略
@@ -349,9 +368,29 @@ ViewModel --> Renderer
 
 ### 5.4.3 高并发处理策略
 
-- 客户端进行点击防抖，避免重复请求
-- 提供“锁定中”状态反馈
-- 提交失败时回滚 UI 状态
+
+客户端与服务端协同保证一致性：
+
+客户端职责
+
+\- 点击防抖（防止重复请求）
+\- 显示“锁定中”状态
+\- 请求携带唯一 requestId（幂等标识）
+\- 请求失败后回滚 UI 状态
+
+服务端职责（约定）
+
+\- 使用分布式锁（如 Redis）控制座位并发
+\- 基于 requestId 实现幂等控制
+\- 提供锁超时自动释放机制
+
+状态流转
+
+```
+Idle → Locking → Locked → Failed（回滚）
+```
+
+
 
 ### 5.4.4 性能优化策略
 
@@ -370,7 +409,33 @@ ViewModel --> Renderer
 
 
 
+## 5.6 认证与会话管理
 
+### 设计目标
+
+保证用户身份一致性与接口安全。
+
+### 方案
+
+- 使用 Token（JWT 或 Session Token）进行认证
+- Token 存储于 DataStore
+- 所有请求通过 Interceptor 自动附带 Token
+
+### 过期处理
+
+- Token 过期 → 自动刷新或跳转登录
+- 避免 UI 持有认证状态
+
+### 分层职责
+
+- Infra：Token 存储与拦截器
+- Data：认证 Repository
+- Domain：登录 UseCase
+- UI：登录界面
+
+## 5.7 管理端说明
+
+TODO:暂未设计，后续将完成
 
 # 6. 运行时视图（Runtime View）
 
@@ -449,9 +514,37 @@ UI->>Renderer: render(seats)
 
 ### 运行时流程（含并发控制）
 
+```mermaid
+sequenceDiagram
+
+participant UI as SeatMapFragment
+participant VM as SeatMapViewModel
+participant UC as SelectSeatUseCase
+participant Repo as SeatRepository
+participant Remote as Remote API
+
+UI->>VM: onSeatClick(seatId)
+
+VM->>VM: check local state
+VM->>UC: selectSeat(seatId)
+
+UC->>Repo: tryLockSeat(seatId)
+Repo->>Remote: lock seat request
+
+alt 成功锁定
+    Remote-->>Repo: success
+    Repo-->>UC: locked
+    UC-->>VM: success
+    VM-->>UI: update selected seat
+else 已被占用
+    Remote-->>Repo: failed
+    Repo-->>UC: conflict
+    UC-->>VM: error
+    VM-->>UI: show "seat unavailable"
+end
 ```
 
-```
+
 
 ------
 
@@ -498,7 +591,7 @@ Idle → Loading → Locked / Error
 
 ### 运行时流程
 
-```
+```mermaid
 sequenceDiagram
 
 participant UI as BookingFragment
@@ -830,6 +923,23 @@ if (state.loading) return
 Idle → Locking → Locked → Released
 ```
 
+### 补充：幂等性保证
+
+客户端：
+
+- 每次关键请求生成唯一 requestId
+- requestId 与操作绑定（选座 / 下单）
+
+服务端（约定）：
+
+- 同一 requestId 只允许成功一次
+- 重复请求直接返回第一次结果
+
+目的：
+
+- 防止重复下单
+- 防止网络重试导致异常
+
 ------
 
 ## 8.4 UI 状态驱动模型（State-driven UI）
@@ -903,9 +1013,17 @@ Network > Cache > Default
 
 ### 3D 渲染优化
 
-- 独立 Renderer 模块
-- 渲染与状态分离
-- 避免频繁重建场景
+
+
+\- 使用轻量级渲染方案（避免大型引擎）
+\- 避免引入高体积资源（满足 APK < 20MB）
+\- 渲染逻辑必须运行在子线程
+\- UI 层仅接收渲染结果
+
+可选方案：
+
+\- OpenGL / Filament（需评估体积）
+\- 轻量自定义 Canvas 渲染（优先推荐）
 
 ### 数据层优化
 
@@ -950,6 +1068,16 @@ Network > Cache > Default
 
 - Mock Remote / Local datasource
 
+### 依赖注入支持测试
+
+- 使用 Hilt 注入 Repository / UseCase
+- 测试中可替换为 Fake / Mock 实现
+
+示例：
+
+- FakeSeatRepository
+- MockPaymentService
+
 ------
 
 ## 8.10 可扩展性设计（Extensibility）
@@ -966,7 +1094,7 @@ Network > Cache > Default
 
 ## 8.11 小结
 
-本系统横切设计的核心思想：
+## 本系统横切设计的核心思想：
 
 - **状态驱动 UI**
 - **服务端保证一致性**
@@ -975,3 +1103,53 @@ Network > Cache > Default
 - **所有通用能力横切复用，不侵入业务模块**
 
 这些机制共同支撑了系统在高并发选座场景下的稳定性与可维护性。
+
+
+
+
+
+一些修改意见：
+
+# 文档架构概览与关键决策
+
+该设计文档采用了典型的 MVVM 分层架构：**UI层**（Activity/Fragment）负责渲染界面和用户交互，**ViewModel（状态层）**管理 UI 状态并调用业务逻辑，**业务层（Domain/UseCase）**封装核心业务规则，**数据层（Repository）**协调远程与本地数据，**基础设施层**提供网络、存储、扫码和3D渲染等技术能力。文档明确了单 Activity + Fragment 结构、使用 Kotlin 和 Jetpack 组件（如  LiveData/Flow）等核心决策。各功能模块（选座、预约、支付、签到、个人信息）通过独立的 Fragment + ViewModel  实现，状态以不可变数据类为载体，遵循单一数据源原则。从架构思路上看，整体设计与 Android  官方的分层架构和单向数据流原则是一致的（ViewModel 通过 StateFlow/LivaData 向 UI 提供状态，UI  仅根据状态渲染界面），也体现了推荐的使用领域层（UseCase）封装业务逻辑。
+
+## 架构一致性与约束检查
+
+- **Compose 使用矛盾**：文档在第2.2节“技术栈约束”明确禁止使用 Jetpack Compose，UI 层必须使用传统 View/XML；但在第4节解决方案策略中却提到“View  层(Activity/Fragment/Compose)负责展示界面”。这与自身约束矛盾。值得注意的是，Android 官方指南强烈推荐使用  Jetpack Compose 构建现代 UI。采用 Compose 虽然会略微增加 APK 大小，但带来开发效率提升；本方案既禁用又提及 Compose，需明确技术选型，否则与官方指导冲突且可能影响 APK 体积目标（官方示例项目加入 Compose 后 APK 增大约 782KB）。
+- **单 Activity 架构挑战**：采用单 Activity + 多 Fragment 有其优点，但也带来复杂性。Fragment 事务管理和回退栈变得复杂，需要小心维护。文档中未提及 Jetpack Navigation 组件的使用，而官方建议对多屏应用使用 Navigation3 组件以便于屏幕间导航和深度链接。如果自定义 Fragment 逻辑，需要额外处理返回栈和深度链接（back stack）等问题，这可能导致调试难度增加。
+- **缺少依赖注入（DI）**：文档未提及任何依赖注入框架或实践。Android 官方架构指南中“使用依赖注入”被列为强烈推荐项。实践中可使用 Hilt/Dagger 进行构造器注入，这样能自动提供 ViewModel、Repository 等依赖，降低模块耦合、提升可测试性。当前设计若缺少 DI，往往需要手动实例化对象（如 Repository 或 UseCase），不利于单元测试和后期维护。
+- **与约束和目标的一致性**：文档在维护性（P5）、单一数据源、状态不可变性等方面与官方推荐原则吻合。例如，官方建议 ViewModel 向 UI 暴露单一 `uiState`（可用 StateFlow）以统一管理状态，文档中 SeatMapState 等数据类即体现此思路。但是在具体技术约束上存在冲突，如 Compose 的提及与禁止并存，需要澄清。
+
+## 高并发场景与一致性风险
+
+- **选座超卖与分布式锁**：在高并发选座场景下，仅依赖数据库行锁（如 `SELECT … FOR UPDATE`）极易成为瓶颈，两个用户可能“查询到座位空闲→同时下单”导致超卖问题。文档只提到“服务端负责锁定座位”，但没有说明具体机制。行业实践推荐使用 **分布式锁**（如 Redis）将锁逻辑从数据库抽离，快速过滤并发请求，避免数据库过载；结论指出，对于选座这种短时间锁定需求，Redis 分布式锁是更优选择。该文档若不明确后端锁实现，可能忽略性能瓶颈的风险。
+- **重复提交与幂等性**：客户端采取了防抖去重（禁止快速多次点击），但这只能改善用户体验，而无法保证服务端幂等。正如实践所言，前端防抖“必要但不可靠”，用户可通过其他手段绕过（如直接调用 API），网络问题也可能造成重复请求。行业建议在服务器端引入**幂等令牌机制**：客户端在发起关键请求前获取唯一 Token，提交时携带该 Token，服务器验证并确保相同 Token 不被重复使用。当前架构未提及此类设计，缺少对后端幂等性的保障。
+- **UI 状态与体验**：文档强调操作必须等服务端确认后再更新 UI （“禁止基于过期状态提交”），这是保证一致性的保守策略，但在实际应用中可能导致明显延迟。可考虑在 UI  端显示“锁定中”反馈（已有防抖）、并在等待服务器响应期间提供加载态。而一旦失败，则要回滚状态。文档并未明确 UI  回滚策略或用户通知流程，需确保在锁定失败时正确恢复界面。
+- **其他并发场景**：预约、支付等流程若多人同时进行，也需考虑幂等和锁定。文档提到支持失败重试，但未明确如支付重复回调的处理。总体而言，并发控制主要依赖后端锁与客户端防抖，缺少更细粒度的**令牌或幂等设计**。
+
+## 功能缺失与其他风险点
+
+- **管理端功能缺失**：文档Stakeholder列出了自习室运营方及其期望（座位布局配置、定价策略调整、上座率统计、黑名单管理等），但在架构设计中未提及任何管理端模块。当前 UI 模块列表仅覆盖用户端场景，没有针对管理员的界面或接口说明。若业务要求在同一 App 中实现管理功能，则需要新增相关模块；若管理由后台  Web 端完成，应明确接口契约，否则会导致需求不一致。
+- **用户认证与会话管理**：文档没有说明用户登录/注册流程，也未讨论鉴权方案。现实中客户端通常需维护用户身份（token），并在请求中携带，以满足安全要求。缺乏会话管理细节可能导致状态混淆或安全隐患。
+- **离线和容错**：客户端缓存策略描述较泛泛（Room/DataStore  用于用户信息、配置等），但对离线使用场景无具体说明。考虑到学生可能随时网络中断，应设计离线模式（例如展示上次数据、允许稍后签到等）。文档仅提到“网络异常降级提示”，但未详细定义缓存刷新策略和离线交互流程。
+- **性能与资源限制**：座位 3D 渲染是核心功能，但文档未深入说明技术选型（如使用 OpenGL、Sceneform、Filament 等）。3D  渲染开销大，必须谨慎设计与优化；同时，应用体积受限于 20MB，若引入大型渲染库或模型资源，可能无法满足 R8  压缩要求。需要评估组件的尺寸和性能代价。
+- **测试覆盖不足**：虽然提及可测试性，但未给出测试策略。针对各层（UI、ViewModel、UseCase、Repository）应有相应的单元测试和集成测试方案。缺乏测试设计可能导致后期迭代风险增大。
+
+## 行业最佳实践对比
+
+- **UI 框架与导航**：官方架构指南建议新应用使用 Jetpack Compose 进行界面构建、并采用 Navigation 组件管理多屏导航和深度链接。本设计却禁止 Compose、未提 Navigation，偏离了现代 Android 推荐。
+- **单向数据流 & 单一数据源**：文档遵循了单向数据流原则（ViewModel 只通过状态驱动 UI）和单一数据源的设计，与官方推荐一致。这种设计有助于可预测性和测试性。
+- **分层和 UseCase**：对于复杂逻辑，建议使用领域层（UseCase）分离业务规则。文档确实为每个操作设计了 UseCase，但是否过度分层需要权衡（小项目若模块有限，UseCase 过多可能显得冗余）。
+- **并发控制**：类似抢票系统的实践表明，需要后端分布式锁和幂等令牌。文档仅提到客户端防抖和 UI 提示，没有引入令牌或中间件锁等机制。
+- **依赖注入**：官方建议在组件间使用构造器注入管理依赖。目前设计未体现 DI，可能导致耦合度高、不易测试。
+
+## 改进建议与优先级
+
+- **澄清 UI 技术选型**：解决 Compose 的矛盾。要么放开对 Compose 的限制，全面采用 Compose UI，以符合官方推荐；要么去掉方案中对 Compose 的提及，统一使用 View/XML。需评估开发成本与 APK 大小（引入 Compose 约增加近 0.8MB）。
+- **引入导航组件**：使用 Jetpack Navigation 管理 Fragment 事务和深度链接。这将简化返回逻辑、参数传递和深度链接处理，减少手动管理 Fragment 的复杂度。
+- **采用依赖注入框架**：在项目中集成 Hilt/Dagger，通过构造器注入提供 ViewModel、Repository、UseCase 等依赖。这会减少样板代码，提升可测试性和维护性。
+- **增强并发安全**：在客户端保持防抖处理的同时，与后端协商引入幂等令牌机制（Token）或分布式锁方案。例如，在下单请求前先获取唯一 Token，提交时校验；或使用 Redis 等中间件做座位锁定，避免数据库竞争。同时需要定义座位锁定超时和释放策略，防止用户未完成操作导致锁长期占用。
+- **补充遗漏功能**：根据业务需求明确管理员端的支持方案，如独立管理 App 或管理模块。增加登录/授权流程设计，确保用户身份与权限控制。完善离线缓存与容错策略，如关键操作失败时提供重试、数据回退机制，提升鲁棒性。
+- **3D 渲染优化**：评估并选择轻量级的渲染引擎，尽量在后台线程执行重渲染任务，避免阻塞主线程。配合 RecyclerView+DiffUtil 等技术优化界面渲染，确保 P3 用户体验流畅性的目标。
+- **加强测试**：制定测试方案，包括 ViewModel 的单元测试（输入状态输出状态）、UseCase 逻辑测试、Repository 与模拟数据源的集成测试，以及关键流程的 UI 测试。保持状态可复现、UI 反馈可校验是提高质量的保障。

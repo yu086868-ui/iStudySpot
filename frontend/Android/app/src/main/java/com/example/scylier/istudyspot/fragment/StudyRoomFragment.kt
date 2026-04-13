@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.scylier.istudyspot.R
@@ -47,16 +48,10 @@ class StudyRoomFragment : Fragment() {
                 is ApiResponse.Success -> {
                     val studyRooms = response.data.list
                     adapter = StudyRoomAdapter(studyRooms) {
-                        // 跳转到座位图页面
-                        val seatFragment = SeatFragment()
                         val bundle = Bundle()
                         bundle.putString("studyRoomId", it.id)
                         bundle.putString("studyRoomName", it.name)
-                        seatFragment.arguments = bundle
-                        parentFragmentManager.beginTransaction()
-                            .replace(R.id.fragment_container, seatFragment)
-                            .addToBackStack(null)
-                            .commit()
+                        findNavController().navigate(R.id.action_studyRoomFragment_to_seatFragment, bundle)
                     }
                     recyclerView.adapter = adapter
                 }
@@ -86,10 +81,10 @@ class StudyRoomFragment : Fragment() {
         override fun getItemCount(): Int = studyRooms.size
 
         inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-            private val tvName = itemView.findViewById<TextView>(R.id.tv_name)
-            private val tvAddress = itemView.findViewById<TextView>(R.id.tv_address)
-            private val tvOpeningHours = itemView.findViewById<TextView>(R.id.tv_opening_hours)
-            private val tvOccupancyRate = itemView.findViewById<TextView>(R.id.tv_occupancy_rate)
+            private val tvName: TextView = itemView.findViewById(R.id.tv_name)
+            private val tvAddress: TextView = itemView.findViewById(R.id.tv_address)
+            private val tvOpeningHours: TextView = itemView.findViewById(R.id.tv_opening_hours)
+            private val tvOccupancyRate: TextView = itemView.findViewById(R.id.tv_occupancy_rate)
 
             fun bind(studyRoom: StudyRoomItem) {
                 tvName.text = studyRoom.name

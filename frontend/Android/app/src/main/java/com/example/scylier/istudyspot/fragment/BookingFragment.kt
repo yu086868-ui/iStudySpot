@@ -9,6 +9,7 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.example.scylier.istudyspot.BuildConfig
 import com.example.scylier.istudyspot.R
 import com.example.scylier.istudyspot.models.ApiResponse
@@ -109,14 +110,9 @@ class BookingFragment : Fragment() {
                     }
                     
                     // 跳转到订单详情页面
-                    val orderFragment = OrderFragment()
                     val bundle = Bundle()
                     bundle.putString("orderId", order.id)
-                    orderFragment.arguments = bundle
-                    parentFragmentManager.beginTransaction()
-                        .replace(R.id.fragment_container, orderFragment)
-                        .addToBackStack(null)
-                        .commit()
+                    findNavController().navigate(R.id.action_bookingFragment_to_orderFragment, bundle)
                 }
                 is ApiResponse.Error -> {
                     // 在debug模式下显示弹窗

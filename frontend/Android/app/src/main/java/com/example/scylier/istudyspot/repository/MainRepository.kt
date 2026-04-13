@@ -9,7 +9,7 @@ import com.example.scylier.istudyspot.models.order.CreateOrderRequest
 import com.example.scylier.istudyspot.models.order.OrderListResponse
 import com.example.scylier.istudyspot.models.studyroom.StudyRoomListResponse
 import com.example.scylier.istudyspot.models.studyroom.SeatMapResponse
-import com.example.scylier.istudyspot.network.ApiManager
+import com.example.scylier.istudyspot.infra.network.ApiManager
 
 class MainRepository(private val context: Context) {
     private val apiManager = ApiManager(context = context)

@@ -11,8 +11,8 @@ import androidx.fragment.app.Fragment
 import com.example.scylier.istudyspot.BuildConfig
 import com.example.scylier.istudyspot.R
 import com.example.scylier.istudyspot.models.ApiResponse
-import com.example.scylier.istudyspot.network.ApiManager
-import com.example.scylier.istudyspot.network.ErrorHandler
+import com.example.scylier.istudyspot.infra.network.ApiManager
+import com.example.scylier.istudyspot.infra.network.ErrorHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
