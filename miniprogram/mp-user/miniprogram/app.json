@@ -1,5 +1,10 @@
 {
   "pages": [
+    "pages/home/home",
+    "pages/profile/profile",
+    "rules/rules",
+    "pages/seat-selection/seat-selection",
+    "pages/study-status/study-status",
     "pages/index/index",
     "pages/logs/logs"
   ],

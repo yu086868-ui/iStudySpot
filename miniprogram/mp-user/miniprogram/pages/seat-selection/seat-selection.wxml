@@ -1,0 +1,113 @@
+<view class="container">
+  <text class="page-title">选座：</text>
+
+  <view class="seat-grid-wrapper">
+    <view class="seat-grid">
+      <!-- 左侧区域 -->
+      <view class="seat-column">
+        <view class="column-header">
+          <text class="col-number">1</text>
+          <text class="col-number">2</text>
+          <text class="col-number">3</text>
+          <text class="col-number">4</text>
+        </view>
+        <view class="seat-row">
+          <view class="seat seat-selected"><text class="seat-label">A3</text></view>
+          <view class="seat seat-available"></view>
+          <view class="seat seat-available"></view>
+          <view class="seat seat-occupied"></view>
+        </view>
+        <view class="seat-row">
+          <view class="seat seat-available"></view>
+          <view class="seat seat-available"></view>
+          <view class="seat seat-available"></view>
+          <view class="seat seat-occupied"></view>
+        </view>
+        <view class="seat-row">
+          <view class="seat seat-available"></view>
+          <view class="seat seat-available"></view>
+          <view class="seat seat-available"></view>
+          <view class="seat seat-occupied"></view>
+        </view>
+        <view class="seat-row">
+          <view class="seat seat-available"></view>
+          <view class="seat seat-available"></view>
+          <view class="seat seat-available"></view>
+          <view class="seat seat-occupied"></view>
+        </view>
+        <view class="seat-row">
+          <view class="seat seat-available"></view>
+          <view class="seat seat-available"></view>
+          <view class="seat seat-available"></view>
+          <view class="seat seat-occupied"></view>
+        </view>
+        <view class="seat-row">
+          <view class="seat seat-available"></view>
+          <view class="seat seat-available"></view>
+          <view class="seat seat-available"></view>
+          <view class="seat seat-occupied"></view>
+        </view>
+      </view>
+
+      <!-- 右侧区域 -->
+      <view class="seat-column">
+        <view class="column-header">
+          <text class="col-number">1</text>
+          <text class="col-number">2</text>
+          <text class="col-number">3</text>
+          <text class="col-number">4</text>
+        </view>
+        <view class="seat-row">
+          <view class="seat seat-available"></view>
+          <view class="seat seat-available"></view>
+          <view class="seat seat-available"></view>
+          <view class="seat seat-occupied"></view>
+        </view>
+        <view class="seat-row">
+          <view class="seat seat-available"></view>
+          <view class="seat seat-available"></view>
+          <view class="seat seat-available"></view>
+          <view class="seat seat-occupied"></view>
+        </view>
+        <view class="seat-row">
+          <view class="seat seat-available"></view>
+          <view class="seat seat-available"></view>
+          <view class="seat seat-available"></view>
+          <view class="seat seat-occupied"></view>
+        </view>
+        <view class="seat-row">
+          <view class="seat seat-available"></view>
+          <view class="seat seat-available"></view>
+          <view class="seat seat-available"></view>
+          <view class="seat seat-occupied"></view>
+        </view>
+        <view class="corridor">
+          <text class="corridor-text">Corridor</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="legend">
+      <view class="legend-item">
+        <view class="legend-color available"></view>
+        <text class="legend-text">Available</text>
+      </view>
+      <view class="legend-item">
+        <view class="legend-color occupied"></view>
+        <text class="legend-text">Occupied</text>
+      </view>
+      <view class="legend-item">
+        <view class="legend-color selected"></view>
+        <text class="legend-text">Selected</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="time-info">
+    <text class="time-text">已选时间段：3月18日 周三 1:30 - 5:30</text>
+  </view>
+
+  <view class="confirm-btn">
+    <text class="confirm-text">确认</text>
+  </view>
+</view>

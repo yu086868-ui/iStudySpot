@@ -1,0 +1,169 @@
+page {
+  height: 100vh;
+  background: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  flex: 1;
+  padding: 32rpx;
+}
+
+.page-title {
+  font-size: 44rpx;
+  font-weight: bold;
+  color: #000000;
+  margin-bottom: 32rpx;
+}
+
+.seat-grid-wrapper {
+  margin-bottom: 32rpx;
+}
+
+.seat-grid {
+  display: flex;
+  flex-direction: row;
+  gap: 40rpx;
+  padding: 24rpx;
+  background: #FAFFF8;
+  border-radius: 16rpx;
+  background-image:
+    linear-gradient(90deg, rgba(200, 200, 200, 0.15) 1px, transparent 1px),
+    linear-gradient(rgba(200, 200, 200, 0.15) 1px, transparent 1px);
+  background-size: 40rpx 40rpx;
+}
+
+.seat-column {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.column-header {
+  display: flex;
+  flex-direction: row;
+  gap: 12rpx;
+  padding-left: 8rpx;
+  margin-bottom: 8rpx;
+}
+
+.col-number {
+  width: 80rpx;
+  text-align: center;
+  font-size: 26rpx;
+  color: #666666;
+}
+
+.seat-row {
+  display: flex;
+  flex-direction: row;
+  gap: 12rpx;
+}
+
+.seat {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 8rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.seat-available {
+  background: #C8E6C9;
+}
+
+.seat-occupied {
+  background: #E0E0E0;
+}
+
+.seat-selected {
+  background: #5CB885;
+}
+
+.seat-label {
+  font-size: 22rpx;
+  color: #FFFFFF;
+  font-weight: bold;
+}
+
+.corridor {
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 8rpx;
+}
+
+.corridor-text {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.legend {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 48rpx;
+  margin-top: 32rpx;
+  padding-top: 24rpx;
+  border-top: 1rpx solid #EEEEEE;
+}
+
+.legend-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.legend-color {
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 6rpx;
+}
+
+.legend-color.available {
+  background: #C8E6C9;
+}
+
+.legend-color.occupied {
+  background: #E0E0E0;
+}
+
+.legend-color.selected {
+  background: #5CB885;
+}
+
+.legend-text {
+  font-size: 26rpx;
+  color: #333333;
+}
+
+.time-info {
+  background: #FFFFFF;
+  border: 2rpx solid #5CB885;
+  border-radius: 12rpx;
+  padding: 28rpx;
+  margin-bottom: 32rpx;
+}
+
+.time-text {
+  font-size: 28rpx;
+  color: #333333;
+  text-align: center;
+}
+
+.confirm-btn {
+  background: #5CB885;
+  border-radius: 48rpx;
+  padding: 28rpx 120rpx;
+  align-self: center;
+}
+
+.confirm-text {
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #FFFFFF;
+}

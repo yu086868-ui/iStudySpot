@@ -1,0 +1,30 @@
+<view class="container">
+  <view class="header">
+    <text class="title">Hello~</text>
+    <text class="subtitle">我们的一生皆是征途</text>
+  </view>
+
+  <view class="action-area">
+    <view class="btn-large">
+      <text class="btn-text">选座预约</text>
+    </view>
+    <view class="btn-group">
+      <view class="btn-small">
+        <text class="btn-text">线上签到</text>
+      </view>
+      <view class="btn-small">
+        <text class="btn-text">扫码签到</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="info-card">
+    <text class="info-text">已预约北极星自习室 13:30，</text>
+    <text class="info-text">二楼22B号桌位，</text>
+    <text class="info-text">当前暂未入座，</text>
+    <text class="info-text">本周累计学习 18 小时。</text>
+    <text class="info-dots">..............</text>
+  </view>
+</view>
+
+<tab-bar></tab-bar>

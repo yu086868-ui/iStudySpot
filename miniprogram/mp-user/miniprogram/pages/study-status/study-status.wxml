@@ -1,0 +1,13 @@
+<view class="container">
+  <view class="image-wrapper">
+    <image class="tree-image" src="/assets/tree-placeholder.png" mode="aspectFill"></image>
+  </view>
+
+  <view class="status-card">
+    <text class="status-title">学习已进行</text>
+    <text class="status-time">2:28:37</text>
+    <text class="status-motto">我们的一生皆是征途</text>
+  </view>
+
+  <text class="footer-hint">长按图标以结束本次自习</text>
+</view>

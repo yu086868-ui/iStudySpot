@@ -1,0 +1,14 @@
+<view class="tab-bar">
+  <view class="tab-item">
+    <view class="tab-icon diamond"></view>
+    <text class="tab-text">规则公告</text>
+  </view>
+  <view class="tab-item active">
+    <view class="tab-icon circle"></view>
+    <text class="tab-text">首页</text>
+  </view>
+  <view class="tab-item">
+    <view class="tab-icon triangle"></view>
+    <text class="tab-text">个人中心</text>
+  </view>
+</view>

@@ -1,0 +1,23 @@
+<view class="container">
+  <view class="profile-card">
+    <view class="avatar-wrapper">
+      <image class="avatar" src="/assets/avatar-placeholder.png" mode="aspectFill"></image>
+    </view>
+    <text class="username">Theresa</text>
+    <view class="stats">
+      <text class="stat-text">累计学习时长：624H</text>
+      <text class="stat-text">你的努力超过了82%的人</text>
+    </view>
+  </view>
+
+  <view class="menu-list">
+    <view class="menu-item">
+      <text class="menu-text">账户充值</text>
+    </view>
+    <view class="menu-item">
+      <text class="menu-text">设置</text>
+    </view>
+  </view>
+</view>
+
+<tab-bar></tab-bar>
