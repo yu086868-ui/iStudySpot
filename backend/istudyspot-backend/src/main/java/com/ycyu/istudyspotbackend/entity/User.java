@@ -11,6 +11,8 @@ public class User {
     private String avatar;
     private String phone;
     private String email;
+    private String studentId;
+    private Integer creditScore;
     private BigDecimal balance;
     private Integer points;
     private Integer status;
@@ -40,6 +42,12 @@ public class User {
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+
+    public String getStudentId() { return studentId; }
+    public void setStudentId(String studentId) { this.studentId = studentId; }
+
+    public Integer getCreditScore() { return creditScore; }
+    public void setCreditScore(Integer creditScore) { this.creditScore = creditScore; }
 
     public BigDecimal getBalance() { return balance; }
     public void setBalance(BigDecimal balance) { this.balance = balance; }

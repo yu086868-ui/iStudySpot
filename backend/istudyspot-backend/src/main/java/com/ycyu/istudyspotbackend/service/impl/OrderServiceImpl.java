@@ -84,11 +84,20 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<Order> getOrderList(Long userId, String status) {
+    public Map<String, Object> getOrderList(Long userId, String status, String startDate, String endDate, int page, int pageSize) {
+        List<Order> orders;
         if (status != null && !status.isEmpty()) {
-            return orderMapper.findByUserIdAndStatus(userId, status);
+            orders = orderMapper.findByUserIdAndStatus(userId, status);
+        } else {
+            orders = orderMapper.findByUserId(userId);
         }
-        return orderMapper.findByUserId(userId);
+        
+        Map<String, Object> result = new HashMap<>();
+        result.put("list", orders);
+        result.put("total", orders.size());
+        result.put("page", page);
+        result.put("pageSize", pageSize);
+        return result;
     }
 
     @Override
@@ -102,7 +111,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public Map<String, Object> cancelOrder(Long orderId) {
+    public void cancelOrder(Long orderId) {
         Order order = orderMapper.findById(orderId);
         if (order == null) {
             throw new RuntimeException("订单不存在");
@@ -112,11 +121,6 @@ public class OrderServiceImpl implements OrderService {
         }
 
         orderMapper.updateStatus(orderId, "cancelled");
-
-        Map<String, Object> result = new HashMap<>();
-        result.put("id", orderId.toString());
-        result.put("status", "cancelled");
-        return result;
     }
 
     @Override

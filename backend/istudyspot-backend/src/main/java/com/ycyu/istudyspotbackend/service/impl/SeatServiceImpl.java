@@ -23,6 +23,25 @@ public class SeatServiceImpl implements SeatService {
     private StudyRoomMapper studyRoomMapper;
 
     @Override
+    public List<Seat> getSeatList(Long studyRoomId, String status, String type, Integer row, Integer col) {
+        StudyRoom room = studyRoomMapper.findById(studyRoomId);
+        if (room == null) {
+            throw new RuntimeException("自习室不存在");
+        }
+
+        return seatMapper.findByRoomId(studyRoomId);
+    }
+
+    @Override
+    public Seat getSeatDetail(Long id) {
+        Seat seat = seatMapper.findById(id);
+        if (seat == null) {
+            throw new RuntimeException("座位不存在");
+        }
+        return seat;
+    }
+
+    @Override
     public Map<String, Object> getSeatMap(Long roomId) {
         StudyRoom room = studyRoomMapper.findById(roomId);
         if (room == null) {
@@ -49,15 +68,6 @@ public class SeatServiceImpl implements SeatService {
         result.put("cols", maxCol);
         result.put("seats", seats);
         return result;
-    }
-
-    @Override
-    public Seat getSeatDetail(Long id) {
-        Seat seat = seatMapper.findById(id);
-        if (seat == null) {
-            throw new RuntimeException("座位不存在");
-        }
-        return seat;
     }
 
     @Override
