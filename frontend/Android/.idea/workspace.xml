@@ -5,6 +5,16 @@
       <config />
     </shared>
     <layouts>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/drawable/bg_red_dot.xml">
+        <config>
+          <theme>@style/Theme.IStudySpot</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/activity_main.xml">
+        <config>
+          <theme>@style/Theme.IStudySpot</theme>
+        </config>
+      </layout>
       <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/fragment_more.xml">
         <config>
           <theme>@style/Theme.IStudySpot</theme>
@@ -16,6 +26,21 @@
         </config>
       </layout>
       <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/fragment_rules.xml">
+        <config>
+          <theme>@style/Theme.IStudySpot</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/more_item_view.xml">
+        <config>
+          <theme>@style/Theme.IStudySpot</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/menu/bottom_navigation_menu.xml">
+        <config>
+          <theme>@style/Theme.IStudySpot</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/navigation/nav_graph.xml">
         <config>
           <theme>@style/Theme.IStudySpot</theme>
         </config>
@@ -43,7 +68,7 @@
       <entry key="_F:/SomeWork/iStudySpot/frontend/Android" value="3BhVNoQs3alqyK8EsFMfpWkQMOA" />
     </persistenceIdMap>
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[]" />
+  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[DeviceId(pluginId=PhysicalDevice, isTemplate=false, identifier=serial=A4YQVB3530001919)]" />
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
       <ProjectState />
@@ -89,6 +114,13 @@
         </projects_view>
       </state>
     </system>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="resourceFile" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
@@ -299,12 +331,12 @@
       <map>
         <entry key="com.example.scylier.istudyspot">
           <value>
-            <CheckInfo lastCheckTimestamp="1774940806635" />
+            <CheckInfo lastCheckTimestamp="1776143702168" />
           </value>
         </entry>
         <entry key="com.example.scylier.istudyspot.test">
           <value>
-            <CheckInfo lastCheckTimestamp="1774940806635" />
+            <CheckInfo lastCheckTimestamp="1776143702168" />
           </value>
         </entry>
         <entry key="com.example.scylier.nmbxd">

@@ -254,7 +254,7 @@ class ApiManager(private val token: String? = null, private val context: Context
                         endTime = endTime,
                         totalPrice = 20.0,
                         status = "pending",
-                        createdAt = "2023-10-01T09:00:00"
+                        createdAt = "2026-10-01T09:00:00"
                     )
                 )
             )
@@ -271,22 +271,22 @@ class ApiManager(private val token: String? = null, private val context: Context
                     seatId = "seat1",
                     studyRoomName = "自习室1",
                     seatPosition = "1-1",
-                    startTime = "2023-10-01T10:00:00",
-                    endTime = "2023-10-01T12:00:00",
+                    startTime = "2026-10-01T10:00:00",
+                    endTime = "2026-10-01T12:00:00",
                     totalPrice = 20.0,
                     status = "pending",
-                    createdAt = "2023-10-01T09:00:00"
+                    createdAt = "2026-10-01T09:00:00"
                 ),
                 com.example.scylier.istudyspot.models.order.OrderItem(
                     id = "order2",
                     seatId = "seat2",
                     studyRoomName = "自习室2",
                     seatPosition = "2-3",
-                    startTime = "2023-10-02T14:00:00",
-                    endTime = "2023-10-02T16:00:00",
+                    startTime = "2026-10-02T14:00:00",
+                    endTime = "2026-10-02T16:00:00",
                     totalPrice = 20.0,
                     status = "paid",
-                    createdAt = "2023-10-02T13:00:00"
+                    createdAt = "2026-10-02T13:00:00"
                 )
             )
             return@executeRequest Response.success(
@@ -316,12 +316,12 @@ class ApiManager(private val token: String? = null, private val context: Context
                         userId = "1",
                         studyRoomName = "自习室1",
                         seatPosition = "1-1",
-                        startTime = "2023-10-01T10:00:00",
-                        endTime = "2023-10-01T12:00:00",
+                        startTime = "2026-10-01T10:00:00",
+                        endTime = "2026-10-01T12:00:00",
                         totalPrice = 20.0,
                         status = "paid",
-                        createdAt = "2023-10-01T09:00:00",
-                        updatedAt = "2023-10-01T09:00:00"
+                        createdAt = "2026-10-01T09:00:00",
+                        updatedAt = "2026-10-01T09:00:00"
                     )
                 )
             )
@@ -356,7 +356,7 @@ class ApiManager(private val token: String? = null, private val context: Context
                     message = "签到成功",
                     data = com.example.scylier.istudyspot.models.order.CheckinResponse(
                         id = id,
-                        checkinTime = "2023-10-01T10:00:00",
+                        checkinTime = "2026-10-01T10:00:00",
                         status = "in_use"
                     )
                 )
@@ -374,7 +374,7 @@ class ApiManager(private val token: String? = null, private val context: Context
                     message = "签退成功",
                     data = com.example.scylier.istudyspot.models.order.CheckoutResponse(
                         id = id,
-                        checkoutTime = "2023-10-01T12:00:00",
+                        checkoutTime = "2026-10-01T12:00:00",
                         actualDuration = 120,
                         actualPrice = 20.0,
                         status = "completed"
@@ -456,7 +456,7 @@ class ApiManager(private val token: String? = null, private val context: Context
                         amount = amount,
                         paymentMethod = paymentMethod,
                         paymentUrl = "https://example.com/pay",
-                        createdAt = "2023-10-01T09:00:00"
+                        createdAt = "2026-10-01T09:00:00"
                     )
                 )
             )
@@ -477,8 +477,8 @@ class ApiManager(private val token: String? = null, private val context: Context
                         amount = 20.0,
                         paymentMethod = "wechat",
                         status = "success",
-                        createdAt = "2023-10-01T09:00:00",
-                        updatedAt = "2023-10-01T09:01:00"
+                        createdAt = "2026-10-01T09:00:00",
+                        updatedAt = "2026-10-01T09:01:00"
                     )
                 )
             )
@@ -492,13 +492,13 @@ class ApiManager(private val token: String? = null, private val context: Context
         if (useMockData) {
             val dailyData = listOf(
                 com.example.scylier.istudyspot.models.statistics.DailyData(
-                    date = "2023-10-01",
+                    date = "2026-10-01",
                     occupancyRate = 0.8,
                     bookings = 20,
                     revenue = 400.0
                 ),
                 com.example.scylier.istudyspot.models.statistics.DailyData(
-                    date = "2023-10-02",
+                    date = "2026-10-02",
                     occupancyRate = 0.7,
                     bookings = 15,
                     revenue = 300.0

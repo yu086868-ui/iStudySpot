@@ -4,96 +4,79 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import android.widget.Toast
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.example.scylier.istudyspot.R
 import com.example.scylier.istudyspot.models.ApiResponse
 import com.example.scylier.istudyspot.models.studyroom.StudyRoomItem
 import com.example.scylier.istudyspot.repository.MainRepository
+import com.example.scylier.istudyspot.ui.screen.StudyRoomScreen
+import com.example.scylier.istudyspot.ui.theme.IStudySpotTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class StudyRoomFragment : Fragment() {
-    private lateinit var recyclerView: RecyclerView
-    private lateinit var adapter: StudyRoomAdapter
-    private lateinit var repository: MainRepository
+    private val repository by lazy { MainRepository(requireContext()) }
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_study_room, container, false)
+    ): View {
+        return android.widget.FrameLayout(requireContext()).apply {
+            addView(
+                androidx.compose.ui.platform.ComposeView(requireContext()).apply {
+                    setViewCompositionStrategy(
+                        ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed
+                    )
+                    setContent {
+                        IStudySpotTheme {
+                            var studyRooms by remember { mutableStateOf<List<StudyRoomItem>>(emptyList()) }
+                            var isLoading by remember { mutableStateOf(true) }
+
+                            StudyRoomScreen(
+                                studyRooms = studyRooms,
+                                isLoading = isLoading,
+                                onStudyRoomClick = { room ->
+                                    val bundle = Bundle()
+                                    bundle.putString("studyRoomId", room.id)
+                                    bundle.putString("studyRoomName", room.name)
+                                    findNavController().navigate(R.id.action_studyRoomFragment_to_seatFragment, bundle)
+                                }
+                            )
+
+                            if (isLoading) {
+                                loadStudyRooms { rooms ->
+                                    studyRooms = rooms
+                                    isLoading = false
+                                }
+                            }
+                        }
+                    }
+                },
+                android.widget.FrameLayout.LayoutParams(
+                    android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                    android.widget.FrameLayout.LayoutParams.MATCH_PARENT
+                )
+            )
+        }
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        recyclerView = view.findViewById(R.id.recycler_view)
-        recyclerView.layoutManager = LinearLayoutManager(requireContext())
-        repository = MainRepository(requireContext())
-
-        loadStudyRooms()
-    }
-
-    private fun loadStudyRooms() {
+    private fun loadStudyRooms(onResult: (List<StudyRoomItem>) -> Unit) {
         CoroutineScope(Dispatchers.Main).launch {
             val response = repository.getStudyRooms()
             when (response) {
-                is ApiResponse.Success -> {
-                    val studyRooms = response.data.list
-                    adapter = StudyRoomAdapter(studyRooms) {
-                        val bundle = Bundle()
-                        bundle.putString("studyRoomId", it.id)
-                        bundle.putString("studyRoomName", it.name)
-                        findNavController().navigate(R.id.action_studyRoomFragment_to_seatFragment, bundle)
-                    }
-                    recyclerView.adapter = adapter
-                }
+                is ApiResponse.Success -> onResult(response.data.list)
                 is ApiResponse.Error -> {
                     Toast.makeText(requireContext(), response.message, Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-    }
-
-    inner class StudyRoomAdapter(
-        private val studyRooms: List<StudyRoomItem>,
-        private val onItemClickListener: (StudyRoomItem) -> Unit
-    ) : RecyclerView.Adapter<StudyRoomAdapter.ViewHolder>() {
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            val view = LayoutInflater.from(parent.context)
-                .inflate(R.layout.item_study_room, parent, false)
-            return ViewHolder(view)
-        }
-
-        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            val studyRoom = studyRooms[position]
-            holder.bind(studyRoom)
-        }
-
-        override fun getItemCount(): Int = studyRooms.size
-
-        inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-            private val tvName: TextView = itemView.findViewById(R.id.tv_name)
-            private val tvAddress: TextView = itemView.findViewById(R.id.tv_address)
-            private val tvOpeningHours: TextView = itemView.findViewById(R.id.tv_opening_hours)
-            private val tvOccupancyRate: TextView = itemView.findViewById(R.id.tv_occupancy_rate)
-
-            fun bind(studyRoom: StudyRoomItem) {
-                tvName.text = studyRoom.name
-                tvAddress.text = studyRoom.address
-                tvOpeningHours.text = studyRoom.openingHours
-                tvOccupancyRate.text = "上座率: ${(studyRoom.occupancyRate * 100).toInt()}%"
-
-                itemView.setOnClickListener {
-                    onItemClickListener(studyRoom)
+                    onResult(emptyList())
                 }
             }
         }
