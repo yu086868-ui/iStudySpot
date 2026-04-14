@@ -63,10 +63,13 @@ public class OrderServiceImpl implements OrderService {
         order.setSeatId(seatId);
         order.setRoomId(seat.getRoomId());
         order.setStudyRoomName(room.getName());
+        order.setRoomName(room.getName());
         order.setSeatPosition(seat.getRowNum() + "-" + seat.getColNum());
+        order.setSeatNumber(seat.getSeatNumber());
         order.setStartTime(startTime);
         order.setEndTime(endTime);
         order.setTotalPrice(totalPrice);
+        order.setTotalAmount(totalPrice);
         order.setStatus("pending");
 
         orderMapper.insert(order);
@@ -130,7 +133,7 @@ public class OrderServiceImpl implements OrderService {
         if (order == null) {
             throw new RuntimeException("订单不存在");
         }
-        if (!"paid".equals(order.getStatus())) {
+        if (!"2".equals(order.getStatus())) {
             throw new RuntimeException("订单状态不正确，无法签到");
         }
 
@@ -150,8 +153,9 @@ public class OrderServiceImpl implements OrderService {
         if (order == null) {
             throw new RuntimeException("订单不存在");
         }
+        System.out.println("Order status: " + order.getStatus());
         if (!"in_use".equals(order.getStatus())) {
-            throw new RuntimeException("订单未在使用中");
+            throw new RuntimeException("订单未在使用中，当前状态：" + order.getStatus());
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -176,7 +180,7 @@ public class OrderServiceImpl implements OrderService {
         if (order == null) {
             throw new RuntimeException("订单不存在");
         }
-        if (!"in_use".equals(order.getStatus())) {
+        if (!"3".equals(order.getStatus())) {
             throw new RuntimeException("订单未在使用中");
         }
 
@@ -194,12 +198,27 @@ public class OrderServiceImpl implements OrderService {
         // 更新订单
         order.setEndTime(newEndTime);
         order.setTotalPrice(order.getTotalPrice().add(additionalAmount));
-        orderMapper.updateStatus(orderId, "in_use");
+        order.setTotalAmount(order.getTotalAmount().add(additionalAmount));
+        orderMapper.updateStatus(orderId, "3");
 
         Map<String, Object> result = new HashMap<>();
         result.put("orderId", orderId.toString());
         result.put("additionalAmount", additionalAmount);
         result.put("newEndTime", newEndTime.format(formatter));
         return result;
+    }
+
+    @Override
+    @Transactional
+    public void markAsPaid(Long orderId) {
+        Order order = orderMapper.findById(orderId);
+        if (order == null) {
+            throw new RuntimeException("订单不存在");
+        }
+        if (!"pending".equals(order.getStatus())) {
+            throw new RuntimeException("订单状态不正确，无法支付");
+        }
+
+        orderMapper.updateStatus(orderId, "paid");
     }
 }

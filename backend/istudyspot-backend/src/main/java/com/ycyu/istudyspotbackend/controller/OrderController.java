@@ -54,6 +54,18 @@ public class OrderController {
         return Result.success("预约已取消", null);
     }
 
+    @PostMapping("/{id}/pay")
+    public Result<Map<String, Object>> payReservation(@PathVariable Long id) {
+        // 这里可以添加支付逻辑，例如调用支付服务
+        // 简化处理，直接更新订单状态为已支付
+        orderService.markAsPaid(id);
+        Map<String, Object> result = Map.of(
+                "orderId", id,
+                "status", "已支付"
+        );
+        return Result.success("支付成功", result);
+    }
+
     @GetMapping("/rules")
     public Result<Map<String, Object>> getReservationRules() {
         Map<String, Object> rules = Map.of(

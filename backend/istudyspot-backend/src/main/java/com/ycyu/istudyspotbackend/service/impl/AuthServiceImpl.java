@@ -22,12 +22,17 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public Map<String, Object> login(String username, String password) {
+        System.out.println("Login attempt for username: " + username);
         User user = userMapper.findByUsername(username);
+        System.out.println("Found user: " + (user != null ? user.getUsername() : "null"));
         if (user == null) {
             throw new RuntimeException("用户名或密码错误");
         }
 
         String encryptedPassword = DigestUtils.md5DigestAsHex(password.getBytes());
+        System.out.println("Input password: " + password);
+        System.out.println("Encrypted password: " + encryptedPassword);
+        System.out.println("Stored password: " + user.getPassword());
         if (!encryptedPassword.equals(user.getPassword())) {
             throw new RuntimeException("用户名或密码错误");
         }

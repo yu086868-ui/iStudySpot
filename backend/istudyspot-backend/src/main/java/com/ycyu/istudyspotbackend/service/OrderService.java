@@ -14,4 +14,5 @@ public interface OrderService {
     Map<String, Object> checkin(Long orderId, String checkinCode);
     Map<String, Object> checkout(Long orderId);
     Map<String, Object> renew(Long orderId, LocalDateTime newEndTime);
+    void markAsPaid(Long orderId);
 }
