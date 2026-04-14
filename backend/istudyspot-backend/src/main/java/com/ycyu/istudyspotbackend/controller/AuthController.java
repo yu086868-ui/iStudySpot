@@ -32,17 +32,29 @@ public class AuthController {
             Map<String, Object> result = authService.register(
                     registerDTO.getUsername(),
                     registerDTO.getPassword(),
-                    registerDTO.getNickname()
+                    registerDTO.getNickname(),
+                    registerDTO.getPhone(),
+                    registerDTO.getStudentId()
             );
-            return Result.created(result);
+            return Result.success("注册成功", result);
         } catch (RuntimeException e) {
             return Result.error(e.getMessage());
         }
     }
 
     @PostMapping("/refresh")
-    public Result<Map<String, String>> refreshToken(@RequestAttribute Long userId) {
-        String token = authService.refreshToken(userId);
-        return Result.success(Map.of("token", token));
+    public Result<Map<String, Object>> refreshToken(@RequestBody Map<String, String> params) {
+        try {
+            Map<String, Object> result = authService.refreshToken(params.get("refreshToken"));
+            return Result.success("刷新成功", result);
+        } catch (RuntimeException e) {
+            return Result.unauthorized(e.getMessage());
+        }
+    }
+
+    @PostMapping("/logout")
+    public Result<Void> logout(@RequestAttribute Long userId) {
+        authService.logout(userId);
+        return Result.success("登出成功", null);
     }
 }

@@ -17,13 +17,15 @@ public class StudyRoomServiceImpl implements StudyRoomService {
     private StudyRoomMapper studyRoomMapper;
 
     @Override
-    public Map<String, Object> getStudyRoomList(int page, int size) {
+    public Map<String, Object> getStudyRoomList(String status, Integer floor, String keyword, int page, int pageSize) {
         List<StudyRoom> list = studyRoomMapper.findAll();
         int total = studyRoomMapper.count();
 
         Map<String, Object> result = new HashMap<>();
-        result.put("total", total);
         result.put("list", list);
+        result.put("total", total);
+        result.put("page", page);
+        result.put("pageSize", pageSize);
         return result;
     }
 

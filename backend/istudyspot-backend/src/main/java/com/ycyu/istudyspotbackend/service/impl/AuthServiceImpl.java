@@ -22,12 +22,17 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public Map<String, Object> login(String username, String password) {
+        System.out.println("Login attempt for username: " + username);
         User user = userMapper.findByUsername(username);
+        System.out.println("Found user: " + (user != null ? user.getUsername() : "null"));
         if (user == null) {
             throw new RuntimeException("用户名或密码错误");
         }
 
         String encryptedPassword = DigestUtils.md5DigestAsHex(password.getBytes());
+        System.out.println("Input password: " + password);
+        System.out.println("Encrypted password: " + encryptedPassword);
+        System.out.println("Stored password: " + user.getPassword());
         if (!encryptedPassword.equals(user.getPassword())) {
             throw new RuntimeException("用户名或密码错误");
         }
@@ -39,9 +44,11 @@ public class AuthServiceImpl implements AuthService {
         userMapper.updateLastLoginTime(user.getId());
 
         String token = jwtUtils.generateToken(user.getId());
+        String refreshToken = jwtUtils.generateRefreshToken(user.getId());
 
         Map<String, Object> result = new HashMap<>();
         result.put("token", token);
+        result.put("refreshToken", refreshToken);
 
         Map<String, Object> userInfo = new HashMap<>();
         userInfo.put("id", user.getId().toString());
@@ -54,7 +61,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public Map<String, Object> register(String username, String password, String nickname) {
+    public Map<String, Object> register(String username, String password, String nickname, String phone, String studentId) {
         User existingUser = userMapper.findByUsername(username);
         if (existingUser != null) {
             throw new RuntimeException("用户名已存在");
@@ -64,26 +71,39 @@ public class AuthServiceImpl implements AuthService {
         user.setUsername(username);
         user.setPassword(DigestUtils.md5DigestAsHex(password.getBytes()));
         user.setNickname(nickname);
+        user.setPhone(phone);
+        user.setStudentId(studentId);
         user.setAvatar("https://example.com/default-avatar.png");
+        user.setCreditScore(100);
+        user.setStatus(1);
 
         userMapper.insert(user);
 
-        String token = jwtUtils.generateToken(user.getId());
-
         Map<String, Object> result = new HashMap<>();
-        result.put("token", token);
-
-        Map<String, Object> userInfo = new HashMap<>();
-        userInfo.put("id", user.getId().toString());
-        userInfo.put("username", user.getUsername());
-        userInfo.put("nickname", user.getNickname());
-        result.put("user", userInfo);
+        result.put("userId", user.getId().toString());
 
         return result;
     }
 
     @Override
-    public String refreshToken(Long userId) {
-        return jwtUtils.generateToken(userId);
+    public Map<String, Object> refreshToken(String refreshToken) {
+        Long userId = jwtUtils.getUserIdFromToken(refreshToken);
+        if (userId == null) {
+            throw new RuntimeException("无效的refreshToken");
+        }
+
+        String newToken = jwtUtils.generateToken(userId);
+        String newRefreshToken = jwtUtils.generateRefreshToken(userId);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("token", newToken);
+        result.put("refreshToken", newRefreshToken);
+
+        return result;
+    }
+
+    @Override
+    public void logout(Long userId) {
+        // 可以实现token黑名单机制
     }
 }

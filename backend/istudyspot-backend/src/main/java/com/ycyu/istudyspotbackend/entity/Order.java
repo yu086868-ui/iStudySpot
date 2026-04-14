@@ -10,10 +10,13 @@ public class Order {
     private Long seatId;
     private Long roomId;
     private String studyRoomName;
+    private String roomName;
     private String seatPosition;
+    private String seatNumber;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private BigDecimal totalPrice;
+    private BigDecimal totalAmount;
     private String status;        // pending, paid, in_use, completed, cancelled
     private LocalDateTime checkinTime;
     private LocalDateTime checkoutTime;
@@ -41,8 +44,17 @@ public class Order {
     public String getStudyRoomName() { return studyRoomName; }
     public void setStudyRoomName(String studyRoomName) { this.studyRoomName = studyRoomName; }
 
+    public String getRoomName() { return roomName; }
+    public void setRoomName(String roomName) { this.roomName = roomName; }
+
     public String getSeatPosition() { return seatPosition; }
     public void setSeatPosition(String seatPosition) { this.seatPosition = seatPosition; }
+
+    public String getSeatNumber() { return seatNumber; }
+    public void setSeatNumber(String seatNumber) { this.seatNumber = seatNumber; }
+
+    public BigDecimal getTotalAmount() { return totalAmount; }
+    public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }
 
     public LocalDateTime getStartTime() { return startTime; }
     public void setStartTime(LocalDateTime startTime) { this.startTime = startTime; }
