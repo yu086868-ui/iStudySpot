@@ -4,103 +4,97 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.EditText
 import android.widget.Toast
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
 import com.example.scylier.istudyspot.BuildConfig
-import com.example.scylier.istudyspot.R
+import com.example.scylier.istudyspot.infra.network.ApiManager
 import com.example.scylier.istudyspot.models.ApiResponse
-import com.example.scylier.istudyspot.network.ApiManager
-import com.example.scylier.istudyspot.network.ErrorHandler
+import com.example.scylier.istudyspot.ui.screen.RegisterScreen
+import com.example.scylier.istudyspot.ui.theme.IStudySpotTheme
+import com.example.scylier.istudyspot.utils.ConfigManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class RegisterFragment : Fragment() {
-    private lateinit var etUsername: EditText
-    private lateinit var etPassword: EditText
-    private lateinit var etNickname: EditText
-    private lateinit var btnRegister: Button
-    private lateinit var btnBack: Button
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_register, container, false)
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        etUsername = view.findViewById(R.id.et_username)
-        etPassword = view.findViewById(R.id.et_password)
-        etNickname = view.findViewById(R.id.et_nickname)
-        btnRegister = view.findViewById(R.id.btn_register)
-        btnBack = view.findViewById(R.id.btn_back)
-
-        btnRegister.setOnClickListener {
-            val username = etUsername.text.toString().trim()
-            val password = etPassword.text.toString().trim()
-            val nickname = etNickname.text.toString().trim()
-
-            if (username.isEmpty() || password.isEmpty() || nickname.isEmpty()) {
-                Toast.makeText(requireContext(), "所有字段不能为空", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            register(username, password, nickname)
-        }
-
-        btnBack.setOnClickListener {
-            parentFragmentManager.popBackStack()
+    ): View {
+        return android.widget.FrameLayout(requireContext()).apply {
+            addView(
+                androidx.compose.ui.platform.ComposeView(requireContext()).apply {
+                    setViewCompositionStrategy(
+                        ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed
+                    )
+                    setContent {
+                        IStudySpotTheme {
+                            RegisterScreen(
+                                onRegister = { username, password, confirmPassword, nickname ->
+                                    register(username, password, confirmPassword, nickname)
+                                }
+                            )
+                        }
+                    }
+                },
+                android.widget.FrameLayout.LayoutParams(
+                    android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                    android.widget.FrameLayout.LayoutParams.MATCH_PARENT
+                )
+            )
         }
     }
 
-    private fun register(username: String, password: String, nickname: String) {
+    private fun register(username: String, password: String, confirmPassword: String, nickname: String) {
+        if (username.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+            Toast.makeText(requireContext(), "请填写所有必填字段", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        if (password != confirmPassword) {
+            Toast.makeText(requireContext(), "两次密码输入不一致", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         CoroutineScope(Dispatchers.Main).launch {
             val apiManager = ApiManager(context = requireContext())
             val response = apiManager.register(username, password, nickname)
 
             when (response) {
                 is ApiResponse.Success -> {
-                    // 注册成功，保存token
-                    val token = response.data.token
-                    // 这里可以保存token到SharedPreferences
-                    
-                    // 在debug模式下显示弹窗
+                    // 保存 token 和用户信息
+                    val configManager = ConfigManager.getInstance(requireContext())
+                    configManager.saveToken(response.data.token)
+                    configManager.saveUserId(response.data.user.id)
+                    configManager.saveUsername(response.data.user.username)
+                    configManager.saveNickname(response.data.user.nickname)
+
                     if (BuildConfig.DEBUG) {
-                        showResponseDialog("注册成功", "Token: $token\n用户名: ${response.data.user.username}\n昵称: ${response.data.user.nickname}")
+                        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                            .setTitle("注册成功(Debug)")
+                            .setMessage("用户ID: ${response.data.user.id}\n用户名: ${response.data.user.username}")
+                            .setPositiveButton("确定", null)
+                            .show()
                     } else {
                         Toast.makeText(requireContext(), "注册成功", Toast.LENGTH_SHORT).show()
                     }
-                    
-                    // 关闭注册fragment
                     parentFragmentManager.popBackStack()
-                    // 通知ProfileFragment更新用户信息
-                    (parentFragmentManager.findFragmentByTag("ProfileFragment") as? ProfileFragment)?.getUserInfo()
                 }
                 is ApiResponse.Error -> {
-                    val errorMessage = ErrorHandler.getErrorMessage(response)
-                    
-                    // 在debug模式下显示弹窗
                     if (BuildConfig.DEBUG) {
-                        showResponseDialog("注册失败", "错误码: ${response.code}\n错误信息: $errorMessage")
+                        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                            .setTitle("注册失败(Debug)")
+                            .setMessage("错误码: ${response.code}\n错误信息: ${response.message}")
+                            .setPositiveButton("确定", null)
+                            .show()
                     } else {
-                        Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext(), response.message, Toast.LENGTH_SHORT).show()
                     }
                 }
             }
         }
-    }
-
-    private fun showResponseDialog(title: String, message: String) {
-        androidx.appcompat.app.AlertDialog.Builder(requireContext())
-            .setTitle(title)
-            .setMessage(message)
-            .setPositiveButton("确定") { dialog, _ -> dialog.dismiss() }
-            .show()
     }
 }

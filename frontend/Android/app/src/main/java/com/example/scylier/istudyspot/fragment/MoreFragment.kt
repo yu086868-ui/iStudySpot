@@ -1,46 +1,53 @@
 package com.example.scylier.istudyspot.fragment
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import android.widget.Toast
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.example.scylier.istudyspot.R
-import com.example.scylier.istudyspot.adapters.MoreItemAdapter
-import com.example.scylier.istudyspot.viewmodel.MoreViewModel
+import com.example.scylier.istudyspot.ui.screen.MoreScreen
+import com.example.scylier.istudyspot.ui.theme.IStudySpotTheme
 
 class MoreFragment : Fragment() {
-
-    private lateinit var viewModel: MoreViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_more, container, false)
+    ): View {
+        return android.widget.FrameLayout(requireContext()).apply {
+            addView(
+                androidx.compose.ui.platform.ComposeView(requireContext()).apply {
+                    setViewCompositionStrategy(
+                        ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed
+                    )
+                    setContent {
+                        IStudySpotTheme {
+                            MoreScreen(
+                                onAction = { title ->
+                                    handleAction(title)
+                                }
+                            )
+                        }
+                    }
+                },
+                android.widget.FrameLayout.LayoutParams(
+                    android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                    android.widget.FrameLayout.LayoutParams.MATCH_PARENT
+                )
+            )
+        }
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        // 初始化ViewModel
-        viewModel = ViewModelProvider(this)[MoreViewModel::class.java]
-        // 初始化功能项组件
-        initMoreItems(view)
-    }
-
-    private fun initMoreItems(view: View) {
-        val recyclerView = view.findViewById<RecyclerView>(R.id.more_recycler)
-        
-        // 设置布局管理器
-        val layoutManager = LinearLayoutManager(requireContext())
-        recyclerView.layoutManager = layoutManager
-        
-        // 创建并设置适配器
-        val adapter = MoreItemAdapter(viewModel.groupedItems)
-        recyclerView.adapter = adapter
+    private fun handleAction(title: String) {
+        when (title) {
+            "预约记录" -> findNavController().navigate(R.id.action_nav_more_to_orderListFragment)
+            "帮助中心" -> findNavController().navigate(R.id.action_nav_more_to_rulesFragment)
+            else -> Toast.makeText(requireContext(), "${title}功能开发中", Toast.LENGTH_SHORT).show()
+        }
     }
 }

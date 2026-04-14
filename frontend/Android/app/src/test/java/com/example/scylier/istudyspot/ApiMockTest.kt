@@ -1,5 +1,6 @@
 package com.example.scylier.istudyspot
 
+import com.example.scylier.istudyspot.infra.network.ApiService
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.After
@@ -7,7 +8,6 @@ import org.junit.Before
 import org.junit.Test
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import com.example.scylier.istudyspot.network.ApiService
 import com.example.scylier.istudyspot.models.auth.LoginRequest
 import com.example.scylier.istudyspot.models.auth.RegisterRequest
 import kotlinx.coroutines.runBlocking

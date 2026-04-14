@@ -4,80 +4,78 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.EditText
 import android.widget.Toast
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.example.scylier.istudyspot.R
+import com.example.scylier.istudyspot.infra.network.ApiManager
 import com.example.scylier.istudyspot.models.ApiResponse
-import com.example.scylier.istudyspot.network.ApiManager
-import com.example.scylier.istudyspot.network.ErrorHandler
+import com.example.scylier.istudyspot.ui.screen.LoginScreen
+import com.example.scylier.istudyspot.ui.theme.IStudySpotTheme
+import com.example.scylier.istudyspot.utils.ConfigManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class LoginFragment : Fragment() {
-    private lateinit var etUsername: EditText
-    private lateinit var etPassword: EditText
-    private lateinit var btnLogin: Button
-    private lateinit var btnRegister: Button
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_login, container, false)
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        etUsername = view.findViewById(R.id.et_username)
-        etPassword = view.findViewById(R.id.et_password)
-        btnLogin = view.findViewById(R.id.btn_login)
-        btnRegister = view.findViewById(R.id.btn_register)
-
-        btnLogin.setOnClickListener {
-            val username = etUsername.text.toString().trim()
-            val password = etPassword.text.toString().trim()
-
-            if (username.isEmpty() || password.isEmpty()) {
-                Toast.makeText(requireContext(), "用户名和密码不能为空", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            login(username, password)
-        }
-
-        btnRegister.setOnClickListener {
-            val registerFragment = RegisterFragment()
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, registerFragment)
-                .addToBackStack(null)
-                .commit()
+    ): View {
+        return android.widget.FrameLayout(requireContext()).apply {
+            addView(
+                androidx.compose.ui.platform.ComposeView(requireContext()).apply {
+                    setViewCompositionStrategy(
+                        ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed
+                    )
+                    setContent {
+                        IStudySpotTheme {
+                            LoginScreen(
+                                onLogin = { username, password ->
+                                    login(username, password)
+                                },
+                                onRegisterClick = {
+                                    findNavController().navigate(R.id.action_loginFragment_to_registerFragment)
+                                }
+                            )
+                        }
+                    }
+                },
+                android.widget.FrameLayout.LayoutParams(
+                    android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                    android.widget.FrameLayout.LayoutParams.MATCH_PARENT
+                )
+            )
         }
     }
 
     private fun login(username: String, password: String) {
+        if (username.isEmpty() || password.isEmpty()) {
+            Toast.makeText(requireContext(), "用户名和密码不能为空", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         CoroutineScope(Dispatchers.Main).launch {
             val apiManager = ApiManager(context = requireContext())
             val response = apiManager.login(username, password)
 
             when (response) {
                 is ApiResponse.Success -> {
-                    // 登录成功，保存token
-                    val token = response.data.token
-                    // 这里可以保存token到SharedPreferences
+                    // 保存 token 和用户信息
+                    val configManager = ConfigManager.getInstance(requireContext())
+                    configManager.saveToken(response.data.token)
+                    configManager.saveUserId(response.data.user.id)
+                    configManager.saveUsername(response.data.user.username)
+                    configManager.saveNickname(response.data.user.nickname)
+
                     Toast.makeText(requireContext(), "登录成功", Toast.LENGTH_SHORT).show()
-                    // 关闭登录fragment
-                    parentFragmentManager.popBackStack()
-                    // 通知ProfileFragment更新用户信息
-                    (parentFragmentManager.findFragmentByTag("ProfileFragment") as? ProfileFragment)?.getUserInfo()
+                    findNavController().popBackStack()
                 }
                 is ApiResponse.Error -> {
-                    val errorMessage = ErrorHandler.getErrorMessage(response)
-                    Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), response.message, Toast.LENGTH_SHORT).show()
                 }
             }
         }

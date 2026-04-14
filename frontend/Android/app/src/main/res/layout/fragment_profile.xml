@@ -252,31 +252,34 @@
 
                 </LinearLayout>
 
-                <RelativeLayout
+                <LinearLayout
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
 
+                    <!-- 红点 -->
                     <TextView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:background="@color/red_500"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:minWidth="20dp"
+                        android:minHeight="20dp"
+                        android:layout_marginEnd="8dp"
+                        android:background="@drawable/bg_red_dot"
                         android:gravity="center"
-                        android:layout_marginRight="16dp"
-                        android:layout_marginTop="-8dp"
-                        android:layout_marginBottom="-8dp"
-                        android:backgroundTint="@color/red_500"
-                        app:backgroundTint="@color/red_500"
+                        android:padding="2dp"
                         android:text="3"
                         android:textSize="10sp"
                         android:textColor="@android:color/white" />
 
+                    <!-- 箭头 -->
                     <ImageView
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:src="@drawable/ic_chevron_right"
                         app:tint="@color/gray_400" />
 
-                </RelativeLayout>
+                </LinearLayout>
 
             </LinearLayout>
 
@@ -321,14 +324,16 @@
 
                 </LinearLayout>
 
-                <RelativeLayout
+                <LinearLayout
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginRight="16dp"
+                        android:layout_marginEnd="16dp"
                         android:text="¥128.00"
                         android:textSize="14sp"
                         android:textColor="@color/gray_600" />
@@ -339,7 +344,7 @@
                         android:src="@drawable/ic_chevron_right"
                         app:tint="@color/gray_400" />
 
-                </RelativeLayout>
+                </LinearLayout>
 
             </LinearLayout>
 
