@@ -1,5 +1,5 @@
-import { announcementApi } from '../../services/announcement'
-import { ruleApi } from '../../services/rule'
+import { announcementApi } from '../services/announcement'
+import { ruleApi } from '../services/rule'
 
 Page({
   data: {
