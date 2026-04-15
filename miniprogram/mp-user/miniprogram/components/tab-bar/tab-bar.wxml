@@ -1,13 +1,13 @@
 <view class="tab-bar">
-  <view class="tab-item">
+  <view class="tab-item {{currentTab === 'rules' ? 'active' : ''}}" bindtap="switchToRules">
     <view class="tab-icon diamond"></view>
     <text class="tab-text">规则公告</text>
   </view>
-  <view class="tab-item active">
+  <view class="tab-item {{currentTab === 'home' ? 'active' : ''}}" bindtap="switchToHome">
     <view class="tab-icon circle"></view>
     <text class="tab-text">首页</text>
   </view>
-  <view class="tab-item">
+  <view class="tab-item {{currentTab === 'profile' ? 'active' : ''}}" bindtap="switchToProfile">
     <view class="tab-icon triangle"></view>
     <text class="tab-text">个人中心</text>
   </view>

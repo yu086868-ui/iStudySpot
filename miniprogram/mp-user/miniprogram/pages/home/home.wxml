@@ -5,26 +5,33 @@
   </view>
 
   <view class="action-area">
-    <view class="btn-large">
+    <view class="btn-large" bindtap="navigateToSeatSelection">
       <text class="btn-text">选座预约</text>
     </view>
     <view class="btn-group">
-      <view class="btn-small">
+      <view class="btn-small" bindtap="handleOnlineCheckIn">
         <text class="btn-text">线上签到</text>
       </view>
-      <view class="btn-small">
+      <view class="btn-small" bindtap="handleScanCheckIn">
         <text class="btn-text">扫码签到</text>
       </view>
     </view>
   </view>
 
-  <view class="info-card">
-    <text class="info-text">已预约北极星自习室 13:30，</text>
-    <text class="info-text">二楼22B号桌位，</text>
-    <text class="info-text">当前暂未入座，</text>
-    <text class="info-text">本周累计学习 18 小时。</text>
+  <view class="info-card" wx:if="{{currentReservation}}">
+    <text class="info-text">已预约{{currentReservation.roomName}} {{currentReservation.displayTime}}，</text>
+    <text class="info-text">{{currentReservation.seatNumber}}，</text>
+    <text class="info-text" wx:if="{{!currentReservation.checkInTime}}">当前暂未入座，</text>
+    <text class="info-text" wx:else>已入座学习，</text>
+    <text class="info-text">本周累计学习 {{weeklyStudyHours}} 小时。</text>
+    <text class="info-dots">..............</text>
+  </view>
+
+  <view class="info-card" wx:else>
+    <text class="info-text">暂无进行中的预约</text>
+    <text class="info-text">本周累计学习 {{weeklyStudyHours}} 小时。</text>
     <text class="info-dots">..............</text>
   </view>
 </view>
 
-<tab-bar></tab-bar>
+<tab-bar currentTab="home"></tab-bar>

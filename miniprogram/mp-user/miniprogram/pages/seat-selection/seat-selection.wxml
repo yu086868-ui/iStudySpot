@@ -1,86 +1,80 @@
 <view class="container">
   <text class="page-title">选座：</text>
 
-  <view class="seat-grid-wrapper">
+  <view class="seat-grid-wrapper" wx:if="{{!isLoading}}">
     <view class="seat-grid">
-      <!-- 左侧区域 -->
-      <view class="seat-column">
+      <view class="seat-column" wx:if="{{seats.left}}">
         <view class="column-header">
           <text class="col-number">1</text>
           <text class="col-number">2</text>
           <text class="col-number">3</text>
           <text class="col-number">4</text>
         </view>
-        <view class="seat-row">
-          <view class="seat seat-selected"><text class="seat-label">A3</text></view>
-          <view class="seat seat-available"></view>
-          <view class="seat seat-available"></view>
-          <view class="seat seat-occupied"></view>
-        </view>
-        <view class="seat-row">
-          <view class="seat seat-available"></view>
-          <view class="seat seat-available"></view>
-          <view class="seat seat-available"></view>
-          <view class="seat seat-occupied"></view>
-        </view>
-        <view class="seat-row">
-          <view class="seat seat-available"></view>
-          <view class="seat seat-available"></view>
-          <view class="seat seat-available"></view>
-          <view class="seat seat-occupied"></view>
-        </view>
-        <view class="seat-row">
-          <view class="seat seat-available"></view>
-          <view class="seat seat-available"></view>
-          <view class="seat seat-available"></view>
-          <view class="seat seat-occupied"></view>
-        </view>
-        <view class="seat-row">
-          <view class="seat seat-available"></view>
-          <view class="seat seat-available"></view>
-          <view class="seat seat-available"></view>
-          <view class="seat seat-occupied"></view>
-        </view>
-        <view class="seat-row">
-          <view class="seat seat-available"></view>
-          <view class="seat seat-available"></view>
-          <view class="seat seat-available"></view>
-          <view class="seat seat-occupied"></view>
-        </view>
+        <block wx:for="{{seats.left}}" wx:key="id" wx:for-item="seat" wx:for-index="idx">
+          <view class="seat-row" wx:if="{{idx % 4 === 0}}">
+            <view
+              class="seat {{getSeatClass(seats.left[idx])}}"
+              data-seat="{{seats.left[idx]}}"
+              bindtap="selectSeat"
+            >
+              <text class="seat-label" wx:if="{{selectedSeat.id === seats.left[idx].id}}">{{seats.left[idx].seatNumber}}</text>
+            </view>
+            <view
+              class="seat {{getSeatClass(seats.left[idx + 1])}}"
+              data-seat="{{seats.left[idx + 1]}}"
+              bindtap="selectSeat"
+              wx:if="{{seats.left[idx + 1]}}"
+            ></view>
+            <view
+              class="seat {{getSeatClass(seats.left[idx + 2])}}"
+              data-seat="{{seats.left[idx + 2]}}"
+              bindtap="selectSeat"
+              wx:if="{{seats.left[idx + 2]}}"
+            ></view>
+            <view
+              class="seat {{getSeatClass(seats.left[idx + 3])}}"
+              data-seat="{{seats.left[idx + 3]}}"
+              bindtap="selectSeat"
+              wx:if="{{seats.left[idx + 3]}}"
+            ></view>
+          </view>
+        </block>
       </view>
 
-      <!-- 右侧区域 -->
-      <view class="seat-column">
+      <view class="seat-column" wx:if="{{seats.right}}">
         <view class="column-header">
           <text class="col-number">1</text>
           <text class="col-number">2</text>
           <text class="col-number">3</text>
           <text class="col-number">4</text>
         </view>
-        <view class="seat-row">
-          <view class="seat seat-available"></view>
-          <view class="seat seat-available"></view>
-          <view class="seat seat-available"></view>
-          <view class="seat seat-occupied"></view>
-        </view>
-        <view class="seat-row">
-          <view class="seat seat-available"></view>
-          <view class="seat seat-available"></view>
-          <view class="seat seat-available"></view>
-          <view class="seat seat-occupied"></view>
-        </view>
-        <view class="seat-row">
-          <view class="seat seat-available"></view>
-          <view class="seat seat-available"></view>
-          <view class="seat seat-available"></view>
-          <view class="seat seat-occupied"></view>
-        </view>
-        <view class="seat-row">
-          <view class="seat seat-available"></view>
-          <view class="seat seat-available"></view>
-          <view class="seat seat-available"></view>
-          <view class="seat seat-occupied"></view>
-        </view>
+        <block wx:for="{{seats.right}}" wx:key="id" wx:for-item="seat" wx:for-index="idx">
+          <view class="seat-row" wx:if="{{idx % 4 === 0}}">
+            <view
+              class="seat {{getSeatClass(seats.right[idx])}}"
+              data-seat="{{seats.right[idx]}}"
+              bindtap="selectSeat"
+            ></view>
+            <view
+              class="seat {{getSeatClass(seats.right[idx + 1])}}"
+              data-seat="{{seats.right[idx + 1]}}"
+              bindtap="selectSeat"
+              wx:if="{{seats.right[idx + 1]}}"
+            ></view>
+            <view
+              class="seat {{getSeatClass(seats.right[idx + 2])}}"
+              data-seat="{{seats.right[idx + 2]}}"
+              bindtap="selectSeat"
+              wx:if="{{seats.right[idx + 2]}}"
+            ></view>
+            <view
+              class="seat {{getSeatClass(seats.right[idx + 3])}}"
+              data-seat="{{seats.right[idx + 3]}}"
+              bindtap="selectSeat"
+              wx:if="{{seats.right[idx + 3]}}"
+            ></view>
+          </view>
+        </block>
         <view class="corridor">
           <text class="corridor-text">Corridor</text>
         </view>
@@ -103,11 +97,15 @@
     </view>
   </view>
 
-  <view class="time-info">
-    <text class="time-text">已选时间段：3月18日 周三 1:30 - 5:30</text>
+  <view class="loading-state" wx:else>
+    <text class="loading-text">加载座位中...</text>
   </view>
 
-  <view class="confirm-btn">
+  <view class="time-info">
+    <text class="time-text">已选时间段：{{selectedTime}}</text>
+  </view>
+
+  <view class="confirm-btn" bindtap="confirmSelection">
     <text class="confirm-text">确认</text>
   </view>
 </view>

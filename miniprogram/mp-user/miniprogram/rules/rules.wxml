@@ -1,29 +1,26 @@
 <view class="container">
-  <view class="page-title">规则与公告：</view>
+  <text class="page-title">规则与公告：</text>
 
-  <view class="rule-card">
+  <view class="rule-card" wx:if="{{rules.length > 0}}">
     <view class="rule-header">
       <text class="rule-icon">📌</text>
       <text class="rule-title">自习室公约：</text>
     </view>
     <view class="rule-content">
-      <text class="rule-text">1. 保持安静，禁止交谈、外放声音，手机调至静音。</text>
-      <text class="rule-text">2. 爱护公共设施与桌面整洁，离场时带走个人物品及垃圾</text>
-      <text class="rule-text">3. 禁止饮食、吸烟、占座、转借座位，预约后请按时入座。</text>
-      <text class="rule-text">4. 尊重他人学习空间，不随意走动、打扰他人。</text>
-      <text class="rule-text">5. 遵守馆内管理规定，文明自习，共同营造安静高效的学习环境。</text>
+      <block wx:for="{{rules}}" wx:key="id">
+        <text class="rule-text">{{item.content}}</text>
+      </block>
     </view>
   </view>
 
-  <view class="notice-card">
-    <view class="notice-title">公告一：入馆须知（通用）</view>
-    <text class="notice-content">欢迎来到北极星自习室。为大家营造安静、整洁的学习环境，请自觉保持安静，手机调至静音，禁止喧哗、饮食与外放。爱护公共设施，离场时请带走个人物品及垃圾，文明自习，感谢配合。</text>
+  <view class="notice-card" wx:for="{{announcements}}" wx:key="id">
+    <view class="notice-title">{{item.title}}</view>
+    <text class="notice-content">{{item.content}}</text>
   </view>
 
-  <view class="notice-card">
-    <view class="notice-title">公告二：预约入座规则</view>
-    <text class="notice-content">自习室实行预约入座制，请按时到店核销入座。迟到 15 分钟以上将自动取消预约，禁止占座、换座、转借座位。如遇特殊情况，请及时联系工作人员调整，共同维护公平秩序。</text>
+  <view class="empty-state" wx:if="{{announcements.length === 0 && rules.length === 0}}">
+    <text class="empty-text">暂无规则和公告</text>
   </view>
 </view>
 
-<tab-bar></tab-bar>
+<tab-bar currentTab="rules"></tab-bar>

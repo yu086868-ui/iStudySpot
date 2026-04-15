@@ -167,3 +167,19 @@ page {
   font-weight: bold;
   color: #FFFFFF;
 }
+
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 200rpx 0;
+}
+
+.loading-text {
+  font-size: 28rpx;
+  color: #999999;
+}
+
+.seat-reserved {
+  background: #FFF9C4;
+}

@@ -79,3 +79,15 @@ page {
   color: #333333;
   line-height: 1.7;
 }
+
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx 0;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #999999;
+}
