@@ -29,7 +29,7 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("用户名或密码错误");
         }
 
-        String encryptedPassword = DigestUtils.md5DigestAsHex(password.getBytes());
+        String encryptedPassword = DigestUtils.md5DigestAsHex(password.getBytes(java.nio.charset.StandardCharsets.UTF_8));
         System.out.println("Input password: " + password);
         System.out.println("Encrypted password: " + encryptedPassword);
         System.out.println("Stored password: " + user.getPassword());

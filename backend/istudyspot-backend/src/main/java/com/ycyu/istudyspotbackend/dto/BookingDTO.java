@@ -3,10 +3,14 @@ package com.ycyu.istudyspotbackend.dto;
 import java.time.LocalDateTime;
 
 public class BookingDTO {
+    private Long studyRoomId;
     private Long seatId;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private String bookingType;  // hour, day
+
+    public Long getStudyRoomId() { return studyRoomId; }
+    public void setStudyRoomId(Long studyRoomId) { this.studyRoomId = studyRoomId; }
 
     public Long getSeatId() { return seatId; }
     public void setSeatId(Long seatId) { this.seatId = seatId; }

@@ -45,13 +45,16 @@ public class JwtUtils {
 
     public Long getUserIdFromToken(String token) {
         try {
+            System.out.println("Attempting to parse token: " + token);
             Claims claims = Jwts.parserBuilder()
                     .setSigningKey(getKey())
                     .build()
                     .parseClaimsJws(token)
                     .getBody();
+            System.out.println("Token parsed successfully, subject: " + claims.getSubject());
             return Long.parseLong(claims.getSubject());
         } catch (Exception e) {
+            System.out.println("Token parsing failed: " + e.getMessage());
             return null;
         }
     }

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.ArrayList;
 
 @RestController
 @RequestMapping("/api")
@@ -20,11 +21,15 @@ public class CheckInController {
             @RequestAttribute Long userId) {
         try {
             String reservationIdStr = params.get("reservationId");
+            String seatIdStr = params.get("seatId");
             if (reservationIdStr == null || reservationIdStr.isEmpty()) {
                 return Result.error("预约ID不能为空");
             }
+            if (seatIdStr == null || seatIdStr.isEmpty()) {
+                return Result.error("座位ID不能为空");
+            }
             Long reservationId = Long.valueOf(reservationIdStr);
-            Map<String, Object> result = orderService.checkin(reservationId, "");
+            Map<String, Object> result = orderService.checkin(reservationId, seatIdStr);
             return Result.success("签到成功", result);
         } catch (NumberFormatException e) {
             return Result.error("预约ID格式错误");
@@ -38,15 +43,15 @@ public class CheckInController {
             @RequestBody Map<String, String> params,
             @RequestAttribute Long userId) {
         try {
-            String orderIdStr = params.get("orderId");
-            if (orderIdStr == null || orderIdStr.isEmpty()) {
-                return Result.error("订单ID不能为空");
+            String checkInRecordIdStr = params.get("checkInRecordId");
+            if (checkInRecordIdStr == null || checkInRecordIdStr.isEmpty()) {
+                return Result.error("签到记录ID不能为空");
             }
-            Long orderId = Long.valueOf(orderIdStr);
-            Map<String, Object> result = orderService.checkout(orderId);
+            Long checkInRecordId = Long.valueOf(checkInRecordIdStr);
+            Map<String, Object> result = orderService.checkout(checkInRecordId);
             return Result.success("签退成功", result);
         } catch (NumberFormatException e) {
-            return Result.error("订单ID格式错误");
+            return Result.error("签到记录ID格式错误");
         } catch (Exception e) {
             return Result.error(e.getMessage());
         }
@@ -60,12 +65,11 @@ public class CheckInController {
             @RequestParam(defaultValue = "20") int pageSize,
             @RequestAttribute Long userId) {
         // TODO: 实现签到记录查询
-        Map<String, Object> result = Map.of(
-                "list", new Object(),
-                "total", 0,
-                "page", page,
-                "pageSize", pageSize
-        );
+        Map<String, Object> result = new java.util.HashMap<>();
+        result.put("list", new ArrayList<>());
+        result.put("total", 0);
+        result.put("page", page);
+        result.put("pageSize", pageSize);
         return Result.success("success", result);
     }
 
@@ -73,10 +77,9 @@ public class CheckInController {
     public Result<Map<String, Object>> getCurrentCheckInStatus(
             @RequestAttribute Long userId) {
         // TODO: 实现当前签到状态查询
-        Map<String, Object> result = Map.of(
-                "isCheckedIn", false,
-                "checkInRecord", null
-        );
+        Map<String, Object> result = new java.util.HashMap<>();
+        result.put("isCheckedIn", false);
+        result.put("checkInRecord", null);
         return Result.success("success", result);
     }
 }

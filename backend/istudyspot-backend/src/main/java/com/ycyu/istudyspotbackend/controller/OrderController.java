@@ -22,6 +22,7 @@ public class OrderController {
             @RequestAttribute Long userId) {
         Map<String, Object> result = orderService.createOrder(
                 userId,
+                bookingDTO.getStudyRoomId(),
                 bookingDTO.getSeatId(),
                 bookingDTO.getStartTime(),
                 bookingDTO.getEndTime(),

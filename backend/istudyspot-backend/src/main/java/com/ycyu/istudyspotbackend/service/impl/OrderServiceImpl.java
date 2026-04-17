@@ -34,7 +34,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public Map<String, Object> createOrder(Long userId, Long seatId, LocalDateTime startTime,
+    public Map<String, Object> createOrder(Long userId, Long studyRoomId, Long seatId, LocalDateTime startTime,
                                            LocalDateTime endTime, String bookingType) {
         // 检查座位是否存在
         Seat seat = seatMapper.findById(seatId);
@@ -54,14 +54,14 @@ public class OrderServiceImpl implements OrderService {
         BigDecimal totalPrice = seat.getPricePerHour().multiply(new BigDecimal(hours));
 
         // 获取自习室信息
-        StudyRoom room = studyRoomMapper.findById(seat.getRoomId());
+        StudyRoom room = studyRoomMapper.findById(studyRoomId);
 
         // 创建订单
         Order order = new Order();
         order.setOrderNo("ORD" + System.currentTimeMillis() + userId);
         order.setUserId(userId);
         order.setSeatId(seatId);
-        order.setRoomId(seat.getRoomId());
+        order.setRoomId(studyRoomId);
         order.setStudyRoomName(room.getName());
         order.setRoomName(room.getName());
         order.setSeatPosition(seat.getRowNum() + "-" + seat.getColNum());
@@ -76,13 +76,16 @@ public class OrderServiceImpl implements OrderService {
 
         Map<String, Object> result = new HashMap<>();
         result.put("id", order.getId().toString());
+        result.put("studyRoomId", studyRoomId.toString());
         result.put("seatId", seatId.toString());
         result.put("userId", userId.toString());
         result.put("startTime", startTime.format(formatter));
         result.put("endTime", endTime.format(formatter));
-        result.put("totalPrice", totalPrice);
         result.put("status", "pending");
+        result.put("checkInTime", null);
+        result.put("checkOutTime", null);
         result.put("createdAt", LocalDateTime.now().format(formatter));
+        result.put("updatedAt", LocalDateTime.now().format(formatter));
         return result;
     }
 
