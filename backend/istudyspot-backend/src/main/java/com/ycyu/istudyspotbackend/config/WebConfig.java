@@ -16,6 +16,29 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(jwtInterceptor)
                 .addPathPatterns("/api/**")
-                .excludePathPatterns("/api/auth/login","/api/auth/register", "/api/test");
+                .excludePathPatterns(
+                        "/api/auth/login",
+                        "/api/auth/register",
+                        "/api/auth/refresh",
+                        "/api/test",
+                        "/api/studyrooms",
+                        "/api/studyrooms/**",
+                        "/api/seats",
+                        "/api/seats/**",
+                        "/api/announcements",
+                        "/api/announcements/**",
+                        "/api/rules",
+                        "/api/rules/**"
+                );
+    }
+
+    @Override
+    public void addCorsMappings(org.springframework.web.servlet.config.annotation.CorsRegistry registry) {
+        registry.addMapping("/api/**")
+                .allowedOrigins("*")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedHeaders("*")
+                .allowCredentials(true)
+                .maxAge(3600);
     }
 }

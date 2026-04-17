@@ -4,6 +4,7 @@ import com.ycyu.istudyspotbackend.entity.Result;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.ArrayList;
 
 @RestController
 @RequestMapping("/api/announcements")
@@ -17,7 +18,7 @@ public class AnnouncementController {
             @RequestParam(defaultValue = "20") int pageSize) {
         // TODO: 实现公告列表查询
         Map<String, Object> result = Map.of(
-                "list", new Object(),
+                "list", new ArrayList<>(),
                 "total", 0,
                 "page", page,
                 "pageSize", pageSize
