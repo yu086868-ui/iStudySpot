@@ -1,7 +1,7 @@
 {
   "pages": [
     "pages/home/home",
-    "rules/rules",
+    "pages/rules/rules",
     "pages/profile/profile",
     "pages/seat-selection/seat-selection",
     "pages/study-status/study-status",
@@ -12,7 +12,7 @@
     "custom": true,
     "list": [
       {
-        "pagePath": "rules/rules",
+        "pagePath": "pages/rules/rules",
         "text": "规则公告"
       },
       {

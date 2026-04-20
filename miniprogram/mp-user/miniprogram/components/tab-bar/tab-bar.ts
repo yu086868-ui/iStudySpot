@@ -11,7 +11,7 @@ Component({
   methods: {
     switchToRules() {
       wx.switchTab({
-        url: '/rules/rules'
+        url: '/pages/rules/rules'
       })
     },
 
