@@ -1,10 +1,11 @@
 import { announcementApi } from '../../services/announcement'
 import { ruleApi } from '../../services/rule'
+import type { Rule, Announcement } from '../../typings/api'
 
 Page({
   data: {
-    rules: [] as any[],
-    announcements: [] as any[]
+    rules: [] as Rule[],
+    announcements: [] as Announcement[]
   },
 
   onLoad() {
@@ -48,13 +49,13 @@ Page({
       console.log('[Rules] 公告API响应:', JSON.stringify(res, null, 2))
 
       if (res.code === 200 && res.data) {
-        let announcements = []
+        let announcements: Announcement[] = []
 
-        if (res.data.list && Array.isArray(res.data.list)) {
-          announcements = res.data.list
+        if (res.data && typeof res.data === 'object' && 'list' in res.data && Array.isArray((res.data as { list: unknown[] }).list)) {
+          announcements = (res.data as { list: Announcement[] }).list
           console.log('[Rules] 从分页格式解析公告，数量:', announcements.length)
         } else if (Array.isArray(res.data)) {
-          announcements = res.data
+          announcements = res.data as Announcement[]
           console.log('[Rules] 从数组格式解析公告，数量:', announcements.length)
         }
 

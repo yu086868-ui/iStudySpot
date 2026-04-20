@@ -1,5 +1,5 @@
 import type { ApiResponse } from '../typings/api';
-import { mockData } from './data';
+import mockData from './data';
 
 const ENABLE_MOCK = true;
 
