@@ -2,7 +2,17 @@ import { userApi } from '../../services/user'
 
 Page({
   data: {
-    userInfo: null as any,
+    userInfo: {
+      id: '',
+      username: '',
+      nickname: '未设置昵称',
+      avatar: '/assets/avatar-placeholder.png',
+      phone: '',
+      email: '',
+      studentId: '',
+      creditScore: 0,
+      status: 'active'
+    } as any,
     totalStudyHours: 624,
     rankPercent: 82
   },
@@ -22,8 +32,20 @@ Page({
   async loadUserInfo() {
     try {
       const res = await userApi.getCurrentUser()
-      if (res.code === 200) {
-        this.setData({ userInfo: res.data })
+      if (res.code === 200 && res.data) {
+        this.setData({
+          userInfo: {
+            id: res.data.id || '',
+            username: res.data.username || '',
+            nickname: res.data.nickname || '未设置昵称',
+            avatar: res.data.avatar || '/assets/avatar-placeholder.png',
+            phone: res.data.phone || '',
+            email: res.data.email || '',
+            studentId: res.data.studentId || '',
+            creditScore: res.data.creditScore || 0,
+            status: res.data.status || 'active'
+          }
+        })
       }
     } catch (error) {
       console.error('获取用户信息失败', error)

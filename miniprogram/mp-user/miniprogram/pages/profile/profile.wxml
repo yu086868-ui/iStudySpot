@@ -3,10 +3,12 @@
     <view class="avatar-wrapper">
       <image class="avatar" src="{{userInfo.avatar || '/assets/avatar-placeholder.png'}}" mode="aspectFill"></image>
     </view>
-    <text class="username">{{userInfo.nickname || 'Theresa'}}</text>
+    <text class="username">{{userInfo.nickname || '未设置昵称'}}</text>
     <view class="stats">
       <text class="stat-text">累计学习时长：{{totalStudyHours}}H</text>
       <text class="stat-text">你的努力超过了{{rankPercent}}%的人</text>
+      <text class="stat-text" wx:if="{{userInfo.studentId}}">学号：{{userInfo.studentId}}</text>
+      <text class="stat-text" wx:if="{{userInfo.phone}}">手机：{{userInfo.phone}}</text>
     </view>
   </view>
 

@@ -23,22 +23,27 @@ Page({
   async loadRules() {
     try {
       const res = await ruleApi.getRules()
-      if (res.code === 200) {
-        this.setData({ rules: res.data })
+      if (res.code === 200 && res.data) {
+        this.setData({ rules: Array.isArray(res.data) ? res.data : [] })
       }
     } catch (error) {
       console.error('获取规则失败', error)
+      this.setData({ rules: [] })
     }
   },
 
   async loadAnnouncements() {
     try {
       const res = await announcementApi.getAnnouncements()
-      if (res.code === 200) {
-        this.setData({ announcements: res.data.list || res.data })
+      if (res.code === 200 && res.data) {
+        const announcements = res.data.list
+          ? Array.isArray(res.data.list) ? res.data.list : []
+          : Array.isArray(res.data) ? res.data : []
+        this.setData({ announcements })
       }
     } catch (error) {
       console.error('获取公告失败', error)
+      this.setData({ announcements: [] })
     }
   }
 })

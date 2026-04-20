@@ -5,20 +5,40 @@ Page({
   data: {
     seats: [] as any[],
     selectedSeat: null as any,
-    selectedTime: '3月18日 周三 1:30 - 5:30',
+    selectedTime: '',
     studyRoomId: 'room_001',
     isLoading: false
   },
 
   onLoad() {
+    this.updateSelectedTime()
     this.loadSeats()
+  },
+
+  updateSelectedTime() {
+    const now = new Date()
+    const startTime = new Date(now.getTime() + 30 * 60 * 1000)
+    const endTime = new Date(startTime.getTime() + 4 * 60 * 60 * 1000)
+
+    const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+    const month = startTime.getMonth() + 1
+    const date = startTime.getDate()
+    const weekDay = weekDays[startTime.getDay()]
+    const startHour = startTime.getHours()
+    const startMin = String(startTime.getMinutes()).padStart(2, '0')
+    const endHour = endTime.getHours()
+    const endMin = String(endTime.getMinutes()).padStart(2, '0')
+
+    this.setData({
+      selectedTime: `${month}月${date}日 ${weekDay} ${startHour}:${startMin} - ${endHour}:${endMin}`
+    })
   },
 
   async loadSeats() {
     this.setData({ isLoading: true })
     try {
       const res = await seatApi.getSeats(this.data.studyRoomId)
-      if (res.code === 200) {
+      if (res.code === 200 && res.data) {
         const leftSeats = res.data.filter((seat: any) => seat.col <= 4).slice(0, 24)
         const rightSeats = res.data.filter((seat: any) => seat.col > 4 && seat.col <= 8).slice(0, 24)
 
@@ -38,7 +58,7 @@ Page({
 
   selectSeat(e: any) {
     const { seat } = e.currentTarget.dataset
-    if (seat.status !== 'available') {
+    if (!seat || seat.status !== 'available') {
       wx.showToast({
         title: '该座位不可选',
         icon: 'none'
@@ -102,9 +122,12 @@ Page({
   },
 
   getSeatClass(seat: any): string {
+    if (!seat) return 'seat-available'
+
     if (this.data.selectedSeat?.id === seat.id) {
       return 'seat-selected'
     }
+
     switch (seat.status) {
       case 'available':
         return 'seat-available'

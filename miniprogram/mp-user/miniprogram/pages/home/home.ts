@@ -1,16 +1,21 @@
 import { reservationApi } from '../../services/reservation'
 import { userApi } from '../../services/user'
+import { studyRoomApi } from '../../services/studyroom'
+import { seatApi } from '../../services/seat'
 
 Page({
   data: {
     userInfo: null as any,
     currentReservation: null as any,
-    weeklyStudyHours: 18
+    weeklyStudyHours: 18,
+    studyRooms: [] as any[],
+    seats: [] as any[]
   },
 
   onLoad() {
     this.loadUserInfo()
     this.loadCurrentReservation()
+    this.loadStudyRooms()
   },
 
   onShow() {
@@ -32,20 +37,49 @@ Page({
     }
   },
 
+  async loadStudyRooms() {
+    try {
+      const res = await studyRoomApi.getStudyRooms()
+      if (res.code === 200) {
+        this.setData({ studyRooms: res.data.list || [] })
+      }
+    } catch (error) {
+      console.error('获取自习室列表失败', error)
+    }
+  },
+
   async loadCurrentReservation() {
     try {
       const res = await reservationApi.getMyReservations({ status: 'confirmed' })
-      if (res.code === 200 && res.data.list.length > 0) {
+      if (res.code === 200 && res.data?.list?.length > 0) {
         const reservation = res.data.list[0]
         const startTime = new Date(reservation.startTime)
-        const timeStr = `${startTime.getHours()}:${String(startTime.getMinutes()).padStart(2, '0')}`
+        const endTime = new Date(reservation.endTime)
+        const timeStr = `${startTime.getHours()}:${String(startTime.getMinutes()).padStart(2, '0')}-${endTime.getHours()}:${String(endTime.getMinutes()).padStart(2, '0')}`
+
+        let roomName = '未知自习室'
+        let seatNumber = '未知座位'
+
+        if (reservation.studyRoomId) {
+          const roomRes = await studyRoomApi.getStudyRoomDetail(reservation.studyRoomId)
+          if (roomRes.code === 200 && roomRes.data) {
+            roomName = roomRes.data.name || '未知自习室'
+          }
+        }
+
+        if (reservation.seatId) {
+          const seatRes = await seatApi.getSeatDetail(reservation.seatId)
+          if (seatRes.code === 200 && seatRes.data) {
+            seatNumber = seatRes.data.seatNumber || '未知座位'
+          }
+        }
 
         this.setData({
           currentReservation: {
             ...reservation,
             displayTime: timeStr,
-            roomName: '北极星自习室',
-            seatNumber: '22B号桌位'
+            roomName: roomName,
+            seatNumber: seatNumber
           }
         })
       }
