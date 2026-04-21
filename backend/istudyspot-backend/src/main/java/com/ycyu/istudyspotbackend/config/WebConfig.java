@@ -28,14 +28,18 @@ public class WebConfig implements WebMvcConfigurer {
                         "/api/announcements",
                         "/api/announcements/**",
                         "/api/rules",
-                        "/api/rules/**"
+                        "/api/rules/**",
+                        "/api/characters",
+                        "/api/chat",
+                        "/api/chat/stream",
+                        "/api/customer-service/**"
                 );
     }
 
     @Override
     public void addCorsMappings(org.springframework.web.servlet.config.annotation.CorsRegistry registry) {
         registry.addMapping("/api/**")
-                .allowedOrigins("*")
+                .allowedOriginPatterns("*")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true)
