@@ -32,8 +32,8 @@
         </view>
         <view class="character-info">
           <text class="character-name">{{item.name}}</text>
-          <text class="character-persona">{{item.persona}}</text>
-          <text class="character-style">说话风格：{{item.speaking_style}}</text>
+          <text class="character-persona" max-lines="2">{{item.persona}}</text>
+          <text class="character-style" max-lines="2">说话风格：{{item.speaking_style}}</text>
         </view>
         <view class="arrow-icon">
           <text>›</text>
