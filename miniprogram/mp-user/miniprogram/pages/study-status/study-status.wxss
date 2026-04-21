@@ -61,3 +61,9 @@ page {
   color: #CCCCCC;
   margin-top: auto;
 }
+
+.footer-exit-hint {
+  font-size: 24rpx;
+  color: #AAAAAA;
+  margin-top: 16rpx;
+}

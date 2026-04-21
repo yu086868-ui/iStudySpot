@@ -17,20 +17,28 @@
     <view class="picker-row">
       <text class="picker-label">开始时间：</text>
       <picker mode="selector" range="{{hours}}" range-key="" value="{{selectedStartHour - 8}}" bindchange="onStartHourChange">
-        <view class="picker-value">{{selectedStartHour}}:00</view>
+        <view class="picker-value">{{selectedStartHour}}</view>
+      </picker>
+      <text class="picker-separator">:</text>
+      <picker mode="selector" range="{{minutes}}" range-key="" value="{{selectedStartMinute / 5}}" bindchange="onStartMinuteChange">
+        <view class="picker-value">{{selectedStartMinute < 10 ? '0' : ''}}{{selectedStartMinute}}</view>
       </picker>
     </view>
     
     <view class="picker-row">
       <text class="picker-label">结束时间：</text>
       <picker mode="selector" range="{{hours}}" range-key="" value="{{selectedEndHour - 8}}" bindchange="onEndHourChange">
-        <view class="picker-value">{{selectedEndHour}}:00</view>
+        <view class="picker-value">{{selectedEndHour}}</view>
+      </picker>
+      <text class="picker-separator">:</text>
+      <picker mode="selector" range="{{minutes}}" range-key="" value="{{selectedEndMinute / 5}}" bindchange="onEndMinuteChange">
+        <view class="picker-value">{{selectedEndMinute < 10 ? '0' : ''}}{{selectedEndMinute}}</view>
       </picker>
     </view>
   </view>
 
   <view class="time-display">
-    <text class="time-text">已选时间段：{{selectedDate}} {{selectedStartHour}}:00 - {{selectedEndHour}}:00</text>
+    <text class="time-text">已选时间段：{{selectedDate}} {{selectedStartHour}}:{{selectedStartMinute < 10 ? '0' : ''}}{{selectedStartMinute}} - {{selectedEndHour}}:{{selectedEndMinute < 10 ? '0' : ''}}{{selectedEndMinute}}</text>
   </view>
 
   <view class="seat-section" wx:if="{{!isLoading}}">

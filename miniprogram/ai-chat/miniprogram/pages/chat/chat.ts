@@ -1,4 +1,4 @@
-import { sendMessageStream } from '../../services/index';
+import { sendMessageStream, cacheService } from '../../services/index';
 import { generateUUID } from '../../utils/uuid';
 import type { Message } from '../../typings/chat';
 
@@ -35,12 +35,17 @@ Component({
       const characterName = decodeURIComponent(options.characterName || '科学家');
       const characterAvatar = decodeURIComponent(options.characterAvatar || '');
 
+      const cachedMessages = cacheService.getChatHistory(characterId);
+
       this.setData({
         characterId,
         characterName,
         characterAvatar,
-        sessionId: generateUUID()
+        sessionId: generateUUID(),
+        messages: cachedMessages
       });
+
+      cacheService.saveCurrentCharacter(characterId);
     }
   },
 
@@ -63,8 +68,10 @@ Component({
         timestamp: Date.now()
       };
 
+      const newMessages = [...messages, userMessage];
+
       this.setData({
-        messages: [...messages, userMessage],
+        messages: newMessages,
         isStreaming: true,
         streamingContent: ''
       });
@@ -96,11 +103,15 @@ Component({
               timestamp: Date.now()
             };
 
+            const finalMessages = [...this.data.messages, assistantMessage];
+
             this.setData({
-              messages: [...this.data.messages, assistantMessage],
+              messages: finalMessages,
               isStreaming: false,
               streamingContent: ''
             });
+
+            cacheService.saveChatHistory(characterId, finalMessages);
 
             this.scrollToBottom();
           },
@@ -125,6 +136,22 @@ Component({
           isStreaming: false,
           streamingContent: ''
         });
+      });
+    },
+
+    onClearChat() {
+      wx.showModal({
+        title: '清空对话',
+        content: '确定要清空当前对话记录吗？',
+        success: (res) => {
+          if (res.confirm) {
+            this.setData({
+              messages: [],
+              sessionId: generateUUID()
+            });
+            cacheService.clearChatHistory(this.data.characterId);
+          }
+        }
       });
     },
 

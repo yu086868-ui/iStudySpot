@@ -1,5 +1,6 @@
 import { seatApi } from '../../services/seat'
 import { reservationApi } from '../../services/reservation'
+import { checkInApi } from '../../services/checkin'
 import type { Seat, ReservationRules } from '../../typings/api'
 import { SeatLayoutUtil } from '../../utils/seat-layout'
 
@@ -23,10 +24,13 @@ Page({
     
     selectedDate: '',
     selectedStartHour: 9,
+    selectedStartMinute: 0,
     selectedEndHour: 13,
+    selectedEndMinute: 0,
     minDate: '',
     maxDate: '',
     hours: [] as number[],
+    minutes: [] as number[],
     
     reservationRules: null as ReservationRules | null,
     
@@ -35,10 +39,18 @@ Page({
       available: 0,
       occupied: 0,
       reserved: 0
-    }
+    },
+    
+    preselectedSeatId: ''
   },
 
-  onLoad() {
+  onLoad(options: { studyRoomId?: string; seatId?: string }) {
+    if (options.studyRoomId) {
+      this.setData({ studyRoomId: options.studyRoomId })
+    }
+    if (options.seatId) {
+      this.setData({ preselectedSeatId: options.seatId })
+    }
     this.initDateTimePicker()
     this.loadReservationRules()
     this.loadSeats()
@@ -58,6 +70,7 @@ Page({
     const maxDate = `${maxYear}-${maxMonth}-${maxDay}`
     
     const currentHour = now.getHours()
+    const currentMinute = now.getMinutes()
     const startHour = currentHour + 1
     
     const hours: number[] = []
@@ -65,13 +78,23 @@ Page({
       hours.push(i)
     }
     
+    const minutes: number[] = []
+    for (let i = 0; i < 60; i += 5) {
+      minutes.push(i)
+    }
+    
+    const roundedMinute = Math.ceil(currentMinute / 5) * 5
+    
     this.setData({
       selectedDate: today,
       minDate: today,
       maxDate: maxDate,
       selectedStartHour: Math.min(startHour, 20),
+      selectedStartMinute: roundedMinute >= 60 ? 0 : roundedMinute,
       selectedEndHour: Math.min(startHour + 4, 22),
-      hours
+      selectedEndMinute: roundedMinute >= 60 ? 0 : roundedMinute,
+      hours,
+      minutes
     })
   },
 
@@ -160,6 +183,15 @@ Page({
     })
   },
 
+  onStartMinuteChange(e: any) {
+    const index = e.detail.value
+    const startMinute = this.data.minutes[index]
+    this.setData({
+      selectedStartMinute: startMinute,
+      selectedSeat: null
+    })
+  },
+
   onEndHourChange(e: any) {
     const index = e.detail.value
     const endHour = this.data.hours[index]
@@ -185,6 +217,27 @@ Page({
     
     this.setData({
       selectedEndHour: endHour,
+      selectedSeat: null
+    })
+  },
+
+  onEndMinuteChange(e: any) {
+    const index = e.detail.value
+    const endMinute = this.data.minutes[index]
+    
+    const startTotalMinutes = this.data.selectedStartHour * 60 + this.data.selectedStartMinute
+    const endTotalMinutes = this.data.selectedEndHour * 60 + endMinute
+    
+    if (endTotalMinutes <= startTotalMinutes) {
+      wx.showToast({
+        title: '结束时间必须大于开始时间',
+        icon: 'none'
+      })
+      return
+    }
+    
+    this.setData({
+      selectedEndMinute: endMinute,
       selectedSeat: null
     })
   },
@@ -248,14 +301,17 @@ Page({
   },
 
   formatTimeDisplay(): string {
-    const { selectedDate, selectedStartHour, selectedEndHour } = this.data
+    const { selectedDate, selectedStartHour, selectedStartMinute, selectedEndHour, selectedEndMinute } = this.data
     const date = new Date(selectedDate)
     const month = date.getMonth() + 1
     const day = date.getDate()
     const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
     const weekDay = weekDays[date.getDay()]
     
-    return `${month}月${day}日 ${weekDay} ${selectedStartHour}:00 - ${selectedEndHour}:00`
+    const startTimeStr = `${selectedStartHour}:${String(selectedStartMinute).padStart(2, '0')}`
+    const endTimeStr = `${selectedEndHour}:${String(selectedEndMinute).padStart(2, '0')}`
+    
+    return `${month}月${day}日 ${weekDay} ${startTimeStr} - ${endTimeStr}`
   },
 
   async confirmSelection() {
@@ -267,20 +323,24 @@ Page({
       return
     }
     
-    const { selectedDate, selectedStartHour, selectedEndHour } = this.data
+    const { selectedDate, selectedStartHour, selectedStartMinute, selectedEndHour, selectedEndMinute } = this.data
     const startTime = new Date(selectedDate)
-    startTime.setHours(selectedStartHour, 0, 0, 0)
+    startTime.setHours(selectedStartHour, selectedStartMinute, 0, 0)
     
     const endTime = new Date(selectedDate)
-    endTime.setHours(selectedEndHour, 0, 0, 0)
+    endTime.setHours(selectedEndHour, selectedEndMinute, 0, 0)
     
-    if (startTime <= new Date()) {
+    const now = new Date()
+    
+    if (startTime <= now) {
       wx.showToast({
         title: '请选择未来的时间段',
         icon: 'none'
       })
       return
     }
+    
+    const isImmediateStart = startTime.getTime() - now.getTime() <= 15 * 60 * 1000
     
     wx.showLoading({ title: '预约中...' })
     
@@ -295,16 +355,50 @@ Page({
       wx.hideLoading()
       
       if (res.code === 200) {
-        wx.showToast({
-          title: '预约成功',
-          icon: 'success'
-        })
-        
-        setTimeout(() => {
-          wx.navigateTo({
-            url: '/pages/study-status/study-status'
+        if (isImmediateStart) {
+          wx.showToast({
+            title: '预约成功，正在签到...',
+            icon: 'success'
           })
-        }, 1500)
+          
+          setTimeout(async () => {
+            try {
+              const checkInRes = await checkInApi.checkIn({
+                reservationId: res.data.id,
+                seatId: this.data.selectedSeat!.id
+              })
+              
+              if (checkInRes.code === 200) {
+                wx.navigateTo({
+                  url: '/pages/study-status/study-status'
+                })
+              } else {
+                wx.showToast({
+                  title: checkInRes.message || '签到失败',
+                  icon: 'none'
+                })
+              }
+            } catch (checkInError) {
+              console.error('签到失败', checkInError)
+              wx.showToast({
+                title: '签到失败，请手动签到',
+                icon: 'none'
+              })
+            }
+          }, 1500)
+        } else {
+          wx.showModal({
+            title: '预约成功',
+            content: `预约成功！您的预约时间为 ${this.formatTimeDisplay()}，请按时前往自习。`,
+            showCancel: false,
+            confirmText: '返回首页',
+            success: () => {
+              wx.switchTab({
+                url: '/pages/home/home'
+              })
+            }
+          })
+        }
       } else {
         wx.showToast({
           title: res.message || '预约失败',

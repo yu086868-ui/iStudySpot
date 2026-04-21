@@ -1,14 +1,17 @@
 import type { ChatRequest, ChatResponse, SSEEvent } from '../typings/chat';
 import { getMockChatReply } from '../utils/mock';
+import connectionService from './connection';
+import cacheService from './cache';
 
-const USE_MOCK = true;
+const BASE_URL = 'http://localhost:3000/api';
 
 export async function sendMessage(data: ChatRequest): Promise<ChatResponse> {
-  if (USE_MOCK) {
+  const isConnected = await connectionService.checkConnection();
+  
+  if (!isConnected) {
     return { reply: getMockChatReply() };
   }
 
-  const BASE_URL = 'http://localhost:3000/api';
   return new Promise((resolve, reject) => {
     wx.request({
       url: `${BASE_URL}/chat`,
@@ -42,12 +45,14 @@ export function sendMessageStream(
   data: ChatRequest,
   callbacks: StreamCallbacks
 ): Promise<void> {
-  if (USE_MOCK) {
-    return mockStreamResponse(callbacks);
-  }
+  return new Promise(async (resolve, reject) => {
+    const isConnected = await connectionService.checkConnection();
+    
+    if (!isConnected) {
+      mockStreamResponse(callbacks).then(resolve);
+      return;
+    }
 
-  const BASE_URL = 'http://localhost:3000/api';
-  return new Promise((resolve, reject) => {
     const requestTask = wx.request({
       url: `${BASE_URL}/chat/stream`,
       method: 'POST',
@@ -141,3 +146,5 @@ function handleSSEEvent(event: SSEEvent, callbacks: StreamCallbacks): void {
       break;
   }
 }
+
+export { cacheService };

@@ -1,4 +1,10 @@
-<navigation-bar title="{{characterName}}" back="{{true}}" color="black" background="#FFF"></navigation-bar>
+<navigation-bar title="{{characterName}}" back="{{true}}" color="black" background="#FFF">
+  <view slot="right" class="nav-right">
+    <view class="clear-btn" bindtap="onClearChat">
+      <text>清空</text>
+    </view>
+  </view>
+</navigation-bar>
 
 <view class="chat-container">
   <scroll-view 
