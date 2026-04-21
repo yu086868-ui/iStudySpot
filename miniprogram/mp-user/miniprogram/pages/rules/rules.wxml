@@ -1,0 +1,47 @@
+<navigation-bar title="规则与公告" background="#FFFFFF" back="{{false}}" homeButton="{{false}}">
+</navigation-bar>
+
+<scroll-view scroll-y class="scroll-content" type="list">
+  <view class="container">
+    <view class="rule-card" wx:if="{{rules.length > 0}}">
+      <view class="rule-header">
+        <view class="rule-icon-dot"></view>
+        <text class="rule-title">自习室公约</text>
+      </view>
+      <view class="rule-content">
+        <block wx:for="{{rules}}" wx:key="id">
+          <view class="rule-item">
+            <text class="rule-item-title">{{item.title}}</text>
+            <block wx:for="{{item.contentLines}}" wx:for-item="line" wx:key="index">
+              <text class="rule-text">{{line}}</text>
+            </block>
+          </view>
+        </block>
+      </view>
+    </view>
+
+    <view class="notice-section" wx:if="{{announcements.length > 0}}">
+      <view class="notice-section-header">
+        <view class="notice-icon-dot"></view>
+        <text class="notice-section-title">公告通知</text>
+      </view>
+      <view class="notice-card" wx:for="{{announcements}}" wx:key="id">
+        <view class="notice-card-header">
+          <text class="notice-title">{{item.title}}</text>
+          <view class="notice-priority priority-{{item.priority}}">{{item.priorityText}}</view>
+        </view>
+        <text class="notice-content">{{item.content}}</text>
+        <view class="notice-meta">
+          <text class="notice-author">{{item.author}}</text>
+          <text class="notice-time">{{item.publishTimeText}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="empty-state" wx:if="{{announcements.length === 0 && rules.length === 0}}">
+      <text class="empty-text">暂无规则和公告</text>
+    </view>
+  </view>
+</scroll-view>
+
+<tab-bar currentTab="rules"></tab-bar>

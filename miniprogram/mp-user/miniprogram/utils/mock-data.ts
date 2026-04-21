@@ -1,6 +1,16 @@
 import type { User, StudyRoom, Seat, Reservation, CheckInRecord, Announcement, Rule } from '../typings/api';
 
-export const mockData = {
+export interface MockDataType {
+  users: User[];
+  studyRooms: StudyRoom[];
+  seats: Seat[];
+  reservations: Reservation[];
+  checkInRecords: CheckInRecord[];
+  announcements: Announcement[];
+  rules: Rule[];
+}
+
+export const mockData: MockDataType = {
   users: [
     {
       id: 'user_001',
@@ -28,7 +38,7 @@ export const mockData = {
       createdAt: '2024-01-02T00:00:00Z',
       updatedAt: '2024-01-02T00:00:00Z'
     }
-  ] as User[],
+  ],
 
   studyRooms: [
     {
@@ -83,7 +93,7 @@ export const mockData = {
       image: 'https://example.com/room4.jpg',
       status: 'maintenance' as const
     }
-  ] as StudyRoom[],
+  ],
 
   seats: [] as Seat[],
   reservations: [] as Reservation[],
@@ -181,22 +191,47 @@ export const mockData = {
 const generateSeats = (): void => {
   mockData.studyRooms.forEach(room => {
     const rows = Math.ceil(room.capacity / 10);
+    const cols = 10;
+    
     for (let row = 1; row <= rows; row++) {
-      for (let col = 1; col <= 10; col++) {
+      for (let col = 1; col <= cols; col++) {
         const seatId = `seat_${room.id}_${row}_${col}`;
         const seatNumber = `${String.fromCharCode(64 + row)}${col}`;
-        const seatType = col <= 2 ? 'vip' : (col <= 5 ? 'quiet' : 'normal');
-
+        
+        let seatType: 'normal' | 'vip' | 'quiet' = 'normal';
+        if (col <= 2) {
+          seatType = 'vip';
+        } else if (col <= 5) {
+          seatType = 'quiet';
+        }
+        
+        let status: 'available' | 'occupied' | 'reserved' | 'maintenance' = 'available';
+        const rand = Math.random();
+        if (rand > 0.7) {
+          status = 'occupied';
+        } else if (rand > 0.5) {
+          status = 'reserved';
+        } else if (rand > 0.95) {
+          status = 'maintenance';
+        }
+        
+        let facilities: string[] = ['插座'];
+        if (seatType === 'vip') {
+          facilities = ['插座', '台灯', '人体工学椅', '书架', '独立电源'];
+        } else if (seatType === 'quiet') {
+          facilities = ['插座', '台灯', '隔板'];
+        }
+        
         mockData.seats.push({
           id: seatId,
           studyRoomId: room.id,
           row,
           col,
           seatNumber,
-          type: seatType as 'normal' | 'vip' | 'quiet',
-          status: Math.random() > 0.3 ? 'available' : (Math.random() > 0.5 ? 'occupied' : 'reserved') as 'available' | 'occupied' | 'reserved',
-          facilities: col <= 2 ? ['插座', '台灯', '人体工学椅', '书架'] : (col <= 5 ? ['插座', '台灯'] : ['插座']),
-          lastUsedAt: new Date(Date.now() - Math.random() * 86400000).toISOString()
+          type: seatType,
+          status,
+          facilities,
+          lastUsedAt: new Date(Date.now() - Math.random() * 86400000 * 7).toISOString()
         });
       }
     }
@@ -205,47 +240,97 @@ const generateSeats = (): void => {
 
 const generateReservations = (): void => {
   const now = new Date();
-  for (let i = 0; i < 10; i++) {
-    const startTime = new Date(now.getTime() + (i + 1) * 24 * 60 * 60 * 1000);
-    const endTime = new Date(startTime.getTime() + 3 * 60 * 60 * 1000);
-    const status = i < 5 ? 'confirmed' : (i < 8 ? 'completed' : 'cancelled');
+  
+  const currentReservation = {
+    id: 'res_current',
+    userId: mockData.users[0].id,
+    studyRoomId: mockData.studyRooms[0].id,
+    seatId: `seat_${mockData.studyRooms[0].id}_1_1`,
+    startTime: new Date(now.getTime() - 30 * 60 * 1000).toISOString(),
+    endTime: new Date(now.getTime() + 2 * 60 * 60 * 1000).toISOString(),
+    status: 'confirmed' as const,
+    checkInTime: null,
+    checkOutTime: null,
+    createdAt: new Date(now.getTime() - 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(now.getTime() - 60 * 60 * 1000).toISOString()
+  };
+  mockData.reservations.push(currentReservation);
 
+  const futureReservation = {
+    id: 'res_future',
+    userId: mockData.users[0].id,
+    studyRoomId: mockData.studyRooms[1].id,
+    seatId: `seat_${mockData.studyRooms[1].id}_2_3`,
+    startTime: new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString(),
+    endTime: new Date(now.getTime() + 24 * 60 * 60 * 1000 + 3 * 60 * 60 * 1000).toISOString(),
+    status: 'confirmed' as const,
+    checkInTime: null,
+    checkOutTime: null,
+    createdAt: now.toISOString(),
+    updatedAt: now.toISOString()
+  };
+  mockData.reservations.push(futureReservation);
+
+  for (let i = 0; i < 5; i++) {
+    const startTime = new Date(now.getTime() - (i + 2) * 24 * 60 * 60 * 1000);
+    const endTime = new Date(startTime.getTime() + 3 * 60 * 60 * 1000);
+    
     mockData.reservations.push({
-      id: `res_00${i + 1}`,
+      id: `res_completed_${i}`,
       userId: mockData.users[0].id,
       studyRoomId: mockData.studyRooms[i % mockData.studyRooms.length].id,
-      seatId: mockData.seats[i % mockData.seats.length].id,
+      seatId: `seat_${mockData.studyRooms[i % mockData.studyRooms.length].id}_${i + 1}_${i + 1}`,
       startTime: startTime.toISOString(),
       endTime: endTime.toISOString(),
-      status: status as any,
-      checkInTime: status === 'completed' ? startTime.toISOString() : null,
-      checkOutTime: status === 'completed' ? endTime.toISOString() : null,
-      createdAt: new Date(now.getTime() - i * 24 * 60 * 60 * 1000).toISOString(),
-      updatedAt: new Date(now.getTime() - i * 24 * 60 * 60 * 1000).toISOString()
+      status: 'completed' as const,
+      checkInTime: startTime.toISOString(),
+      checkOutTime: endTime.toISOString(),
+      createdAt: new Date(startTime.getTime() - 60 * 60 * 1000).toISOString(),
+      updatedAt: endTime.toISOString()
+    });
+  }
+
+  for (let i = 0; i < 3; i++) {
+    const startTime = new Date(now.getTime() - (i + 7) * 24 * 60 * 60 * 1000);
+    const endTime = new Date(startTime.getTime() + 3 * 60 * 60 * 1000);
+    
+    mockData.reservations.push({
+      id: `res_cancelled_${i}`,
+      userId: mockData.users[0].id,
+      studyRoomId: mockData.studyRooms[i % mockData.studyRooms.length].id,
+      seatId: `seat_${mockData.studyRooms[i % mockData.studyRooms.length].id}_${i + 1}_${i + 2}`,
+      startTime: startTime.toISOString(),
+      endTime: endTime.toISOString(),
+      status: 'cancelled' as const,
+      checkInTime: null,
+      checkOutTime: null,
+      createdAt: new Date(startTime.getTime() - 60 * 60 * 1000).toISOString(),
+      updatedAt: new Date(startTime.getTime() - 30 * 60 * 1000).toISOString()
     });
   }
 };
 
 const generateCheckInRecords = (): void => {
   const now = new Date();
-  for (let i = 0; i < 5; i++) {
-    const checkInTime = new Date(now.getTime() - (i + 1) * 24 * 60 * 60 * 1000);
-    const checkOutTime = i < 3 ? new Date(checkInTime.getTime() + 3 * 60 * 60 * 1000) : null;
-    const duration = checkOutTime ? 180 : 0;
-    const status = checkOutTime ? 'completed' : 'active';
+  const completedReservations = mockData.reservations.filter(r => r.status === 'completed');
+  
+  completedReservations.forEach((reservation, index) => {
+    const checkInTime = new Date(reservation.startTime);
+    const checkOutTime = new Date(reservation.endTime!);
+    const duration = Math.floor((checkOutTime.getTime() - checkInTime.getTime()) / 60000);
 
     mockData.checkInRecords.push({
-      id: `checkin_00${i + 1}`,
-      userId: mockData.users[0].id,
-      reservationId: mockData.reservations[i].id,
-      studyRoomId: mockData.reservations[i].studyRoomId,
-      seatId: mockData.reservations[i].seatId,
+      id: `checkin_completed_${index}`,
+      userId: reservation.userId,
+      reservationId: reservation.id,
+      studyRoomId: reservation.studyRoomId,
+      seatId: reservation.seatId,
       checkInTime: checkInTime.toISOString(),
-      checkOutTime: checkOutTime?.toISOString() || null,
+      checkOutTime: checkOutTime.toISOString(),
       duration,
-      status: status as 'active' | 'completed'
+      status: 'completed' as const
     });
-  }
+  });
 };
 
 generateSeats();

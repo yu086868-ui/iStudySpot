@@ -1,30 +1,10 @@
 {
   "pages": [
-    "pages/home/home",
-    "pages/rules/rules",
-    "pages/profile/profile",
-    "pages/seat-selection/seat-selection",
-    "pages/study-status/study-status",
+    "pages/character-select/character-select",
+    "pages/chat/chat",
     "pages/index/index",
     "pages/logs/logs"
   ],
-  "tabBar": {
-    "custom": true,
-    "list": [
-      {
-        "pagePath": "pages/rules/rules",
-        "text": "规则公告"
-      },
-      {
-        "pagePath": "pages/home/home",
-        "text": "首页"
-      },
-      {
-        "pagePath": "pages/profile/profile",
-        "text": "个人中心"
-      }
-    ]
-  },
   "window": {
     "navigationBarTextStyle": "black",
     "navigationStyle": "custom"
