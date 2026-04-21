@@ -3,6 +3,13 @@ import mockData from './data';
 
 const ENABLE_MOCK = true;
 
+if (!mockData.seats || !Array.isArray(mockData.seats)) {
+  console.error('mockData.seats is not initialized or not an array, initializing...');
+  mockData.seats = [];
+}
+
+console.log('Mock module loaded, mockData.seats length:', mockData.seats?.length);
+
 interface MockRequest {
   url: string;
   method: string;
@@ -26,10 +33,15 @@ class MockManager {
 
   async request<T = unknown>(config: MockRequest): Promise<ApiResponse<T>> {
     const { url, method, data } = config;
+    
+    console.log('Mock request:', { url, method, data });
+    console.log('mockData:', mockData);
+    console.log('mockData.seats:', mockData?.seats, 'isArray:', Array.isArray(mockData?.seats));
 
     return new Promise((resolve) => {
       setTimeout(() => {
         const response = this.handleRequest<T>(url, method, data);
+        console.log('Mock response:', response);
         resolve(response);
       }, 300);
     });
@@ -251,11 +263,40 @@ class MockManager {
       };
     }
 
-    if (url.includes('/seats') && method === 'GET') {
-      const studyRoomId = url.split('/')[2];
+    if (url.startsWith('/seats/') && method === 'GET') {
+      const seatId = url.split('/')[2];
+      const seats = mockData?.seats ?? [];
+      const seat = seats.find(s => s.id === seatId);
+
+      if (seat) {
+        return {
+          code: 200,
+          message: 'success',
+          data: seat as T,
+          timestamp
+        };
+      }
+
+      return {
+        code: 30001,
+        message: '座位不存在',
+        data: null,
+        timestamp
+      };
+    }
+
+    if (url.includes('/studyrooms/') && url.includes('/seats') && method === 'GET') {
+      const parts = url.split('/');
+      const studyRoomId = parts[2];
       const params = (data || {}) as { status?: string; type?: string; row?: number; col?: number };
       const allSeats = mockData?.seats ?? [];
+      
+      console.log('Mock: getSeats for studyRoomId:', studyRoomId);
+      console.log('Mock: allSeats:', allSeats, 'isArray:', Array.isArray(allSeats));
+      
       let seats = allSeats.filter(s => s.studyRoomId === studyRoomId);
+      
+      console.log('Mock: filtered seats:', seats, 'isArray:', Array.isArray(seats));
 
       if (params.status) {
         seats = seats.filter(seat => seat.status === params.status);
@@ -277,28 +318,6 @@ class MockManager {
         code: 200,
         message: 'success',
         data: seats as T,
-        timestamp
-      };
-    }
-
-    if (url.startsWith('/seats/') && method === 'GET') {
-      const seatId = url.split('/')[2];
-      const seats = mockData?.seats ?? [];
-      const seat = seats.find(s => s.id === seatId);
-
-      if (seat) {
-        return {
-          code: 200,
-          message: 'success',
-          data: seat as T,
-          timestamp
-        };
-      }
-
-      return {
-        code: 30001,
-        message: '座位不存在',
-        data: null,
         timestamp
       };
     }

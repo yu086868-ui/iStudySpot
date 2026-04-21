@@ -115,6 +115,17 @@ export class SeatLayoutUtil {
     reserved: number;
     maintenance: number;
   } {
+    if (!Array.isArray(seats)) {
+      console.error('calculateSeatStats: seats is not an array', seats);
+      return {
+        total: 0,
+        available: 0,
+        occupied: 0,
+        reserved: 0,
+        maintenance: 0
+      };
+    }
+    
     return {
       total: seats.length,
       available: seats.filter(s => s.status === 'available').length,

@@ -90,8 +90,21 @@ Page({
     this.setData({ isLoading: true })
     try {
       const res = await seatApi.getSeats(this.data.studyRoomId)
+      console.log('getSeats response:', res)
+      
       if (res.code === 200 && res.data) {
         const seats = res.data
+        console.log('seats data:', seats, 'isArray:', Array.isArray(seats))
+        
+        if (!Array.isArray(seats)) {
+          console.error('seats is not an array:', seats)
+          wx.showToast({
+            title: '座位数据格式错误',
+            icon: 'none'
+          })
+          return
+        }
+        
         const stats = SeatLayoutUtil.calculateSeatStats(seats)
         
         const layout = SeatLayoutUtil.createSeatLayout(seats)
