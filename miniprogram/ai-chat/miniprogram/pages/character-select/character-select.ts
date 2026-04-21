@@ -1,4 +1,4 @@
-import { getCharacters } from '../../services';
+import { getCharacters } from '../../services/index';
 import type { Character } from '../../typings/character';
 
 Component({

@@ -1,4 +1,4 @@
-import { sendMessageStream } from '../../services';
+import { sendMessageStream } from '../../services/index';
 import { generateUUID } from '../../utils/uuid';
 import type { Message } from '../../typings/chat';
 
