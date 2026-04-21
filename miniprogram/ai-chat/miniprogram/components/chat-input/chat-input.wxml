@@ -14,11 +14,10 @@
       confirm-type="send"
     />
   </view>
-  <button 
-    class="send-btn {{inputValue && !disabled ? 'active' : ''}}"
-    disabled="{{!inputValue || disabled}}"
+  <view 
+    class="send-btn {{inputValue && !disabled ? 'active' : ''}} {{disabled ? 'disabled' : ''}}"
     bindtap="onSend"
   >
     发送
-  </button>
+  </view>
 </view>

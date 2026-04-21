@@ -56,14 +56,22 @@ page {
   color: #5CB885;
 }
 
+.exit-btn {
+  background: #fcdcdcff;
+  border-radius: 48rpx;
+  padding: 24rpx 80rpx;
+  margin-top: 48rpx;
+  margin-bottom: 32rpx;
+}
+
+.exit-btn-text {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #FFFFFF;
+}
+
 .footer-hint {
   font-size: 26rpx;
   color: #CCCCCC;
   margin-top: auto;
-}
-
-.footer-exit-hint {
-  font-size: 24rpx;
-  color: #AAAAAA;
-  margin-top: 16rpx;
 }

@@ -9,6 +9,9 @@
     <text class="status-motto">{{motto}}</text>
   </view>
 
-  <text class="footer-hint">长按图标以结束本次自习</text>
-  <text class="footer-exit-hint">长期退出结束本次自习</text>
+  <view class="exit-btn" bindtap="endStudySession">
+    <text class="exit-btn-text">结束本次自习</text>
+  </view>
+
+  <text class="footer-hint">长按图标或点击上方按钮以结束本次自习</text>
 </view>
