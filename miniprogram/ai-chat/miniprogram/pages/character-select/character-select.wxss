@@ -58,7 +58,7 @@ page {
 
 .character-card {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   padding: 28rpx;
   background-color: #fff;
   border-radius: 20rpx;
@@ -85,12 +85,12 @@ page {
   margin-left: 24rpx;
   display: flex;
   flex-direction: column;
-  gap: 8rpx;
-  overflow: hidden;
+  gap: 10rpx;
+  min-width: 0;
 }
 
 .character-name {
-  font-size: 32rpx;
+  font-size: 34rpx;
   font-weight: 600;
   color: #333;
 }
@@ -98,17 +98,15 @@ page {
 .character-persona {
   font-size: 26rpx;
   color: #666;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.5;
+  word-break: break-all;
 }
 
 .character-style {
   font-size: 24rpx;
   color: #81c784;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.5;
+  word-break: break-all;
 }
 
 .arrow-icon {
@@ -116,4 +114,6 @@ page {
   color: #a5d6a7;
   margin-left: 16rpx;
   font-weight: 300;
+  align-self: center;
+  flex-shrink: 0;
 }
