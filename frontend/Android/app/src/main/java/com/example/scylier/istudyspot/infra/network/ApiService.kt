@@ -23,6 +23,8 @@ import com.example.scylier.istudyspot.models.studyroom.SeatDetail
 import com.example.scylier.istudyspot.models.studyroom.SeatMapResponse
 import com.example.scylier.istudyspot.models.studyroom.StudyRoomDetail
 import com.example.scylier.istudyspot.models.studyroom.StudyRoomListResponse
+import com.example.scylier.istudyspot.models.ai.AiChatRequest
+import com.example.scylier.istudyspot.models.ai.AiChatResponse
 import com.example.scylier.istudyspot.models.user.ChangePasswordRequest
 import com.example.scylier.istudyspot.models.user.UpdateUserRequest
 import retrofit2.Response
@@ -101,4 +103,8 @@ interface ApiService {
         @Query("startDate") startDate: String,
         @Query("endDate") endDate: String
     ): Response<BaseResponse<StudyRoomStatisticsResponse>>
+
+    // AI咨询相关 API
+    @POST("/api/ai/chat")
+    suspend fun sendAiMessage(@Body request: AiChatRequest): Response<BaseResponse<AiChatResponse>>
 }

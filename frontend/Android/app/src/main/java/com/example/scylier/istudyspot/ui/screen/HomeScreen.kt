@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -45,7 +46,7 @@ val mainFeatures = listOf(
     FunctionItemData("guide", "场馆导览", Icons.Default.Map),
     FunctionItemData("my_booking", "我的预约", Icons.Default.ReceiptLong),
     FunctionItemData("study_record", "学习记录", Icons.Default.Timer),
-    FunctionItemData("team_booking", "团队预约", Icons.Default.GridOn),
+    FunctionItemData("ai_chat", "AI咨询", Icons.Default.SmartToy),
     FunctionItemData("notification", "通知提醒", Icons.Default.Notifications),
     FunctionItemData("settings", "偏好设置", Icons.Default.Settings),
 )
