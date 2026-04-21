@@ -181,22 +181,47 @@ export const mockData = {
 const generateSeats = (): void => {
   mockData.studyRooms.forEach(room => {
     const rows = Math.ceil(room.capacity / 10);
+    const cols = 10;
+    
     for (let row = 1; row <= rows; row++) {
-      for (let col = 1; col <= 10; col++) {
+      for (let col = 1; col <= cols; col++) {
         const seatId = `seat_${room.id}_${row}_${col}`;
         const seatNumber = `${String.fromCharCode(64 + row)}${col}`;
-        const seatType = col <= 2 ? 'vip' : (col <= 5 ? 'quiet' : 'normal');
-
+        
+        let seatType: 'normal' | 'vip' | 'quiet' = 'normal';
+        if (col <= 2) {
+          seatType = 'vip';
+        } else if (col <= 5) {
+          seatType = 'quiet';
+        }
+        
+        let status: 'available' | 'occupied' | 'reserved' | 'maintenance' = 'available';
+        const rand = Math.random();
+        if (rand > 0.7) {
+          status = 'occupied';
+        } else if (rand > 0.5) {
+          status = 'reserved';
+        } else if (rand > 0.95) {
+          status = 'maintenance';
+        }
+        
+        let facilities: string[] = ['插座'];
+        if (seatType === 'vip') {
+          facilities = ['插座', '台灯', '人体工学椅', '书架', '独立电源'];
+        } else if (seatType === 'quiet') {
+          facilities = ['插座', '台灯', '隔板'];
+        }
+        
         mockData.seats.push({
           id: seatId,
           studyRoomId: room.id,
           row,
           col,
           seatNumber,
-          type: seatType as 'normal' | 'vip' | 'quiet',
-          status: Math.random() > 0.3 ? 'available' : (Math.random() > 0.5 ? 'occupied' : 'reserved') as 'available' | 'occupied' | 'reserved',
-          facilities: col <= 2 ? ['插座', '台灯', '人体工学椅', '书架'] : (col <= 5 ? ['插座', '台灯'] : ['插座']),
-          lastUsedAt: new Date(Date.now() - Math.random() * 86400000).toISOString()
+          type: seatType,
+          status,
+          facilities,
+          lastUsedAt: new Date(Date.now() - Math.random() * 86400000 * 7).toISOString()
         });
       }
     }
