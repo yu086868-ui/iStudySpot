@@ -41,15 +41,19 @@ Page({
       reserved: 0
     },
     
-    preselectedSeatId: ''
+    preselectedSeatId: '',
+    isImmediateMode: false
   },
 
-  onLoad(options: { studyRoomId?: string; seatId?: string }) {
+  onLoad(options: { studyRoomId?: string; seatId?: string; immediate?: string }) {
     if (options.studyRoomId) {
       this.setData({ studyRoomId: options.studyRoomId })
     }
     if (options.seatId) {
       this.setData({ preselectedSeatId: options.seatId })
+    }
+    if (options.immediate === 'true') {
+      this.setData({ isImmediateMode: true })
     }
     this.initDateTimePicker()
     this.loadReservationRules()
@@ -71,7 +75,6 @@ Page({
     
     const currentHour = now.getHours()
     const currentMinute = now.getMinutes()
-    const startHour = currentHour + 1
     
     const hours: number[] = []
     for (let i = 8; i <= 21; i++) {
@@ -85,14 +88,25 @@ Page({
     
     const roundedMinute = Math.ceil(currentMinute / 5) * 5
     
+    let startHour = currentHour
+    let startMinute = roundedMinute
+    
+    if (roundedMinute >= 60) {
+      startHour = currentHour + 1
+      startMinute = 0
+    }
+    
+    const endHour = Math.min(startHour + 2, 22)
+    const endMinute = startMinute
+    
     this.setData({
       selectedDate: today,
       minDate: today,
       maxDate: maxDate,
-      selectedStartHour: Math.min(startHour, 20),
-      selectedStartMinute: roundedMinute >= 60 ? 0 : roundedMinute,
-      selectedEndHour: Math.min(startHour + 4, 22),
-      selectedEndMinute: roundedMinute >= 60 ? 0 : roundedMinute,
+      selectedStartHour: Math.min(startHour, 21),
+      selectedStartMinute: startMinute,
+      selectedEndHour: endHour,
+      selectedEndMinute: endMinute,
       hours,
       minutes
     })
@@ -132,10 +146,16 @@ Page({
         const groupConfigs = SeatLayoutUtil.createDefaultGroupConfig(layout.totalCols)
         const seatGroups = SeatLayoutUtil.splitIntoGroups(seats, groupConfigs)
         
+        let selectedSeat: Seat | null = null
+        if (this.data.preselectedSeatId) {
+          selectedSeat = seats.find(s => s.id === this.data.preselectedSeatId) || null
+        }
+        
         this.setData({
           seats,
           seatGroups,
-          seatStats: stats
+          seatStats: stats,
+          selectedSeat
         })
       } else {
         console.error('API returned error:', res)
@@ -314,6 +334,13 @@ Page({
     return `${month}月${day}日 ${weekDay} ${startTimeStr} - ${endTimeStr}`
   },
 
+  isImmediateStartTime(startTime: Date): boolean {
+    const now = new Date()
+    const diffMs = Math.abs(startTime.getTime() - now.getTime())
+    const diffMinutes = diffMs / (1000 * 60)
+    return diffMinutes <= 5
+  },
+
   async confirmSelection() {
     if (!this.data.selectedSeat) {
       wx.showToast({
@@ -340,7 +367,7 @@ Page({
       return
     }
     
-    const isImmediateStart = startTime.getTime() - now.getTime() <= 15 * 60 * 1000
+    const isImmediateStart = this.isImmediateStartTime(startTime) || this.data.isImmediateMode
     
     wx.showLoading({ title: '预约中...' })
     
@@ -356,36 +383,21 @@ Page({
       
       if (res.code === 200) {
         if (isImmediateStart) {
-          wx.showToast({
-            title: '预约成功，正在签到...',
-            icon: 'success'
-          })
-          
-          setTimeout(async () => {
-            try {
-              const checkInRes = await checkInApi.checkIn({
-                reservationId: res.data.id,
-                seatId: this.data.selectedSeat!.id
-              })
-              
-              if (checkInRes.code === 200) {
-                wx.navigateTo({
-                  url: '/pages/study-status/study-status'
-                })
+          wx.showModal({
+            title: '预约成功',
+            content: '是否立即进入学习？',
+            confirmText: '立即开始',
+            cancelText: '稍后再说',
+            success: async (modalRes) => {
+              if (modalRes.confirm) {
+                await this.performCheckIn(res.data.id, this.data.selectedSeat!.id)
               } else {
-                wx.showToast({
-                  title: checkInRes.message || '签到失败',
-                  icon: 'none'
+                wx.switchTab({
+                  url: '/pages/home/home'
                 })
               }
-            } catch (checkInError) {
-              console.error('签到失败', checkInError)
-              wx.showToast({
-                title: '签到失败，请手动签到',
-                icon: 'none'
-              })
             }
-          }, 1500)
+          })
         } else {
           wx.showModal({
             title: '预约成功',
@@ -410,6 +422,41 @@ Page({
       console.error('预约失败', error)
       wx.showToast({
         title: '预约失败，请重试',
+        icon: 'none'
+      })
+    }
+  },
+
+  async performCheckIn(reservationId: string, seatId: string) {
+    wx.showLoading({ title: '签到中...' })
+    try {
+      const res = await checkInApi.checkIn({
+        reservationId,
+        seatId
+      })
+      wx.hideLoading()
+
+      if (res.code === 200) {
+        wx.showToast({
+          title: '签到成功',
+          icon: 'success'
+        })
+        setTimeout(() => {
+          wx.navigateTo({
+            url: '/pages/study-status/study-status'
+          })
+        }, 1500)
+      } else {
+        wx.showToast({
+          title: res.message || '签到失败',
+          icon: 'none'
+        })
+      }
+    } catch (error) {
+      wx.hideLoading()
+      console.error('签到失败', error)
+      wx.showToast({
+        title: '签到失败，请重试',
         icon: 'none'
       })
     }

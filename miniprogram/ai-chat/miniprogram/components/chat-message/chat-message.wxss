@@ -14,14 +14,15 @@
 }
 
 .avatar {
-  width: 72rpx;
-  height: 72rpx;
+  width: 76rpx;
+  height: 76rpx;
   border-radius: 50%;
-  background-color: #f0f0f0;
+  background: linear-gradient(135deg, #81c784 0%, #4caf50 100%);
+  border: 3rpx solid #e8f5e9;
 }
 
 .message-content {
-  max-width: 70%;
+  max-width: 72%;
   display: flex;
   flex-direction: column;
 }
@@ -38,35 +39,39 @@
   font-size: 24rpx;
   color: #666;
   margin-bottom: 8rpx;
+  padding-left: 8rpx;
 }
 
 .message-bubble {
-  padding: 20rpx 24rpx;
-  border-radius: 16rpx;
+  padding: 20rpx 28rpx;
+  border-radius: 20rpx;
   word-wrap: break-word;
-  word-break: break-all;
+  word-break: break-word;
 }
 
 .user-message .message-bubble {
-  background-color: #07c160;
+  background: linear-gradient(135deg, #66bb6a 0%, #4caf50 100%);
   color: #fff;
-  border-bottom-right-radius: 4rpx;
+  border-bottom-right-radius: 6rpx;
+  box-shadow: 0 4rpx 12rpx rgba(76, 175, 80, 0.25);
 }
 
 .assistant-message .message-bubble {
   background-color: #fff;
   color: #333;
-  border-bottom-left-radius: 4rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
+  border-bottom-left-radius: 6rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.06);
 }
 
 .message-text {
-  font-size: 28rpx;
+  font-size: 30rpx;
   line-height: 1.6;
 }
 
 .cursor-blink {
   animation: blink 1s infinite;
+  color: #4caf50;
+  font-weight: 300;
 }
 
 @keyframes blink {
