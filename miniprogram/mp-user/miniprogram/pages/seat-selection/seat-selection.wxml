@@ -106,7 +106,7 @@
       <text class="info-label">座位类型：</text>
       <text class="info-value">{{selectedSeat.type === 'vip' ? 'VIP座位' : selectedSeat.type === 'quiet' ? '静音座位' : '普通座位'}}</text>
     </view>
-    <view class="info-row" wx:if="{{selectedSeat.facilities.length > 0}}">
+    <view class="info-row" wx:if="{{selectedSeat.facilities && selectedSeat.facilities.length > 0}}">
       <text class="info-label">设施：</text>
       <text class="info-value">{{selectedSeat.facilities.join('、')}}</text>
     </view>

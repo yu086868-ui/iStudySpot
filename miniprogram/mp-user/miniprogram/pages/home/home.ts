@@ -188,9 +188,70 @@ Page({
   },
 
   reserveSeat() {
+    const { userState, currentReservation } = this.data
+
+    if (userState === 'studying') {
+      wx.showToast({
+        title: '您正在学习中，请先结束当前学习',
+        icon: 'none'
+      })
+      return
+    }
+
+    if (userState === 'reserved' && currentReservation) {
+      wx.showModal({
+        title: '已有预约',
+        content: `您已预约 ${currentReservation.roomName} ${currentReservation.displayTime}，座位 ${currentReservation.seatNumber}。是否取消当前预约并重新选座？`,
+        confirmText: '取消预约',
+        cancelText: '返回',
+        success: async (res) => {
+          if (res.confirm) {
+            await this.cancelCurrentReservation()
+          }
+        }
+      })
+      return
+    }
+
     wx.navigateTo({
       url: '/pages/seat-selection/seat-selection'
     })
+  },
+
+  async cancelCurrentReservation() {
+    const { currentReservation } = this.data
+    if (!currentReservation) return
+
+    wx.showLoading({ title: '取消中...' })
+    try {
+      const res = await reservationApi.cancelReservation(currentReservation.id)
+      wx.hideLoading()
+
+      if (res.code === 200) {
+        wx.showToast({
+          title: '预约已取消',
+          icon: 'success'
+        })
+        this.setNoneState()
+        setTimeout(() => {
+          wx.navigateTo({
+            url: '/pages/seat-selection/seat-selection'
+          })
+        }, 1500)
+      } else {
+        wx.showToast({
+          title: res.message || '取消失败',
+          icon: 'none'
+        })
+      }
+    } catch (error) {
+      wx.hideLoading()
+      console.error('取消预约失败', error)
+      wx.showToast({
+        title: '取消失败，请重试',
+        icon: 'none'
+      })
+    }
   },
 
   async onlineCheckIn() {
@@ -341,6 +402,7 @@ Page({
   },
 
   async performCheckIn(reservationId: string, seatId: string) {
+    console.log('[签到] 开始签到', { reservationId, seatId })
     wx.showLoading({ title: '签到中...' })
     try {
       const res = await checkInApi.checkIn({
@@ -350,6 +412,7 @@ Page({
       wx.hideLoading()
 
       if (res.code === 200) {
+        console.log('[签到] 签到成功', res.data)
         wx.showToast({
           title: '签到成功',
           icon: 'success'
@@ -360,6 +423,7 @@ Page({
           })
         }, 1500)
       } else {
+        console.error('[签到] 签到失败', res.message)
         wx.showToast({
           title: res.message || '签到失败',
           icon: 'none'
@@ -367,7 +431,7 @@ Page({
       }
     } catch (error) {
       wx.hideLoading()
-      console.error('签到失败', error)
+      console.error('[签到] 签到异常', error)
       wx.showToast({
         title: '签到失败，请重试',
         icon: 'none'

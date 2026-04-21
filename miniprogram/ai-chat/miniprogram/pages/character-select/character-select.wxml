@@ -1,6 +1,6 @@
 <navigation-bar title="选择科学家" back="{{false}}" color="black" background="#FFF"></navigation-bar>
 
-<scroll-view class="scrollarea" scroll-y type="list">
+<scroll-view class="scrollarea" scroll-y enhanced show-scrollbar="{{false}}">
   <view class="container">
     <view class="header">
       <text class="title">AI科学家角色扮演</text>
@@ -8,7 +8,7 @@
     </view>
 
     <view wx:if="{{loading}}" class="loading-container">
-      <view class="loading-text">加载中...</view>
+      <text class="loading-text">加载中...</text>
     </view>
 
     <view wx:elif="{{characters.length === 0}}" class="empty-container">
@@ -16,20 +16,28 @@
     </view>
 
     <view wx:else class="character-list">
-      <view 
+      <view
         class="character-card"
         wx:for="{{characters}}"
         wx:key="id"
         data-character="{{item}}"
         bindtap="onSelectCharacter"
       >
-        <image class="character-avatar" src="{{item.avatar || defaultAvatar}}" mode="aspectFill"></image>
+        <view class="character-avatar">
+          <image
+            class="avatar-image"
+            src="{{item.avatar || defaultAvatar}}"
+            mode="aspectFill"
+          />
+        </view>
         <view class="character-info">
           <text class="character-name">{{item.name}}</text>
           <text class="character-persona">{{item.persona}}</text>
           <text class="character-style">说话风格：{{item.speaking_style}}</text>
         </view>
-        <view class="arrow-icon">›</view>
+        <view class="arrow-icon">
+          <text>›</text>
+        </view>
       </view>
     </view>
   </view>

@@ -129,7 +129,7 @@ Page({
       const res = await seatApi.getSeats(this.data.studyRoomId)
       
       if (res.code === 200 && res.data) {
-        const seats = res.data
+        let seats = res.data
         
         if (!Array.isArray(seats)) {
           console.error('seats is not an array:', seats)
@@ -139,6 +139,11 @@ Page({
           })
           return
         }
+
+        seats = seats.map(seat => ({
+          ...seat,
+          facilities: Array.isArray(seat.facilities) ? seat.facilities : []
+        }))
         
         const stats = SeatLayoutUtil.calculateSeatStats(seats)
         

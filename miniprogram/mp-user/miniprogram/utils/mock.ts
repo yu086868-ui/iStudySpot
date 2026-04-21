@@ -309,6 +309,8 @@ class MockManager {
       const params = (data || {}) as { studyRoomId?: string; seatId?: string; startTime?: string; endTime?: string };
       const users = mockData?.users ?? [];
       const currentUser = users[0] ?? null;
+      const reservations = mockData?.reservations ?? [];
+      const seats = mockData?.seats ?? [];
 
       if (!currentUser) {
         return {
@@ -319,7 +321,30 @@ class MockManager {
         };
       }
 
-      const reservations = mockData?.reservations ?? [];
+      const activeReservations = reservations.filter(
+        r => r.userId === currentUser.id && 
+             (r.status === 'confirmed' || r.status === 'checked_in')
+      );
+      
+      if (activeReservations.length > 0) {
+        return {
+          code: 40001,
+          message: '您已有进行中的预约，请先取消或完成',
+          data: null,
+          timestamp
+        };
+      }
+
+      const seat = seats.find(s => s.id === params.seatId);
+      if (seat && seat.status !== 'available') {
+        return {
+          code: 30002,
+          message: '该座位已被占用或预约',
+          data: null,
+          timestamp
+        };
+      }
+
       const newReservation = {
         id: `res_${reservations.length + 1}`,
         userId: currentUser.id,
@@ -336,6 +361,10 @@ class MockManager {
 
       if (mockData?.reservations) {
         mockData.reservations.push(newReservation);
+      }
+
+      if (seat) {
+        seat.status = 'reserved';
       }
 
       return {
@@ -389,10 +418,27 @@ class MockManager {
     if (url.startsWith('/reservations/') && url.endsWith('/cancel') && method === 'POST') {
       const reservationId = url.split('/')[2];
       const reservations = mockData?.reservations ?? [];
+      const seats = mockData?.seats ?? [];
       const reservation = reservations.find(r => r.id === reservationId);
 
       if (reservation) {
+        if (reservation.status === 'checked_in') {
+          return {
+            code: 40007,
+            message: '预约已签到，无法取消',
+            data: null,
+            timestamp
+          };
+        }
+
         reservation.status = 'cancelled';
+        reservation.updatedAt = new Date().toISOString();
+
+        const seat = seats.find(s => s.id === reservation.seatId);
+        if (seat && seat.status === 'reserved') {
+          seat.status = 'available';
+        }
+
         return {
           code: 200,
           message: '预约已取消',
@@ -427,12 +473,15 @@ class MockManager {
 
     if (url === '/checkin' && method === 'POST') {
       const params = (data || {}) as { reservationId?: string; seatId?: string };
+      console.log('[MOCK 签到] 收到签到请求', params);
+      
       const users = mockData?.users ?? [];
       const currentUser = users[0] ?? null;
       const reservations = mockData?.reservations ?? [];
       const checkInRecords = mockData?.checkInRecords ?? [];
 
       if (!currentUser) {
+        console.error('[MOCK 签到] 用户不存在');
         return {
           code: 50001,
           message: '用户数据不存在',
@@ -441,7 +490,31 @@ class MockManager {
         };
       }
 
+      const activeCheckIn = checkInRecords.find(
+        r => r.userId === currentUser.id && r.status === 'active'
+      );
+      
+      if (activeCheckIn) {
+        console.warn('[MOCK 签到] 用户已有活跃签到记录', activeCheckIn);
+        return {
+          code: 50002,
+          message: '已经签到，无需重复签到',
+          data: null,
+          timestamp
+        };
+      }
+
       const reservation = reservations.find(r => r.id === params.reservationId);
+      
+      if (reservation) {
+        console.log('[MOCK 签到] 找到预约记录，更新状态', reservation);
+        reservation.status = 'checked_in';
+        reservation.checkInTime = new Date().toISOString();
+        reservation.updatedAt = new Date().toISOString();
+      } else {
+        console.warn('[MOCK 签到] 未找到预约记录', params.reservationId);
+      }
+
       const newCheckInRecord = {
         id: `checkin_${checkInRecords.length + 1}`,
         userId: currentUser.id,
@@ -458,6 +531,8 @@ class MockManager {
         mockData.checkInRecords.push(newCheckInRecord);
       }
 
+      console.log('[MOCK 签到] 签到成功，创建签到记录', newCheckInRecord);
+
       return {
         code: 200,
         message: '签到成功',
@@ -473,13 +548,40 @@ class MockManager {
 
     if (url === '/checkout' && method === 'POST') {
       const params = (data || {}) as { checkInRecordId?: string };
+      console.log('[MOCK 签退] 收到签退请求', params);
+      
       const checkInRecords = mockData?.checkInRecords ?? [];
+      const reservations = mockData?.reservations ?? [];
       const record = checkInRecords.find(r => r.id === params.checkInRecordId);
 
       if (record) {
+        if (record.status === 'completed') {
+          console.warn('[MOCK 签退] 该记录已签退', record);
+          return {
+            code: 50004,
+            message: '已经签退',
+            data: null,
+            timestamp
+          };
+        }
+
+        console.log('[MOCK 签退] 找到签到记录，更新状态', record);
         record.checkOutTime = new Date().toISOString();
         record.duration = Math.floor((new Date(record.checkOutTime).getTime() - new Date(record.checkInTime).getTime()) / 60000);
         record.status = 'completed';
+
+        const reservation = reservations.find(r => r.id === record.reservationId);
+        if (reservation) {
+          console.log('[MOCK 签退] 找到预约记录，更新状态', reservation);
+          reservation.status = 'completed';
+          reservation.checkOutTime = record.checkOutTime;
+          reservation.updatedAt = new Date().toISOString();
+        }
+
+        console.log('[MOCK 签退] 签退成功', { 
+          checkInRecordId: record.id, 
+          duration: record.duration 
+        });
 
         return {
           code: 200,
@@ -492,6 +594,7 @@ class MockManager {
         };
       }
 
+      console.error('[MOCK 签退] 签到记录不存在', params.checkInRecordId);
       return {
         code: 50003,
         message: '签到记录不存在',
