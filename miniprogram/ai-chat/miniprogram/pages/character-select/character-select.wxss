@@ -15,11 +15,8 @@ page {
 }
 
 .container {
-  box-sizing: border-box;
-  width: 100%;
   padding: 24rpx 32rpx;
   padding-bottom: 48rpx;
-  overflow: hidden;
 }
 
 .header {
@@ -69,13 +66,12 @@ page {
   display: flex;
   flex-direction: row;
   align-items: flex-start;
-  box-sizing: border-box;
-  width: 100%;
   padding: 28rpx;
+  padding-right: 80rpx;
   background-color: #fff;
   border-radius: 20rpx;
   box-shadow: 0 4rpx 16rpx rgba(76, 175, 80, 0.1);
-  overflow: hidden;
+  position: relative;
 }
 
 .character-avatar {
@@ -95,12 +91,11 @@ page {
 }
 
 .character-info {
-  flex: 1;
+  max-width: 70%;
   margin-left: 24rpx;
   display: flex;
   flex-direction: column;
   gap: 10rpx;
-  min-width: 0;
 }
 
 .character-name {
@@ -108,7 +103,6 @@ page {
   font-weight: 600;
   color: #333;
   font-family: 'PingFang SC', 'Inter', sans-serif;
-  word-break: break-all;
 }
 
 .character-persona {
@@ -116,7 +110,6 @@ page {
   color: #666;
   line-height: 1.6;
   word-break: break-all;
-  overflow: hidden;
   font-family: 'PingFang SC', 'Inter', sans-serif;
 }
 
@@ -125,18 +118,19 @@ page {
   color: #81c784;
   line-height: 1.6;
   word-break: break-all;
-  overflow: hidden;
   font-family: 'PingFang SC', 'Inter', sans-serif;
 }
 
 .arrow-icon {
+  position: absolute;
+  right: 28rpx;
+  top: 50%;
+  transform: translateY(-50%);
   width: 48rpx;
+  height: 48rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-left: 16rpx;
-  flex-shrink: 0;
-  align-self: center;
 }
 
 .arrow-icon text {
