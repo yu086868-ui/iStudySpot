@@ -3,12 +3,11 @@ import mockData from './data';
 
 const ENABLE_MOCK = true;
 
-if (!mockData.seats || !Array.isArray(mockData.seats)) {
-  console.error('mockData.seats is not initialized or not an array, initializing...');
-  mockData.seats = [];
-}
-
-console.log('Mock module loaded, mockData.seats length:', mockData.seats?.length);
+console.log('Mock module loaded');
+console.log('mockData type:', typeof mockData);
+console.log('mockData.seats type:', typeof mockData?.seats);
+console.log('mockData.seats isArray:', Array.isArray(mockData?.seats));
+console.log('mockData.seats length:', mockData?.seats?.length);
 
 interface MockRequest {
   url: string;

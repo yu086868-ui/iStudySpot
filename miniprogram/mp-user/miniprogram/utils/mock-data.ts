@@ -1,6 +1,16 @@
 import type { User, StudyRoom, Seat, Reservation, CheckInRecord, Announcement, Rule } from '../typings/api';
 
-export const mockData = {
+export interface MockDataType {
+  users: User[];
+  studyRooms: StudyRoom[];
+  seats: Seat[];
+  reservations: Reservation[];
+  checkInRecords: CheckInRecord[];
+  announcements: Announcement[];
+  rules: Rule[];
+}
+
+export const mockData: MockDataType = {
   users: [
     {
       id: 'user_001',
@@ -28,7 +38,7 @@ export const mockData = {
       createdAt: '2024-01-02T00:00:00Z',
       updatedAt: '2024-01-02T00:00:00Z'
     }
-  ] as User[],
+  ],
 
   studyRooms: [
     {
@@ -83,7 +93,7 @@ export const mockData = {
       image: 'https://example.com/room4.jpg',
       status: 'maintenance' as const
     }
-  ] as StudyRoom[],
+  ],
 
   seats: [] as Seat[],
   reservations: [] as Reservation[],
@@ -179,6 +189,8 @@ export const mockData = {
 };
 
 const generateSeats = (): void => {
+  console.log('generateSeats called, current seats length:', mockData.seats.length);
+  
   mockData.studyRooms.forEach(room => {
     const rows = Math.ceil(room.capacity / 10);
     const cols = 10;
@@ -226,6 +238,8 @@ const generateSeats = (): void => {
       }
     }
   });
+  
+  console.log('generateSeats finished, seats length:', mockData.seats.length);
 };
 
 const generateReservations = (): void => {
@@ -273,6 +287,13 @@ const generateCheckInRecords = (): void => {
   }
 };
 
+console.log('mock-data.ts: Before generating data');
+console.log('mockData.seats before generation:', mockData.seats.length);
+
 generateSeats();
 generateReservations();
 generateCheckInRecords();
+
+console.log('mock-data.ts: After generating data');
+console.log('mockData.seats after generation:', mockData.seats.length);
+console.log('mockData.seats isArray:', Array.isArray(mockData.seats));

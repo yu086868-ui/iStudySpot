@@ -1,0 +1,24 @@
+<view class="input-container {{focus ? 'focus' : ''}}">
+  <view class="input-wrapper">
+    <input 
+      class="message-input"
+      type="text"
+      placeholder="{{placeholder}}"
+      placeholder-class="input-placeholder"
+      value="{{inputValue}}"
+      disabled="{{disabled}}"
+      bindinput="onInputChange"
+      bindfocus="onFocus"
+      bindblur="onBlur"
+      bindconfirm="onConfirm"
+      confirm-type="send"
+    />
+  </view>
+  <button 
+    class="send-btn {{inputValue && !disabled ? 'active' : ''}}"
+    disabled="{{!inputValue || disabled}}"
+    bindtap="onSend"
+  >
+    发送
+  </button>
+</view>

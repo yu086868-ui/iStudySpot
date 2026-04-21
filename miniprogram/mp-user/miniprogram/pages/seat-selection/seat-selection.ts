@@ -91,13 +91,17 @@ Page({
     try {
       const res = await seatApi.getSeats(this.data.studyRoomId)
       console.log('getSeats response:', res)
+      console.log('res.data type:', typeof res.data)
+      console.log('res.data isArray:', Array.isArray(res.data))
+      console.log('res.data value:', res.data)
       
       if (res.code === 200 && res.data) {
         const seats = res.data
-        console.log('seats data:', seats, 'isArray:', Array.isArray(seats))
         
         if (!Array.isArray(seats)) {
           console.error('seats is not an array:', seats)
+          console.error('seats type:', typeof seats)
+          console.error('seats constructor:', seats?.constructor?.name)
           wx.showToast({
             title: '座位数据格式错误',
             icon: 'none'
@@ -105,6 +109,7 @@ Page({
           return
         }
         
+        console.log('Processing seats array, length:', seats.length)
         const stats = SeatLayoutUtil.calculateSeatStats(seats)
         
         const layout = SeatLayoutUtil.createSeatLayout(seats)
@@ -115,6 +120,12 @@ Page({
           seats,
           seatGroups,
           seatStats: stats
+        })
+      } else {
+        console.error('API returned error:', res)
+        wx.showToast({
+          title: res.message || '获取座位失败',
+          icon: 'none'
         })
       }
     } catch (error) {
