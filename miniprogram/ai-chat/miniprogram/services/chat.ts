@@ -1,8 +1,14 @@
 import type { ChatRequest, ChatResponse, SSEEvent } from '../typings/chat';
+import { getMockChatReply } from '../utils/mock';
 
-const BASE_URL = 'http://localhost:3000/api';
+const USE_MOCK = true;
 
 export async function sendMessage(data: ChatRequest): Promise<ChatResponse> {
+  if (USE_MOCK) {
+    return { reply: getMockChatReply() };
+  }
+
+  const BASE_URL = 'http://localhost:3000/api';
   return new Promise((resolve, reject) => {
     wx.request({
       url: `${BASE_URL}/chat`,
@@ -36,6 +42,11 @@ export function sendMessageStream(
   data: ChatRequest,
   callbacks: StreamCallbacks
 ): Promise<void> {
+  if (USE_MOCK) {
+    return mockStreamResponse(callbacks);
+  }
+
+  const BASE_URL = 'http://localhost:3000/api';
   return new Promise((resolve, reject) => {
     const requestTask = wx.request({
       url: `${BASE_URL}/chat/stream`,
@@ -61,6 +72,26 @@ export function sendMessageStream(
       const text = arrayBufferToString(arrayBuffer);
       parseSSE(text, callbacks);
     });
+  });
+}
+
+function mockStreamResponse(callbacks: StreamCallbacks): Promise<void> {
+  return new Promise((resolve) => {
+    callbacks.onStart();
+
+    const reply = getMockChatReply();
+    let index = 0;
+
+    const interval = setInterval(() => {
+      if (index < reply.length) {
+        callbacks.onDelta(reply[index]);
+        index++;
+      } else {
+        clearInterval(interval);
+        callbacks.onEnd();
+        resolve();
+      }
+    }, 50);
   });
 }
 
