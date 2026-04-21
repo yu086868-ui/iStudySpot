@@ -1,0 +1,36 @@
+<navigation-bar title="选择科学家" back="{{false}}" color="black" background="#FFF"></navigation-bar>
+
+<scroll-view class="scrollarea" scroll-y type="list">
+  <view class="container">
+    <view class="header">
+      <text class="title">AI科学家角色扮演</text>
+      <text class="subtitle">选择一位科学家开始对话</text>
+    </view>
+
+    <view wx:if="{{loading}}" class="loading-container">
+      <view class="loading-text">加载中...</view>
+    </view>
+
+    <view wx:elif="{{characters.length === 0}}" class="empty-container">
+      <text class="empty-text">暂无角色</text>
+    </view>
+
+    <view wx:else class="character-list">
+      <view 
+        class="character-card"
+        wx:for="{{characters}}"
+        wx:key="id"
+        data-character="{{item}}"
+        bindtap="onSelectCharacter"
+      >
+        <image class="character-avatar" src="{{item.avatar || defaultAvatar}}" mode="aspectFill"></image>
+        <view class="character-info">
+          <text class="character-name">{{item.name}}</text>
+          <text class="character-persona">{{item.persona}}</text>
+          <text class="character-style">说话风格：{{item.speaking_style}}</text>
+        </view>
+        <view class="arrow-icon">›</view>
+      </view>
+    </view>
+  </view>
+</scroll-view>

@@ -1,5 +1,7 @@
 {
   "pages": [
+    "pages/character-select/character-select",
+    "pages/chat/chat",
     "pages/index/index",
     "pages/logs/logs"
   ],
