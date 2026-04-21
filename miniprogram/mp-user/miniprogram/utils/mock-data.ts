@@ -189,8 +189,6 @@ export const mockData: MockDataType = {
 };
 
 const generateSeats = (): void => {
-  console.log('generateSeats called, current seats length:', mockData.seats.length);
-  
   mockData.studyRooms.forEach(room => {
     const rows = Math.ceil(room.capacity / 10);
     const cols = 10;
@@ -238,8 +236,6 @@ const generateSeats = (): void => {
       }
     }
   });
-  
-  console.log('generateSeats finished, seats length:', mockData.seats.length);
 };
 
 const generateReservations = (): void => {
@@ -287,13 +283,6 @@ const generateCheckInRecords = (): void => {
   }
 };
 
-console.log('mock-data.ts: Before generating data');
-console.log('mockData.seats before generation:', mockData.seats.length);
-
 generateSeats();
 generateReservations();
 generateCheckInRecords();
-
-console.log('mock-data.ts: After generating data');
-console.log('mockData.seats after generation:', mockData.seats.length);
-console.log('mockData.seats isArray:', Array.isArray(mockData.seats));
