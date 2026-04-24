@@ -435,7 +435,8 @@ class MockManager {
         reservation.updatedAt = new Date().toISOString();
 
         const seat = seats.find(s => s.id === reservation.seatId);
-        if (seat && seat.status === 'reserved') {
+        if (seat && (seat.status === 'reserved' || seat.status === 'occupied')) {
+          console.log('[MOCK 取消预约] 更新座位状态为 available', seat.id);
           seat.status = 'available';
         }
 
@@ -479,6 +480,7 @@ class MockManager {
       const currentUser = users[0] ?? null;
       const reservations = mockData?.reservations ?? [];
       const checkInRecords = mockData?.checkInRecords ?? [];
+      const seats = mockData?.seats ?? [];
 
       if (!currentUser) {
         console.error('[MOCK 签到] 用户不存在');
@@ -513,6 +515,12 @@ class MockManager {
         reservation.updatedAt = new Date().toISOString();
       } else {
         console.warn('[MOCK 签到] 未找到预约记录', params.reservationId);
+      }
+
+      const seat = seats.find(s => s.id === params.seatId);
+      if (seat) {
+        console.log('[MOCK 签到] 更新座位状态为 occupied', seat.id);
+        seat.status = 'occupied';
       }
 
       const newCheckInRecord = {
@@ -552,6 +560,7 @@ class MockManager {
       
       const checkInRecords = mockData?.checkInRecords ?? [];
       const reservations = mockData?.reservations ?? [];
+      const seats = mockData?.seats ?? [];
       const record = checkInRecords.find(r => r.id === params.checkInRecordId);
 
       if (record) {
@@ -576,6 +585,12 @@ class MockManager {
           reservation.status = 'completed';
           reservation.checkOutTime = record.checkOutTime;
           reservation.updatedAt = new Date().toISOString();
+        }
+
+        const seat = seats.find(s => s.id === record.seatId);
+        if (seat) {
+          console.log('[MOCK 签退] 更新座位状态为 available', seat.id);
+          seat.status = 'available';
         }
 
         console.log('[MOCK 签退] 签退成功', { 

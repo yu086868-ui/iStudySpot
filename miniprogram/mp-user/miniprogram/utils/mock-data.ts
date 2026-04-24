@@ -310,6 +310,23 @@ const generateReservations = (): void => {
   }
 };
 
+const syncSeatStatusWithReservations = (): void => {
+  mockData.reservations.forEach(reservation => {
+    const seat = mockData.seats.find(s => s.id === reservation.seatId);
+    if (!seat) return;
+
+    if (reservation.status === 'confirmed') {
+      seat.status = 'reserved';
+    } else if (reservation.status === 'checked_in') {
+      seat.status = 'occupied';
+    } else if (reservation.status === 'completed' || reservation.status === 'cancelled') {
+      if (seat.status === 'reserved' || seat.status === 'occupied') {
+        seat.status = 'available';
+      }
+    }
+  });
+};
+
 const generateCheckInRecords = (): void => {
   const now = new Date();
   const completedReservations = mockData.reservations.filter(r => r.status === 'completed');
@@ -335,4 +352,5 @@ const generateCheckInRecords = (): void => {
 
 generateSeats();
 generateReservations();
+syncSeatStatusWithReservations();
 generateCheckInRecords();

@@ -19,6 +19,7 @@ Page({
     seats: [] as Seat[],
     seatGroups: [] as SeatGroup[],
     selectedSeat: null as Seat | null,
+    selectedSeatFacilitiesText: '',
     studyRoomId: 'room_001',
     isLoading: false,
     
@@ -285,9 +286,23 @@ Page({
     }
     
     if (this.data.selectedSeat?.id === seat.id) {
-      this.setData({ selectedSeat: null })
+      this.setData({ 
+        selectedSeat: null,
+        selectedSeatFacilitiesText: ''
+      })
     } else {
-      this.setData({ selectedSeat: seat })
+      const seatData = {
+        ...seat,
+        facilities: seat.facilities || []
+      }
+      const facilitiesText = seatData.facilities && seatData.facilities.length > 0 
+        ? seatData.facilities.join('、') 
+        : ''
+      
+      this.setData({ 
+        selectedSeat: seatData,
+        selectedSeatFacilitiesText: facilitiesText
+      })
     }
   },
 
