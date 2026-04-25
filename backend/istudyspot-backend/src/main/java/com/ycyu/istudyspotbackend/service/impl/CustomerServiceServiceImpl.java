@@ -59,8 +59,11 @@ public class CustomerServiceServiceImpl implements CustomerServiceService {
         // 保存用户消息
         saveMessage(sessionId, "user", message);
 
-        // 模拟智能客服回复
-        String response = generateCustomerServiceResponse(message);
+        // 构建消息列表，包括系统提示和对话历史
+        List<Map<String, String>> messages = buildMessages(sessionId, message);
+
+        // 调用 DeepSeek API 获取智能客服回复
+        String response = deepSeekService.chat("deepseek-chat", messages);
 
         // 保存客服回复
         saveMessage(sessionId, "assistant", response);
@@ -73,60 +76,11 @@ public class CustomerServiceServiceImpl implements CustomerServiceService {
         // 保存用户消息
         saveMessage(sessionId, "user", message);
 
-        // 模拟智能客服回复
-        String response = generateCustomerServiceResponse(message);
+        // 构建消息列表，包括系统提示和对话历史
+        List<Map<String, String>> messages = buildMessages(sessionId, message);
 
-        // 保存客服回复
-        saveMessage(sessionId, "assistant", response);
-
-        // 创建 SSE 发射器
-        SseEmitter emitter = new SseEmitter();
-
-        // 异步发送流式响应
-        executorService.execute(() -> {
-            try {
-                // 发送开始事件
-                emitter.send(SseEmitter.event().data("{\"type\": \"start\"}"));
-
-                // 模拟流式输出
-                for (int i = 0; i < response.length(); i++) {
-                    char c = response.charAt(i);
-                    emitter.send(SseEmitter.event().data("{\"type\": \"delta\", \"content\": \"" + c + "\"}"));
-                    Thread.sleep(50); // 模拟打字效果
-                }
-
-                // 发送结束事件
-                emitter.send(SseEmitter.event().data("{\"type\": \"end\"}"));
-                emitter.complete();
-            } catch (Exception e) {
-                emitter.completeWithError(e);
-            }
-        });
-
-        return emitter;
-    }
-
-    // 模拟生成智能客服回复
-    private String generateCustomerServiceResponse(String message) {
-        if (message.contains("预订")) {
-            return "您可以通过以下步骤预订自习室：1. 登录系统；2. 选择自习室和座位；3. 选择预订时间；4. 确认预订。预订成功后，您会收到预订成功的通知。";
-        } else if (message.contains("查看")) {
-            return "您可以通过以下方式查看自习室使用情况：1. 登录系统；2. 进入自习室列表页面；3. 查看每个自习室的当前使用情况和可预订时间。";
-        } else if (message.contains("取消")) {
-            return "您可以通过以下步骤取消预订：1. 登录系统；2. 进入我的预订页面；3. 选择要取消的预订；4. 点击取消按钮。请注意，提前取消预订可以避免影响您的信用评分。";
-        } else if (message.contains("开放时间")) {
-            return "自习室的开放时间为：周一至周五 8:00-22:00，周末 9:00-21:00。具体开放时间可能会根据节假日进行调整，请关注系统通知。";
-        } else if (message.contains("签到")) {
-            return "您可以通过以下步骤进行签到：1. 到达自习室后，打开系统；2. 进入我的预订页面；3. 找到当前预订；4. 点击签到按钮。请注意，需要在预订开始时间前后15分钟内完成签到，否则预订可能会被取消。";
-        } else if (message.contains("签退")) {
-            return "您可以通过以下步骤进行签退：1. 离开自习室前，打开系统；2. 进入我的预订页面；3. 找到当前使用中的预订；4. 点击签退按钮。签退后，系统会记录您的使用时长。";
-        } else if (message.contains("你好") || message.contains("您好")) {
-            return "您好！我是智能客服小i，很高兴为您服务。请问您需要了解关于自习室预订的什么信息？您可以询问如何预订自习室、如何查看自习室使用情况、如何取消预订、自习室开放时间等问题。";
-        } else if (message.contains("谢谢") || message.contains("感谢")) {
-            return "不客气！如果您还有其他问题，随时可以向我咨询。祝您学习愉快！";
-        } else {
-            return "感谢您的咨询。请问您还有其他问题吗？您可以尝试询问以下问题：如何预订自习室、如何查看自习室使用情况、如何取消预订、自习室开放时间。";
-        }
+        // 调用 DeepSeek API 获取流式智能客服回复
+        return deepSeekService.streamChat("deepseek-chat", messages);
     }
 
     @Override
