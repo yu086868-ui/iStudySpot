@@ -1,6 +1,7 @@
 package com.ycyu.istudyspotbackend.service.impl;
 
 import com.ycyu.istudyspotbackend.entity.Order;
+import com.ycyu.istudyspotbackend.entity.Seat;
 import com.ycyu.istudyspotbackend.mapper.OrderMapper;
 import com.ycyu.istudyspotbackend.mapper.SeatMapper;
 import com.ycyu.istudyspotbackend.service.OrderService;
@@ -13,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -174,6 +176,212 @@ public class OrderServiceImplTest {
 
         // 验证方法调用
         verify(orderMapper, times(1)).findByUserId(1L);
+    }
+
+    @Test
+    void testGetOrderListWithStatus() {
+        // 模拟订单列表查询
+        List<Order> orders = new ArrayList<>();
+        orders.add(testOrder);
+        when(orderMapper.findByUserIdAndStatus(1L, "pending")).thenReturn(orders);
+
+        // 测试获取订单列表
+        Map<String, Object> result = orderService.getOrderList(1L, "pending", null, null, 1, 20);
+
+        // 验证结果
+        assertNotNull(result);
+
+        // 验证方法调用
+        verify(orderMapper, times(1)).findByUserIdAndStatus(1L, "pending");
+    }
+
+    @Test
+    void testCheckin() {
+        // 模拟订单查询
+        testOrder.setStatus("2");
+        when(orderMapper.findById(1L)).thenReturn(testOrder);
+        when(orderMapper.checkin(1L)).thenReturn(1);
+
+        // 测试签到
+        Map<String, Object> result = orderService.checkin(1L, "test-code");
+
+        // 验证结果
+        assertNotNull(result);
+        assertEquals("1", result.get("id"));
+        assertEquals("in_use", result.get("status"));
+
+        // 验证方法调用
+        verify(orderMapper, times(1)).findById(1L);
+        verify(orderMapper, times(1)).checkin(1L);
+    }
+
+    @Test
+    void testCheckinOrderNotFound() {
+        // 模拟订单不存在
+        when(orderMapper.findById(1L)).thenReturn(null);
+
+        // 测试签到
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            orderService.checkin(1L, "test-code");
+        });
+
+        assertEquals("订单不存在", exception.getMessage());
+
+        // 验证方法调用
+        verify(orderMapper, times(1)).findById(1L);
+    }
+
+    @Test
+    void testCheckinOrderStatusIncorrect() {
+        // 模拟订单状态不正确
+        testOrder.setStatus("pending");
+        when(orderMapper.findById(1L)).thenReturn(testOrder);
+
+        // 测试签到
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            orderService.checkin(1L, "test-code");
+        });
+
+        assertEquals("订单状态不正确，无法签到", exception.getMessage());
+
+        // 验证方法调用
+        verify(orderMapper, times(1)).findById(1L);
+    }
+
+    @Test
+    void testCheckout() {
+        // 模拟订单查询
+        testOrder.setStatus("in_use");
+        testOrder.setCheckinTime(LocalDateTime.now().minusHours(1));
+        when(orderMapper.findById(1L)).thenReturn(testOrder);
+        when(orderMapper.checkout(eq(1L), anyInt(), any(BigDecimal.class))).thenReturn(1);
+
+        // 测试签退
+        Map<String, Object> result = orderService.checkout(1L);
+
+        // 验证结果
+        assertNotNull(result);
+        assertEquals("1", result.get("id"));
+        assertEquals("completed", result.get("status"));
+
+        // 验证方法调用
+        verify(orderMapper, times(1)).findById(1L);
+        verify(orderMapper, times(1)).checkout(eq(1L), anyInt(), any(BigDecimal.class));
+    }
+
+    @Test
+    void testCheckoutOrderNotFound() {
+        // 模拟订单不存在
+        when(orderMapper.findById(1L)).thenReturn(null);
+
+        // 测试签退
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            orderService.checkout(1L);
+        });
+
+        assertEquals("订单不存在", exception.getMessage());
+
+        // 验证方法调用
+        verify(orderMapper, times(1)).findById(1L);
+    }
+
+    @Test
+    void testCheckoutOrderStatusIncorrect() {
+        // 模拟订单状态不正确
+        testOrder.setStatus("pending");
+        when(orderMapper.findById(1L)).thenReturn(testOrder);
+
+        // 测试签退
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            orderService.checkout(1L);
+        });
+
+        assertTrue(exception.getMessage().contains("订单未在使用中"));
+
+        // 验证方法调用
+        verify(orderMapper, times(1)).findById(1L);
+    }
+
+    @Test
+    void testRenew() {
+        // 模拟订单查询
+        testOrder.setStatus("3");
+        testOrder.setEndTime(LocalDateTime.now());
+        testOrder.setSeatId(1L);
+        testOrder.setTotalPrice(BigDecimal.valueOf(10.0));
+        testOrder.setTotalAmount(BigDecimal.valueOf(10.0));
+        when(orderMapper.findById(1L)).thenReturn(testOrder);
+
+        // 模拟座位查询
+        Seat seat = new Seat();
+        seat.setPricePerHour(BigDecimal.valueOf(10.0));
+        when(seatMapper.findById(1L)).thenReturn(seat);
+
+        when(orderMapper.updateStatus(1L, "3")).thenReturn(1);
+
+        // 测试续费
+        LocalDateTime newEndTime = LocalDateTime.now().plusHours(1);
+        Map<String, Object> result = orderService.renew(1L, newEndTime);
+
+        // 验证结果
+        assertNotNull(result);
+        assertEquals("1", result.get("orderId"));
+
+        // 验证方法调用
+        verify(orderMapper, times(1)).findById(1L);
+        verify(seatMapper, times(1)).findById(1L);
+        verify(orderMapper, times(1)).updateStatus(1L, "3");
+    }
+
+    @Test
+    void testRenewOrderNotFound() {
+        // 模拟订单不存在
+        when(orderMapper.findById(1L)).thenReturn(null);
+
+        // 测试续费
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            orderService.renew(1L, LocalDateTime.now().plusHours(1));
+        });
+
+        assertEquals("订单不存在", exception.getMessage());
+
+        // 验证方法调用
+        verify(orderMapper, times(1)).findById(1L);
+    }
+
+    @Test
+    void testRenewOrderStatusIncorrect() {
+        // 模拟订单状态不正确
+        testOrder.setStatus("pending");
+        when(orderMapper.findById(1L)).thenReturn(testOrder);
+
+        // 测试续费
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            orderService.renew(1L, LocalDateTime.now().plusHours(1));
+        });
+
+        assertEquals("订单未在使用中", exception.getMessage());
+
+        // 验证方法调用
+        verify(orderMapper, times(1)).findById(1L);
+    }
+
+    @Test
+    void testRenewEndTimeBeforeOriginal() {
+        // 模拟订单查询
+        testOrder.setStatus("3");
+        testOrder.setEndTime(LocalDateTime.now().plusHours(1));
+        when(orderMapper.findById(1L)).thenReturn(testOrder);
+
+        // 测试续费
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            orderService.renew(1L, LocalDateTime.now());
+        });
+
+        assertEquals("新结束时间必须晚于原结束时间", exception.getMessage());
+
+        // 验证方法调用
+        verify(orderMapper, times(1)).findById(1L);
     }
 
     @Test
