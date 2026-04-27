@@ -3,7 +3,8 @@
 ## 覆盖率徽章
 
 ### 后端覆盖率
-[![Backend Coverage](https://codecov.io/gh/yu086868-ui/iStudySpot/branch/main/graph/badge.svg?flag=backend)](https://codecov.io/gh/yu086868-ui/iStudySpot)
+**Main分支:** [![Backend Coverage (Main)](https://codecov.io/gh/yu086868-ui/iStudySpot/branch/main/graph/badge.svg?flag=backend)](https://codecov.io/gh/yu086868-ui/iStudySpot)
+**Develop分支:** [![Backend Coverage (Develop)](https://codecov.io/gh/yu086868-ui/iStudySpot/branch/develop/graph/badge.svg?flag=backend)](https://codecov.io/gh/yu086868-ui/iStudySpot)
 
 ### 前端覆盖率
 [![Frontend Coverage](https://codecov.io/gh/yu086868-ui/iStudySpot/branch/main/graph/badge.svg?flag=frontend)](https://codecov.io/gh/yu086868-ui/iStudySpot)
