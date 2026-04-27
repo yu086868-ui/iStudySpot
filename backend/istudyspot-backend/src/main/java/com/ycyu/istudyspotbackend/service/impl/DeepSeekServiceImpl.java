@@ -3,13 +3,13 @@ package com.ycyu.istudyspotbackend.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ycyu.istudyspotbackend.config.DeepSeekConfig;
 import com.ycyu.istudyspotbackend.service.DeepSeekService;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -53,7 +53,7 @@ public class DeepSeekServiceImpl implements DeepSeekService {
 
             // 发送请求并获取响应
             try (CloseableHttpResponse response = httpClient.execute(httpPost)) {
-                int statusCode = response.getStatusLine().getStatusCode();
+                int statusCode = response.getCode();
                 System.out.println("DeepSeek API status code: " + statusCode);
                 
                 // 使用 UTF-8 编码读取响应

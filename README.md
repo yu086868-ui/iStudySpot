@@ -1,5 +1,13 @@
 # iStudySpot-自习室预订系统
 
+## 覆盖率徽章
+
+### 后端覆盖率
+[![Backend Coverage](https://codecov.io/gh/yu086868-ui/iStudySpot/branch/main/graph/badge.svg?flag=backend)](https://codecov.io/gh/yu086868-ui/iStudySpot)
+
+### 前端覆盖率
+[![Frontend Coverage](https://codecov.io/gh/yu086868-ui/iStudySpot/branch/main/graph/badge.svg?flag=frontend)](https://codecov.io/gh/yu086868-ui/iStudySpot)
+
 ## 团队成员
 
 | 姓名  | 学号         | 分工                            |
