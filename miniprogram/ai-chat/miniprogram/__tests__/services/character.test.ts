@@ -1,9 +1,13 @@
-import { getCharacters } from '../../services/character';
 import wx from '../mocks/wx';
 
 describe('Character Service', () => {
+  let getCharacters: typeof import('../../services/character').getCharacters;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.resetModules();
+    const characterModule = require('../../services/character');
+    getCharacters = characterModule.getCharacters;
   });
 
   describe('getCharacters', () => {

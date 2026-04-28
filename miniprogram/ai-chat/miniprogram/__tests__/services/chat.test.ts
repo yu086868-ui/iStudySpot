@@ -1,10 +1,16 @@
-import { sendMessage, sendMessageStream } from '../../services/chat';
 import wx from '../mocks/wx';
 import type { ChatRequest } from '../../typings/chat';
 
 describe('Chat Service', () => {
+  let sendMessage: typeof import('../../services/chat').sendMessage;
+  let sendMessageStream: typeof import('../../services/chat').sendMessageStream;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.resetModules();
+    const chatModule = require('../../services/chat');
+    sendMessage = chatModule.sendMessage;
+    sendMessageStream = chatModule.sendMessageStream;
   });
 
   describe('sendMessage', () => {
@@ -42,6 +48,7 @@ describe('Chat Service', () => {
       await sendMessage(request);
       const calls = (wx.request as jest.Mock).mock.calls;
       const chatCall = calls.find((call: any[]) => call[0].url.includes('/chat'));
+      expect(chatCall).toBeDefined();
       expect(chatCall[0].url).toContain('/chat');
     });
 
@@ -54,6 +61,7 @@ describe('Chat Service', () => {
       await sendMessage(request);
       const calls = (wx.request as jest.Mock).mock.calls;
       const chatCall = calls.find((call: any[]) => call[0].url.includes('/chat'));
+      expect(chatCall).toBeDefined();
       expect(chatCall[0].data).toEqual(request);
     });
 
@@ -66,6 +74,7 @@ describe('Chat Service', () => {
       await sendMessage(request);
       const calls = (wx.request as jest.Mock).mock.calls;
       const chatCall = calls.find((call: any[]) => call[0].url.includes('/chat'));
+      expect(chatCall).toBeDefined();
       expect(chatCall[0].header['Content-Type']).toBe('application/json');
     });
   });
@@ -116,6 +125,7 @@ describe('Chat Service', () => {
       await sendMessageStream(request, callbacks);
       const calls = (wx.request as jest.Mock).mock.calls;
       const streamCall = calls.find((call: any[]) => call[0].url.includes('/chat/stream'));
+      expect(streamCall).toBeDefined();
       expect(streamCall[0].header['Accept']).toBe('text/event-stream');
       expect(streamCall[0].header['Cache-Control']).toBe('no-cache');
     });
@@ -129,6 +139,7 @@ describe('Chat Service', () => {
       await sendMessageStream(request, callbacks);
       const calls = (wx.request as jest.Mock).mock.calls;
       const streamCall = calls.find((call: any[]) => call[0].url.includes('/chat/stream'));
+      expect(streamCall).toBeDefined();
       expect(streamCall[0].enableChunked).toBe(true);
     });
   });

@@ -1,9 +1,12 @@
-import connectionService from '../../services/connection';
 import wx from '../mocks/wx';
 
 describe('Connection Service', () => {
+  let connectionService: typeof import('../../services/connection').default;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.resetModules();
+    connectionService = require('../../services/connection').default;
   });
 
   describe('getStatus', () => {
