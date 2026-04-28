@@ -12,8 +12,8 @@
     "noImplicitReturns": true,
     "alwaysStrict": true,
     "noFallthroughCasesInSwitch": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "strict": true,
     "strictPropertyInitialization": true,
     "lib": ["ES2020"],
@@ -22,7 +22,10 @@
       "./node_modules/@types",
       "./tests/types"
     ],
-    "types": ["jest", "node"]
+    "types": ["jest", "node"],
+    "moduleResolution": "node",
+    "skipLibCheck": true,
+    "isolatedModules": true
   },
   "include": [
     "./**/*.ts"

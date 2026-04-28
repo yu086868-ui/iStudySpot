@@ -1,6 +1,6 @@
-import { authApi } from '../../miniprogram/services/auth';
-import { TestDataFactory } from '../../tests/utils/test-data-factory';
-import { WxMock } from '../../tests/mocks/wx-mock';
+import { authApi } from '../miniprogram/services/auth';
+import { TestDataFactory } from '../tests/utils/test-data-factory';
+import { WxMock } from '../tests/mocks/wx-mock';
 
 describe('authApi', () => {
   let wxMock: WxMock;

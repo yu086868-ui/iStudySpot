@@ -19,10 +19,17 @@ module.exports = {
     }
   },
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/miniprogram/$1'
+    '^@/(.*)$': '<rootDir>/miniprogram/$1',
+    '^../miniprogram/(.*)$': '<rootDir>/miniprogram/$1',
+    '^../tests/(.*)$': '<rootDir>/tests/$1'
   },
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
   moduleDirectories: ['node_modules', '<rootDir>'],
   rootDir: './',
-  modulePathIgnorePatterns: ['<rootDir>/dist/']
+  modulePathIgnorePatterns: ['<rootDir>/dist/'],
+  transform: {
+    '^.+\\.tsx?$': ['ts-jest', {
+      tsconfig: 'tsconfig.test.json'
+    }]
+  }
 };

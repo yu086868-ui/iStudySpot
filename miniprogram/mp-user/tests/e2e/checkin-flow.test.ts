@@ -1,7 +1,7 @@
-import { checkInApi } from '../../miniprogram/services/checkin';
-import { reservationApi } from '../../miniprogram/services/reservation';
-import { TestDataFactory } from '../../tests/utils/test-data-factory';
-import { WxMock } from '../../tests/mocks/wx-mock';
+import { checkInApi } from '../miniprogram/services/checkin';
+import { reservationApi } from '../miniprogram/services/reservation';
+import { TestDataFactory } from '../tests/utils/test-data-factory';
+import { WxMock } from '../tests/mocks/wx-mock';
 
 describe('Check-in Flow E2E Tests', () => {
   let wxMock: WxMock;
@@ -19,7 +19,6 @@ describe('Check-in Flow E2E Tests', () => {
 
   describe('Complete check-in flow', () => {
     it('should check in successfully with reservation', async () => {
-      const reservation = TestDataFactory.createReservation({ status: 'confirmed' });
       const checkInResponse = {
         checkInRecordId: 'checkin_001',
         checkInTime: new Date().toISOString(),
@@ -207,7 +206,7 @@ describe('Check-in Flow E2E Tests', () => {
         }
       });
 
-      const result = await checkInApi.getCheckInRecords();
+      const result = await checkInApi.getMyCheckInRecords();
 
       expect(result.code).toBe(200);
       expect(result.data.list).toHaveLength(2);
@@ -228,7 +227,7 @@ describe('Check-in Flow E2E Tests', () => {
         }
       });
 
-      const result = await checkInApi.getCheckInRecords({
+      const result = await checkInApi.getMyCheckInRecords({
         startDate: '2024-01-01',
         endDate: '2024-12-31'
       });

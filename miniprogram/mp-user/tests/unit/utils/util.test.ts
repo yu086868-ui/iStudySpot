@@ -1,4 +1,4 @@
-import { formatTime } from '../../miniprogram/utils/util';
+import { formatTime } from '../miniprogram/utils/util';
 
 describe('util.ts', () => {
   describe('formatTime', () => {

@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "moduleResolution": "bundler",
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "ignoreDeprecations": "6.0"
+  },
+  "include": [
+    "tests/**/*.ts",
+    "miniprogram/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

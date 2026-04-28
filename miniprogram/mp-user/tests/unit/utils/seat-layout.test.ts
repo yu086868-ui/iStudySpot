@@ -1,6 +1,5 @@
-import { SeatLayoutUtil } from '../../miniprogram/utils/seat-layout';
-import { TestDataFactory } from '../../tests/utils/test-data-factory';
-import type { Seat } from '../../miniprogram/typings/api';
+import { SeatLayoutUtil } from '../miniprogram/utils/seat-layout';
+import { TestDataFactory } from '../tests/utils/test-data-factory';
 
 describe('SeatLayoutUtil', () => {
   describe('createSeatLayout', () => {

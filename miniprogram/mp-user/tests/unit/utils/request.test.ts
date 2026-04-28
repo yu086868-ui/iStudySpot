@@ -1,6 +1,6 @@
-import Request from '../../miniprogram/utils/request';
-import { WxMock } from '../../tests/mocks/wx-mock';
-import { TestDataFactory } from '../../tests/utils/test-data-factory';
+import Request from '../miniprogram/utils/request';
+import { WxMock } from '../tests/mocks/wx-mock';
+import { TestDataFactory } from '../tests/utils/test-data-factory';
 
 describe('Request', () => {
   let wxMock: WxMock;
@@ -185,7 +185,7 @@ describe('Request', () => {
         }
       });
 
-      const result = await request.get('/protected');
+      await request.get('/protected');
 
       expect(callCount).toBeGreaterThan(1);
     });
