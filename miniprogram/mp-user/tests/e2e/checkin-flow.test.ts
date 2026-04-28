@@ -1,20 +1,20 @@
 import { checkInApi } from '../miniprogram/services/checkin';
 import { reservationApi } from '../miniprogram/services/reservation';
-import { TestDataFactory } from '../tests/utils/test-data-factory';
-import { WxMock } from '../tests/mocks/wx-mock';
+import mockManager from '../miniprogram/utils/mock';
+
+jest.mock('../miniprogram/utils/mock');
 
 describe('Check-in Flow E2E Tests', () => {
-  let wxMock: WxMock;
+  const mockRequest = jest.fn();
 
   beforeEach(() => {
-    wxMock = new WxMock();
-    (global as any).wx = wxMock;
-    wxMock.setStorageSync('access_token', 'test_token');
     jest.clearAllMocks();
+    (mockManager.isEnabled as jest.Mock).mockReturnValue(true);
+    (mockManager.request as jest.Mock) = mockRequest;
   });
 
   afterEach(() => {
-    wxMock.clearAllMocks();
+    mockRequest.mockReset();
   });
 
   describe('Complete check-in flow', () => {
@@ -26,16 +26,11 @@ describe('Check-in Flow E2E Tests', () => {
         seatId: 'seat_001'
       };
 
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.url.includes('/checkin') && options.method === 'POST') {
-          if (options.success) {
-            options.success({
-              data: TestDataFactory.createSuccessResponse(checkInResponse),
-              statusCode: 200,
-              header: {}
-            });
-          }
-        }
+      mockRequest.mockResolvedValueOnce({
+        code: 200,
+        message: '签到成功',
+        data: checkInResponse,
+        timestamp: Date.now()
       });
 
       const result = await checkInApi.checkIn({
@@ -49,14 +44,11 @@ describe('Check-in Flow E2E Tests', () => {
     });
 
     it('should handle already checked in error', async () => {
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.success) {
-          options.success({
-            data: TestDataFactory.createErrorResponse(50002, '已经签到，无需重复签到'),
-            statusCode: 200,
-            header: {}
-          });
-        }
+      mockRequest.mockResolvedValueOnce({
+        code: 50002,
+        message: '已经签到，无需重复签到',
+        data: null,
+        timestamp: Date.now()
       });
 
       const result = await checkInApi.checkIn({
@@ -76,16 +68,11 @@ describe('Check-in Flow E2E Tests', () => {
         duration: 120
       };
 
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.url.includes('/checkout')) {
-          if (options.success) {
-            options.success({
-              data: TestDataFactory.createSuccessResponse(checkOutResponse),
-              statusCode: 200,
-              header: {}
-            });
-          }
-        }
+      mockRequest.mockResolvedValueOnce({
+        code: 200,
+        message: '签退成功',
+        data: checkOutResponse,
+        timestamp: Date.now()
       });
 
       const result = await checkInApi.checkOut({
@@ -98,14 +85,11 @@ describe('Check-in Flow E2E Tests', () => {
     });
 
     it('should handle already checked out error', async () => {
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.success) {
-          options.success({
-            data: TestDataFactory.createErrorResponse(50004, '已经签退'),
-            statusCode: 200,
-            header: {}
-          });
-        }
+      mockRequest.mockResolvedValueOnce({
+        code: 50004,
+        message: '已经签退',
+        data: null,
+        timestamp: Date.now()
       });
 
       const result = await checkInApi.checkOut({
@@ -117,14 +101,11 @@ describe('Check-in Flow E2E Tests', () => {
     });
 
     it('should handle check-in record not found', async () => {
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.success) {
-          options.success({
-            data: TestDataFactory.createErrorResponse(50003, '签到记录不存在'),
-            statusCode: 200,
-            header: {}
-          });
-        }
+      mockRequest.mockResolvedValueOnce({
+        code: 50003,
+        message: '签到记录不存在',
+        data: null,
+        timestamp: Date.now()
       });
 
       const result = await checkInApi.checkOut({
@@ -138,22 +119,27 @@ describe('Check-in Flow E2E Tests', () => {
 
   describe('Check-in status', () => {
     it('should get current check-in status when active', async () => {
-      const checkInRecord = TestDataFactory.createCheckInRecord();
+      const checkInRecord = {
+        id: 'checkin_001',
+        userId: 'user_001',
+        reservationId: 'res_001',
+        studyRoomId: 'room_001',
+        seatId: 'seat_001',
+        checkInTime: new Date().toISOString(),
+        checkOutTime: null,
+        duration: 0,
+        status: 'active' as const
+      };
       const statusResponse = {
         isCheckedIn: true,
         checkInRecord
       };
 
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.url.includes('/checkin/current')) {
-          if (options.success) {
-            options.success({
-              data: TestDataFactory.createSuccessResponse(statusResponse),
-              statusCode: 200,
-              header: {}
-            });
-          }
-        }
+      mockRequest.mockResolvedValueOnce({
+        code: 200,
+        message: 'success',
+        data: statusResponse,
+        timestamp: Date.now()
       });
 
       const result = await checkInApi.getCurrentCheckInStatus();
@@ -169,14 +155,11 @@ describe('Check-in Flow E2E Tests', () => {
         checkInRecord: null
       };
 
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.success) {
-          options.success({
-            data: TestDataFactory.createSuccessResponse(statusResponse),
-            statusCode: 200,
-            header: {}
-          });
-        }
+      mockRequest.mockResolvedValueOnce({
+        code: 200,
+        message: 'success',
+        data: statusResponse,
+        timestamp: Date.now()
       });
 
       const result = await checkInApi.getCurrentCheckInStatus();
@@ -190,20 +173,40 @@ describe('Check-in Flow E2E Tests', () => {
   describe('Check-in records history', () => {
     it('should get check-in records history', async () => {
       const records = [
-        TestDataFactory.createCheckInRecord({ id: 'checkin_001' }),
-        TestDataFactory.createCheckInRecord({ id: 'checkin_002' })
+        {
+          id: 'checkin_001',
+          userId: 'user_001',
+          reservationId: 'res_001',
+          studyRoomId: 'room_001',
+          seatId: 'seat_001',
+          checkInTime: new Date().toISOString(),
+          checkOutTime: null,
+          duration: 0,
+          status: 'completed' as const
+        },
+        {
+          id: 'checkin_002',
+          userId: 'user_001',
+          reservationId: 'res_002',
+          studyRoomId: 'room_002',
+          seatId: 'seat_002',
+          checkInTime: new Date(Date.now() - 86400000).toISOString(),
+          checkOutTime: new Date(Date.now() - 82800000).toISOString(),
+          duration: 60,
+          status: 'completed' as const
+        }
       ];
 
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.success) {
-          options.success({
-            data: TestDataFactory.createSuccessResponse(
-              TestDataFactory.createPaginatedResponse(records)
-            ),
-            statusCode: 200,
-            header: {}
-          });
-        }
+      mockRequest.mockResolvedValueOnce({
+        code: 200,
+        message: 'success',
+        data: {
+          list: records,
+          total: 2,
+          page: 1,
+          pageSize: 20
+        },
+        timestamp: Date.now()
       });
 
       const result = await checkInApi.getMyCheckInRecords();
@@ -213,23 +216,35 @@ describe('Check-in Flow E2E Tests', () => {
     });
 
     it('should filter check-in records by date', async () => {
-      const records = [TestDataFactory.createCheckInRecord()];
-
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.success) {
-          options.success({
-            data: TestDataFactory.createSuccessResponse(
-              TestDataFactory.createPaginatedResponse(records)
-            ),
-            statusCode: 200,
-            header: {}
-          });
+      const records = [
+        {
+          id: 'checkin_001',
+          userId: 'user_001',
+          reservationId: 'res_001',
+          studyRoomId: 'room_001',
+          seatId: 'seat_001',
+          checkInTime: '2024-06-15T10:00:00Z',
+          checkOutTime: '2024-06-15T12:00:00Z',
+          duration: 120,
+          status: 'completed' as const
         }
+      ];
+
+      mockRequest.mockResolvedValueOnce({
+        code: 200,
+        message: 'success',
+        data: {
+          list: records,
+          total: 1,
+          page: 1,
+          pageSize: 20
+        },
+        timestamp: Date.now()
       });
 
       const result = await checkInApi.getMyCheckInRecords({
-        startDate: '2024-01-01',
-        endDate: '2024-12-31'
+        startDate: '2024-06-01',
+        endDate: '2024-06-30'
       });
 
       expect(result.code).toBe(200);
@@ -239,9 +254,21 @@ describe('Check-in Flow E2E Tests', () => {
 
   describe('Complete study session flow', () => {
     it('should complete full study session from reservation to check-out', async () => {
-      const reservation = TestDataFactory.createReservation();
+      const reservation = {
+        id: 'res_new_001',
+        userId: 'user_001',
+        studyRoomId: 'room_001',
+        seatId: 'seat_001',
+        startTime: new Date().toISOString(),
+        endTime: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
+        status: 'confirmed' as const,
+        checkInTime: null,
+        checkOutTime: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
       const checkInResponse = {
-        checkInRecordId: 'checkin_001',
+        checkInRecordId: 'checkin_new_001',
         checkInTime: new Date().toISOString(),
         reservationId: reservation.id,
         seatId: 'seat_001'
@@ -251,35 +278,25 @@ describe('Check-in Flow E2E Tests', () => {
         duration: 120
       };
 
-      let requestCount = 0;
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        requestCount++;
-        if (options.url.includes('/reservations') && options.method === 'POST') {
-          if (options.success) {
-            options.success({
-              data: TestDataFactory.createSuccessResponse(reservation),
-              statusCode: 200,
-              header: {}
-            });
-          }
-        } else if (options.url.includes('/checkin') && options.method === 'POST') {
-          if (options.success) {
-            options.success({
-              data: TestDataFactory.createSuccessResponse(checkInResponse),
-              statusCode: 200,
-              header: {}
-            });
-          }
-        } else if (options.url.includes('/checkout')) {
-          if (options.success) {
-            options.success({
-              data: TestDataFactory.createSuccessResponse(checkOutResponse),
-              statusCode: 200,
-              header: {}
-            });
-          }
-        }
-      });
+      mockRequest
+        .mockResolvedValueOnce({
+          code: 200,
+          message: '预约成功',
+          data: reservation,
+          timestamp: Date.now()
+        })
+        .mockResolvedValueOnce({
+          code: 200,
+          message: '签到成功',
+          data: checkInResponse,
+          timestamp: Date.now()
+        })
+        .mockResolvedValueOnce({
+          code: 200,
+          message: '签退成功',
+          data: checkOutResponse,
+          timestamp: Date.now()
+        });
 
       const reservationResult = await reservationApi.createReservation({
         studyRoomId: 'room_001',

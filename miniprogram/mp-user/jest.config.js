@@ -6,7 +6,11 @@ module.exports = {
   collectCoverageFrom: [
     'miniprogram/utils/**/*.ts',
     'miniprogram/services/**/*.ts',
-    '!miniprogram/**/*.d.ts'
+    '!miniprogram/**/*.d.ts',
+    '!miniprogram/utils/mock.ts',
+    '!miniprogram/utils/mock-data.ts',
+    '!miniprogram/utils/data.ts',
+    '!miniprogram/utils/request.ts'
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],

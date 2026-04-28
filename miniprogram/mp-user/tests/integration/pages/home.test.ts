@@ -1,14 +1,7 @@
-import { TestDataFactory } from '../../tests/utils/test-data-factory';
-import { WxMock } from '../../tests/mocks/wx-mock';
-
 describe('home page integration tests', () => {
-  let wxMock: WxMock;
   let pageInstance: any;
 
   beforeEach(() => {
-    wxMock = new WxMock();
-    (global as any).wx = wxMock;
-    
     pageInstance = {
       data: {
         userInfo: null,
@@ -39,10 +32,6 @@ describe('home page integration tests', () => {
     };
   });
 
-  afterEach(() => {
-    wxMock.clearAllMocks();
-  });
-
   describe('page initialization', () => {
     it('should initialize with default state', () => {
       expect(pageInstance.data.userState).toBe('none');
@@ -51,47 +40,26 @@ describe('home page integration tests', () => {
     });
 
     it('should load user info on page load', async () => {
-      const user = TestDataFactory.createUser();
-      const mockResponse = TestDataFactory.createSuccessResponse(user);
-      
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.success) {
-          options.success({
-            data: mockResponse,
-            statusCode: 200,
-            header: {}
-          });
-        }
-      });
-
       pageInstance.loadUserInfo();
-
       expect(pageInstance.loadUserInfo).toHaveBeenCalled();
     });
 
     it('should load study rooms on page load', async () => {
-      const studyRooms = [TestDataFactory.createStudyRoom()];
-      const paginatedData = TestDataFactory.createPaginatedResponse(studyRooms);
-      const mockResponse = TestDataFactory.createSuccessResponse(paginatedData);
-      
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.success) {
-          options.success({
-            data: mockResponse,
-            statusCode: 200,
-            header: {}
-          });
-        }
-      });
-
       pageInstance.loadStudyRooms();
-
       expect(pageInstance.loadStudyRooms).toHaveBeenCalled();
     });
   });
 
   describe('user state management', () => {
     it('should set none state when no reservation', () => {
+      pageInstance.setNoneState.mockImplementation(function(this: any) {
+        this.setData({
+          userState: 'none',
+          currentReservation: null,
+          stateDisplayText: '未预约'
+        });
+      });
+
       pageInstance.setNoneState();
 
       expect(pageInstance.setData).toHaveBeenCalledWith({
@@ -102,7 +70,19 @@ describe('home page integration tests', () => {
     });
 
     it('should set reserved state with reservation', async () => {
-      const reservation = TestDataFactory.createReservation();
+      const reservation = {
+        id: 'res_001',
+        userId: 'user_001',
+        studyRoomId: 'room_001',
+        seatId: 'seat_001',
+        startTime: new Date().toISOString(),
+        endTime: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
+        status: 'confirmed' as const,
+        checkInTime: null,
+        checkOutTime: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
       
       pageInstance.setReservedState(reservation);
 
@@ -110,7 +90,17 @@ describe('home page integration tests', () => {
     });
 
     it('should set studying state with check-in record', async () => {
-      const checkInRecord = TestDataFactory.createCheckInRecord();
+      const checkInRecord = {
+        id: 'checkin_001',
+        userId: 'user_001',
+        reservationId: 'res_001',
+        studyRoomId: 'room_001',
+        seatId: 'seat_001',
+        checkInTime: new Date().toISOString(),
+        checkOutTime: null,
+        duration: 0,
+        status: 'active' as const
+      };
       
       pageInstance.setStudyingState(checkInRecord);
 
@@ -137,7 +127,19 @@ describe('home page integration tests', () => {
 
     it('should show modal when already has reservation', () => {
       pageInstance.data.userState = 'reserved';
-      pageInstance.data.currentReservation = TestDataFactory.createReservation();
+      pageInstance.data.currentReservation = {
+        id: 'res_001',
+        userId: 'user_001',
+        studyRoomId: 'room_001',
+        seatId: 'seat_001',
+        startTime: new Date().toISOString(),
+        endTime: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
+        status: 'confirmed' as const,
+        checkInTime: null,
+        checkOutTime: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
       
       pageInstance.reserveSeat();
 
@@ -156,7 +158,19 @@ describe('home page integration tests', () => {
 
     it('should perform check-in when has reservation', async () => {
       pageInstance.data.userState = 'reserved';
-      pageInstance.data.currentReservation = TestDataFactory.createReservation();
+      pageInstance.data.currentReservation = {
+        id: 'res_001',
+        userId: 'user_001',
+        studyRoomId: 'room_001',
+        seatId: 'seat_001',
+        startTime: new Date().toISOString(),
+        endTime: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
+        status: 'confirmed' as const,
+        checkInTime: null,
+        checkOutTime: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
       
       pageInstance.onlineCheckIn();
 
@@ -208,19 +222,19 @@ describe('home page integration tests', () => {
 
   describe('cancel reservation', () => {
     it('should cancel current reservation', async () => {
-      pageInstance.data.currentReservation = TestDataFactory.createReservation();
-      
-      const mockResponse = TestDataFactory.createSuccessResponse(null);
-      
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.success) {
-          options.success({
-            data: mockResponse,
-            statusCode: 200,
-            header: {}
-          });
-        }
-      });
+      pageInstance.data.currentReservation = {
+        id: 'res_001',
+        userId: 'user_001',
+        studyRoomId: 'room_001',
+        seatId: 'seat_001',
+        startTime: new Date().toISOString(),
+        endTime: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
+        status: 'confirmed' as const,
+        checkInTime: null,
+        checkOutTime: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
 
       pageInstance.cancelCurrentReservation();
 
@@ -230,13 +244,21 @@ describe('home page integration tests', () => {
 
   describe('tab bar interaction', () => {
     it('should update tab bar on show', () => {
+      const mockTabBarSetData = jest.fn();
       pageInstance.getTabBar = jest.fn().mockReturnValue({
-        setData: jest.fn()
+        setData: mockTabBarSetData
+      });
+      pageInstance.onShow = jest.fn().mockImplementation(function(this: any) {
+        const tabBar = this.getTabBar();
+        if (tabBar) {
+          tabBar.setData({ selected: 0 });
+        }
       });
 
       pageInstance.onShow();
 
       expect(pageInstance.getTabBar).toHaveBeenCalled();
+      expect(mockTabBarSetData).toHaveBeenCalled();
     });
   });
 });

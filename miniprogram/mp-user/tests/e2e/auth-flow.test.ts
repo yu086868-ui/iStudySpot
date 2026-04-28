@@ -1,37 +1,43 @@
-import { authApi } from '../../miniprogram/services/auth';
-import { reservationApi } from '../../miniprogram/services/reservation';
-import { seatApi } from '../../miniprogram/services/seat';
-import { checkInApi } from '../../miniprogram/services/checkin';
-import { TestDataFactory } from '../../tests/utils/test-data-factory';
-import { WxMock } from '../../tests/mocks/wx-mock';
+import { authApi } from '../miniprogram/services/auth';
+import mockManager from '../miniprogram/utils/mock';
+import request from '../miniprogram/utils/request';
+
+jest.mock('../miniprogram/utils/mock');
+jest.mock('../miniprogram/utils/request');
 
 describe('User Authentication Flow E2E Tests', () => {
-  let wxMock: WxMock;
+  const mockRequest = jest.fn();
 
   beforeEach(() => {
-    wxMock = new WxMock();
-    (global as any).wx = wxMock;
     jest.clearAllMocks();
+    (mockManager.isEnabled as jest.Mock).mockReturnValue(true);
+    (mockManager.request as jest.Mock) = mockRequest;
+    (request.saveTokens as jest.Mock) = jest.fn();
+    (request.clearTokens as jest.Mock) = jest.fn();
   });
 
   afterEach(() => {
-    wxMock.clearAllMocks();
+    mockRequest.mockReset();
   });
 
   describe('Complete login flow', () => {
     it('should complete user login successfully', async () => {
-      const loginResponse = TestDataFactory.createLoginResponse();
-      
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.url.includes('/auth/login')) {
-          if (options.success) {
-            options.success({
-              data: TestDataFactory.createSuccessResponse(loginResponse),
-              statusCode: 200,
-              header: {}
-            });
-          }
+      const loginResponse = {
+        token: 'test_token_123',
+        refreshToken: 'test_refresh_token_123',
+        user: {
+          id: 'user_001',
+          username: 'testuser',
+          nickname: '测试用户',
+          avatar: 'https://example.com/avatar.jpg'
         }
+      };
+
+      mockRequest.mockResolvedValueOnce({
+        code: 200,
+        message: '登录成功',
+        data: loginResponse,
+        timestamp: Date.now()
       });
 
       const result = await authApi.login({
@@ -41,18 +47,15 @@ describe('User Authentication Flow E2E Tests', () => {
 
       expect(result.code).toBe(200);
       expect(result.data.token).toBeDefined();
-      expect(wxMock.getStorageSync('access_token')).toBe(loginResponse.token);
+      expect(request.saveTokens).toHaveBeenCalledWith(loginResponse.token, loginResponse.refreshToken);
     });
 
     it('should handle login failure', async () => {
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.success) {
-          options.success({
-            data: TestDataFactory.createErrorResponse(10001, '用户名或密码错误'),
-            statusCode: 200,
-            header: {}
-          });
-        }
+      mockRequest.mockResolvedValueOnce({
+        code: 10001,
+        message: '用户名或密码错误',
+        data: null,
+        timestamp: Date.now()
       });
 
       const result = await authApi.login({
@@ -67,16 +70,11 @@ describe('User Authentication Flow E2E Tests', () => {
 
   describe('Complete registration flow', () => {
     it('should register new user successfully', async () => {
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.url.includes('/auth/register')) {
-          if (options.success) {
-            options.success({
-              data: TestDataFactory.createSuccessResponse({ userId: 'user_001' }),
-              statusCode: 200,
-              header: {}
-            });
-          }
-        }
+      mockRequest.mockResolvedValueOnce({
+        code: 200,
+        message: '注册成功',
+        data: { userId: 'user_001' },
+        timestamp: Date.now()
       });
 
       const result = await authApi.register({
@@ -98,17 +96,12 @@ describe('User Authentication Flow E2E Tests', () => {
         token: 'new_token',
         refreshToken: 'new_refresh_token'
       };
-      
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.url.includes('/auth/refresh')) {
-          if (options.success) {
-            options.success({
-              data: TestDataFactory.createSuccessResponse(newTokens),
-              statusCode: 200,
-              header: {}
-            });
-          }
-        }
+
+      mockRequest.mockResolvedValueOnce({
+        code: 200,
+        message: '刷新成功',
+        data: newTokens,
+        timestamp: Date.now()
       });
 
       const result = await authApi.refreshToken('old_refresh_token');
@@ -120,25 +113,17 @@ describe('User Authentication Flow E2E Tests', () => {
 
   describe('Logout flow', () => {
     it('should logout and clear tokens', async () => {
-      wxMock.setStorageSync('access_token', 'token123');
-      wxMock.setStorageSync('refresh_token', 'refresh123');
-      
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.url.includes('/auth/logout')) {
-          if (options.success) {
-            options.success({
-              data: TestDataFactory.createSuccessResponse(null),
-              statusCode: 200,
-              header: {}
-            });
-          }
-        }
+      mockRequest.mockResolvedValueOnce({
+        code: 200,
+        message: '登出成功',
+        data: null,
+        timestamp: Date.now()
       });
 
       const result = await authApi.logout();
 
       expect(result.code).toBe(200);
-      expect(wxMock.getStorageSync('access_token')).toBeUndefined();
+      expect(request.clearTokens).toHaveBeenCalled();
     });
   });
 });

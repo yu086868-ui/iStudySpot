@@ -1,14 +1,7 @@
-import { TestDataFactory } from '../../tests/utils/test-data-factory';
-import { WxMock } from '../../tests/mocks/wx-mock';
-
 describe('seat-selection page integration tests', () => {
-  let wxMock: WxMock;
   let pageInstance: any;
 
   beforeEach(() => {
-    wxMock = new WxMock();
-    (global as any).wx = wxMock;
-    
     pageInstance = {
       data: {
         seats: [],
@@ -58,10 +51,6 @@ describe('seat-selection page integration tests', () => {
     };
   });
 
-  afterEach(() => {
-    wxMock.clearAllMocks();
-  });
-
   describe('page initialization', () => {
     it('should initialize with default values', () => {
       expect(pageInstance.data.studyRoomId).toBe('room_001');
@@ -70,21 +59,7 @@ describe('seat-selection page integration tests', () => {
     });
 
     it('should load seats on page load', async () => {
-      const seats = TestDataFactory.createSeats(10);
-      const mockResponse = TestDataFactory.createSuccessResponse(seats);
-      
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.success) {
-          options.success({
-            data: mockResponse,
-            statusCode: 200,
-            header: {}
-          });
-        }
-      });
-
       pageInstance.loadSeats();
-
       expect(pageInstance.loadSeats).toHaveBeenCalled();
     });
 
@@ -155,7 +130,16 @@ describe('seat-selection page integration tests', () => {
 
   describe('seat selection', () => {
     it('should select available seat', () => {
-      const seat = TestDataFactory.createSeat({ status: 'available' });
+      const seat = {
+        id: 'seat_001',
+        studyRoomId: 'room_001',
+        row: 1,
+        col: 1,
+        seatNumber: 'A1',
+        type: 'normal' as const,
+        status: 'available' as const,
+        facilities: ['插座']
+      };
       const event = {
         currentTarget: {
           dataset: { seat }
@@ -168,7 +152,16 @@ describe('seat-selection page integration tests', () => {
     });
 
     it('should not select occupied seat', () => {
-      const seat = TestDataFactory.createSeat({ status: 'occupied' });
+      const seat = {
+        id: 'seat_001',
+        studyRoomId: 'room_001',
+        row: 1,
+        col: 1,
+        seatNumber: 'A1',
+        type: 'normal' as const,
+        status: 'occupied' as const,
+        facilities: ['插座']
+      };
       const event = {
         currentTarget: {
           dataset: { seat }
@@ -181,7 +174,16 @@ describe('seat-selection page integration tests', () => {
     });
 
     it('should not select reserved seat', () => {
-      const seat = TestDataFactory.createSeat({ status: 'reserved' });
+      const seat = {
+        id: 'seat_001',
+        studyRoomId: 'room_001',
+        row: 1,
+        col: 1,
+        seatNumber: 'A1',
+        type: 'normal' as const,
+        status: 'reserved' as const,
+        facilities: ['插座']
+      };
       const event = {
         currentTarget: {
           dataset: { seat }
@@ -194,7 +196,16 @@ describe('seat-selection page integration tests', () => {
     });
 
     it('should not select maintenance seat', () => {
-      const seat = TestDataFactory.createSeat({ status: 'maintenance' });
+      const seat = {
+        id: 'seat_001',
+        studyRoomId: 'room_001',
+        row: 1,
+        col: 1,
+        seatNumber: 'A1',
+        type: 'normal' as const,
+        status: 'maintenance' as const,
+        facilities: ['插座']
+      };
       const event = {
         currentTarget: {
           dataset: { seat }
@@ -207,7 +218,16 @@ describe('seat-selection page integration tests', () => {
     });
 
     it('should deselect seat when clicking same seat', () => {
-      const seat = TestDataFactory.createSeat({ id: 'seat_001', status: 'available' });
+      const seat = {
+        id: 'seat_001',
+        studyRoomId: 'room_001',
+        row: 1,
+        col: 1,
+        seatNumber: 'A1',
+        type: 'normal' as const,
+        status: 'available' as const,
+        facilities: ['插座']
+      };
       pageInstance.data.selectedSeat = seat;
       const event = {
         currentTarget: {
@@ -223,7 +243,16 @@ describe('seat-selection page integration tests', () => {
 
   describe('seat class generation', () => {
     it('should generate class for available seat', () => {
-      const seat = TestDataFactory.createSeat({ status: 'available' });
+      const seat = {
+        id: 'seat_001',
+        studyRoomId: 'room_001',
+        row: 1,
+        col: 1,
+        seatNumber: 'A1',
+        type: 'normal' as const,
+        status: 'available' as const,
+        facilities: ['插座']
+      };
       
       pageInstance.getSeatClass(seat);
 
@@ -231,7 +260,16 @@ describe('seat-selection page integration tests', () => {
     });
 
     it('should generate class for occupied seat', () => {
-      const seat = TestDataFactory.createSeat({ status: 'occupied' });
+      const seat = {
+        id: 'seat_001',
+        studyRoomId: 'room_001',
+        row: 1,
+        col: 1,
+        seatNumber: 'A1',
+        type: 'normal' as const,
+        status: 'occupied' as const,
+        facilities: ['插座']
+      };
       
       pageInstance.getSeatClass(seat);
 
@@ -239,7 +277,16 @@ describe('seat-selection page integration tests', () => {
     });
 
     it('should generate class for selected seat', () => {
-      const seat = TestDataFactory.createSeat({ id: 'seat_001' });
+      const seat = {
+        id: 'seat_001',
+        studyRoomId: 'room_001',
+        row: 1,
+        col: 1,
+        seatNumber: 'A1',
+        type: 'normal' as const,
+        status: 'available' as const,
+        facilities: ['插座']
+      };
       pageInstance.data.selectedSeat = seat;
       
       pageInstance.getSeatClass(seat);
@@ -248,7 +295,16 @@ describe('seat-selection page integration tests', () => {
     });
 
     it('should generate class for VIP seat', () => {
-      const seat = TestDataFactory.createSeat({ type: 'vip' });
+      const seat = {
+        id: 'seat_001',
+        studyRoomId: 'room_001',
+        row: 1,
+        col: 1,
+        seatNumber: 'A1',
+        type: 'vip' as const,
+        status: 'available' as const,
+        facilities: ['插座', '台灯', '人体工学椅']
+      };
       
       pageInstance.getSeatClass(seat);
 
@@ -294,7 +350,16 @@ describe('seat-selection page integration tests', () => {
     });
 
     it('should show error when start time is in the past', () => {
-      pageInstance.data.selectedSeat = TestDataFactory.createSeat();
+      pageInstance.data.selectedSeat = {
+        id: 'seat_001',
+        studyRoomId: 'room_001',
+        row: 1,
+        col: 1,
+        seatNumber: 'A1',
+        type: 'normal' as const,
+        status: 'available' as const,
+        facilities: ['插座']
+      };
       pageInstance.data.selectedDate = '2020-01-01';
       
       pageInstance.confirmSelection();
@@ -303,21 +368,17 @@ describe('seat-selection page integration tests', () => {
     });
 
     it('should create reservation successfully', async () => {
-      pageInstance.data.selectedSeat = TestDataFactory.createSeat();
+      pageInstance.data.selectedSeat = {
+        id: 'seat_001',
+        studyRoomId: 'room_001',
+        row: 1,
+        col: 1,
+        seatNumber: 'A1',
+        type: 'normal' as const,
+        status: 'available' as const,
+        facilities: ['插座']
+      };
       pageInstance.data.selectedDate = new Date(Date.now() + 86400000).toISOString().split('T')[0];
-      
-      const reservation = TestDataFactory.createReservation();
-      const mockResponse = TestDataFactory.createSuccessResponse(reservation);
-      
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.success) {
-          options.success({
-            data: mockResponse,
-            statusCode: 200,
-            header: {}
-          });
-        }
-      });
 
       pageInstance.confirmSelection();
 
@@ -325,21 +386,17 @@ describe('seat-selection page integration tests', () => {
     });
 
     it('should handle immediate start mode', async () => {
-      pageInstance.data.selectedSeat = TestDataFactory.createSeat();
+      pageInstance.data.selectedSeat = {
+        id: 'seat_001',
+        studyRoomId: 'room_001',
+        row: 1,
+        col: 1,
+        seatNumber: 'A1',
+        type: 'normal' as const,
+        status: 'available' as const,
+        facilities: ['插座']
+      };
       pageInstance.data.isImmediateMode = true;
-      
-      const reservation = TestDataFactory.createReservation();
-      const mockResponse = TestDataFactory.createSuccessResponse(reservation);
-      
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.success) {
-          options.success({
-            data: mockResponse,
-            statusCode: 200,
-            header: {}
-          });
-        }
-      });
 
       pageInstance.confirmSelection();
 
@@ -349,21 +406,6 @@ describe('seat-selection page integration tests', () => {
 
   describe('check-in after reservation', () => {
     it('should perform check-in successfully', async () => {
-      const mockResponse = TestDataFactory.createSuccessResponse({
-        checkInRecordId: 'checkin_001',
-        checkInTime: new Date().toISOString()
-      });
-      
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.success) {
-          options.success({
-            data: mockResponse,
-            statusCode: 200,
-            header: {}
-          });
-        }
-      });
-
       pageInstance.performCheckIn('res_001', 'seat_001');
 
       expect(pageInstance.performCheckIn).toHaveBeenCalled();

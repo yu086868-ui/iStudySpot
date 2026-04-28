@@ -1,5 +1,4 @@
 import { SeatLayoutUtil } from '../miniprogram/utils/seat-layout';
-import { TestDataFactory } from '../tests/utils/test-data-factory';
 
 describe('SeatLayoutUtil', () => {
   describe('createSeatLayout', () => {
@@ -13,7 +12,16 @@ describe('SeatLayoutUtil', () => {
     });
 
     it('should create layout from single seat', () => {
-      const seats = [TestDataFactory.createSeat({ row: 1, col: 1 })];
+      const seats = [{
+        id: 'seat_001',
+        studyRoomId: 'room_001',
+        row: 1,
+        col: 1,
+        seatNumber: 'A1',
+        type: 'normal' as const,
+        status: 'available' as const,
+        facilities: ['插座']
+      }];
       const result = SeatLayoutUtil.createSeatLayout(seats);
       
       expect(result.totalRows).toBe(1);
@@ -24,7 +32,21 @@ describe('SeatLayoutUtil', () => {
     });
 
     it('should create layout with multiple rows and columns', () => {
-      const seats = TestDataFactory.createSeats(12);
+      const seats = [];
+      for (let i = 1; i <= 12; i++) {
+        const row = Math.ceil(i / 6);
+        const col = ((i - 1) % 6) + 1;
+        seats.push({
+          id: `seat_${i}`,
+          studyRoomId: 'room_001',
+          row,
+          col,
+          seatNumber: `${String.fromCharCode(64 + row)}${col}`,
+          type: 'normal' as const,
+          status: 'available' as const,
+          facilities: ['插座']
+        });
+      }
       const result = SeatLayoutUtil.createSeatLayout(seats);
       
       expect(result.totalRows).toBe(2);
@@ -34,9 +56,9 @@ describe('SeatLayoutUtil', () => {
 
     it('should sort rows by row number', () => {
       const seats = [
-        TestDataFactory.createSeat({ id: 'seat_1', row: 3, col: 1 }),
-        TestDataFactory.createSeat({ id: 'seat_2', row: 1, col: 1 }),
-        TestDataFactory.createSeat({ id: 'seat_3', row: 2, col: 1 })
+        { id: 'seat_1', studyRoomId: 'room_001', row: 3, col: 1, seatNumber: 'C1', type: 'normal' as const, status: 'available' as const, facilities: ['插座'] },
+        { id: 'seat_2', studyRoomId: 'room_001', row: 1, col: 1, seatNumber: 'A1', type: 'normal' as const, status: 'available' as const, facilities: ['插座'] },
+        { id: 'seat_3', studyRoomId: 'room_001', row: 2, col: 1, seatNumber: 'B1', type: 'normal' as const, status: 'available' as const, facilities: ['插座'] }
       ];
       const result = SeatLayoutUtil.createSeatLayout(seats);
       
@@ -47,9 +69,9 @@ describe('SeatLayoutUtil', () => {
 
     it('should sort seats by column number within row', () => {
       const seats = [
-        TestDataFactory.createSeat({ id: 'seat_1', row: 1, col: 3 }),
-        TestDataFactory.createSeat({ id: 'seat_2', row: 1, col: 1 }),
-        TestDataFactory.createSeat({ id: 'seat_3', row: 1, col: 2 })
+        { id: 'seat_1', studyRoomId: 'room_001', row: 1, col: 3, seatNumber: 'A3', type: 'normal' as const, status: 'available' as const, facilities: ['插座'] },
+        { id: 'seat_2', studyRoomId: 'room_001', row: 1, col: 1, seatNumber: 'A1', type: 'normal' as const, status: 'available' as const, facilities: ['插座'] },
+        { id: 'seat_3', studyRoomId: 'room_001', row: 1, col: 2, seatNumber: 'A2', type: 'normal' as const, status: 'available' as const, facilities: ['插座'] }
       ];
       const result = SeatLayoutUtil.createSeatLayout(seats);
       
@@ -61,7 +83,21 @@ describe('SeatLayoutUtil', () => {
 
   describe('splitIntoGroups', () => {
     it('should split seats into groups based on config', () => {
-      const seats = TestDataFactory.createSeats(12);
+      const seats = [];
+      for (let i = 1; i <= 12; i++) {
+        const row = Math.ceil(i / 6);
+        const col = ((i - 1) % 6) + 1;
+        seats.push({
+          id: `seat_${i}`,
+          studyRoomId: 'room_001',
+          row,
+          col,
+          seatNumber: `${String.fromCharCode(64 + row)}${col}`,
+          type: 'normal' as const,
+          status: 'available' as const,
+          facilities: ['插座']
+        });
+      }
       const groupConfig = [
         { startCol: 1, endCol: 3, name: 'left' },
         { startCol: 4, endCol: 6, name: 'right' }
@@ -75,7 +111,19 @@ describe('SeatLayoutUtil', () => {
     });
 
     it('should handle overlapping groups', () => {
-      const seats = TestDataFactory.createSeats(6);
+      const seats = [];
+      for (let i = 1; i <= 6; i++) {
+        seats.push({
+          id: `seat_${i}`,
+          studyRoomId: 'room_001',
+          row: 1,
+          col: i,
+          seatNumber: `A${i}`,
+          type: 'normal' as const,
+          status: 'available' as const,
+          facilities: ['插座']
+        });
+      }
       const groupConfig = [
         { startCol: 1, endCol: 4, name: 'group1' },
         { startCol: 3, endCol: 6, name: 'group2' }
@@ -84,8 +132,8 @@ describe('SeatLayoutUtil', () => {
       const result = SeatLayoutUtil.splitIntoGroups(seats, groupConfig);
       
       expect(result).toHaveLength(2);
-      expect(result[0].seats.length).toBeGreaterThan(0);
-      expect(result[1].seats.length).toBeGreaterThan(0);
+      expect(result[0].rows.length).toBeGreaterThan(0);
+      expect(result[1].rows.length).toBeGreaterThan(0);
     });
   });
 
@@ -95,12 +143,12 @@ describe('SeatLayoutUtil', () => {
     });
 
     it('should return seat status', () => {
-      const seat = TestDataFactory.createSeat({ status: 'available' });
+      const seat = { id: 'seat_001', studyRoomId: 'room_001', row: 1, col: 1, seatNumber: 'A1', type: 'normal' as const, status: 'available' as const, facilities: ['插座'] };
       expect(SeatLayoutUtil.getSeatStatus(seat)).toBe('available');
     });
 
     it('should return occupied status', () => {
-      const seat = TestDataFactory.createSeat({ status: 'occupied' });
+      const seat = { id: 'seat_001', studyRoomId: 'room_001', row: 1, col: 1, seatNumber: 'A1', type: 'normal' as const, status: 'occupied' as const, facilities: ['插座'] };
       expect(SeatLayoutUtil.getSeatStatus(seat)).toBe('occupied');
     });
   });
@@ -111,22 +159,22 @@ describe('SeatLayoutUtil', () => {
     });
 
     it('should return true for available seat', () => {
-      const seat = TestDataFactory.createSeat({ status: 'available' });
+      const seat = { id: 'seat_001', studyRoomId: 'room_001', row: 1, col: 1, seatNumber: 'A1', type: 'normal' as const, status: 'available' as const, facilities: ['插座'] };
       expect(SeatLayoutUtil.isSeatSelectable(seat)).toBe(true);
     });
 
     it('should return false for occupied seat', () => {
-      const seat = TestDataFactory.createSeat({ status: 'occupied' });
+      const seat = { id: 'seat_001', studyRoomId: 'room_001', row: 1, col: 1, seatNumber: 'A1', type: 'normal' as const, status: 'occupied' as const, facilities: ['插座'] };
       expect(SeatLayoutUtil.isSeatSelectable(seat)).toBe(false);
     });
 
     it('should return false for reserved seat', () => {
-      const seat = TestDataFactory.createSeat({ status: 'reserved' });
+      const seat = { id: 'seat_001', studyRoomId: 'room_001', row: 1, col: 1, seatNumber: 'A1', type: 'normal' as const, status: 'reserved' as const, facilities: ['插座'] };
       expect(SeatLayoutUtil.isSeatSelectable(seat)).toBe(false);
     });
 
     it('should return false for maintenance seat', () => {
-      const seat = TestDataFactory.createSeat({ status: 'maintenance' });
+      const seat = { id: 'seat_001', studyRoomId: 'room_001', row: 1, col: 1, seatNumber: 'A1', type: 'normal' as const, status: 'maintenance' as const, facilities: ['插座'] };
       expect(SeatLayoutUtil.isSeatSelectable(seat)).toBe(false);
     });
   });
@@ -137,17 +185,17 @@ describe('SeatLayoutUtil', () => {
     });
 
     it('should return seat type', () => {
-      const seat = TestDataFactory.createSeat({ type: 'vip' });
+      const seat = { id: 'seat_001', studyRoomId: 'room_001', row: 1, col: 1, seatNumber: 'A1', type: 'vip' as const, status: 'available' as const, facilities: ['插座'] };
       expect(SeatLayoutUtil.getSeatType(seat)).toBe('vip');
     });
 
     it('should return normal type', () => {
-      const seat = TestDataFactory.createSeat({ type: 'normal' });
+      const seat = { id: 'seat_001', studyRoomId: 'room_001', row: 1, col: 1, seatNumber: 'A1', type: 'normal' as const, status: 'available' as const, facilities: ['插座'] };
       expect(SeatLayoutUtil.getSeatType(seat)).toBe('normal');
     });
 
     it('should return quiet type', () => {
-      const seat = TestDataFactory.createSeat({ type: 'quiet' });
+      const seat = { id: 'seat_001', studyRoomId: 'room_001', row: 1, col: 1, seatNumber: 'A1', type: 'quiet' as const, status: 'available' as const, facilities: ['插座'] };
       expect(SeatLayoutUtil.getSeatType(seat)).toBe('quiet');
     });
   });
@@ -169,9 +217,9 @@ describe('SeatLayoutUtil', () => {
   describe('getAvailableSeats', () => {
     it('should filter available seats', () => {
       const seats = [
-        TestDataFactory.createSeat({ id: '1', status: 'available' }),
-        TestDataFactory.createSeat({ id: '2', status: 'occupied' }),
-        TestDataFactory.createSeat({ id: '3', status: 'available' })
+        { id: '1', studyRoomId: 'room_001', row: 1, col: 1, seatNumber: 'A1', type: 'normal' as const, status: 'available' as const, facilities: ['插座'] },
+        { id: '2', studyRoomId: 'room_001', row: 1, col: 2, seatNumber: 'A2', type: 'normal' as const, status: 'occupied' as const, facilities: ['插座'] },
+        { id: '3', studyRoomId: 'room_001', row: 1, col: 3, seatNumber: 'A3', type: 'normal' as const, status: 'available' as const, facilities: ['插座'] }
       ];
       
       const result = SeatLayoutUtil.getAvailableSeats(seats);
@@ -183,8 +231,8 @@ describe('SeatLayoutUtil', () => {
 
     it('should return empty array if no available seats', () => {
       const seats = [
-        TestDataFactory.createSeat({ status: 'occupied' }),
-        TestDataFactory.createSeat({ status: 'reserved' })
+        { id: '1', studyRoomId: 'room_001', row: 1, col: 1, seatNumber: 'A1', type: 'normal' as const, status: 'occupied' as const, facilities: ['插座'] },
+        { id: '2', studyRoomId: 'room_001', row: 1, col: 2, seatNumber: 'A2', type: 'normal' as const, status: 'reserved' as const, facilities: ['插座'] }
       ];
       
       const result = SeatLayoutUtil.getAvailableSeats(seats);
@@ -196,9 +244,9 @@ describe('SeatLayoutUtil', () => {
   describe('getSeatsByType', () => {
     it('should filter seats by type', () => {
       const seats = [
-        TestDataFactory.createSeat({ id: '1', type: 'normal' }),
-        TestDataFactory.createSeat({ id: '2', type: 'vip' }),
-        TestDataFactory.createSeat({ id: '3', type: 'normal' })
+        { id: '1', studyRoomId: 'room_001', row: 1, col: 1, seatNumber: 'A1', type: 'normal' as const, status: 'available' as const, facilities: ['插座'] },
+        { id: '2', studyRoomId: 'room_001', row: 1, col: 2, seatNumber: 'A2', type: 'vip' as const, status: 'available' as const, facilities: ['插座'] },
+        { id: '3', studyRoomId: 'room_001', row: 1, col: 3, seatNumber: 'A3', type: 'normal' as const, status: 'available' as const, facilities: ['插座'] }
       ];
       
       const result = SeatLayoutUtil.getSeatsByType(seats, 'normal');
@@ -210,8 +258,8 @@ describe('SeatLayoutUtil', () => {
 
     it('should return empty array if no matching type', () => {
       const seats = [
-        TestDataFactory.createSeat({ type: 'normal' }),
-        TestDataFactory.createSeat({ type: 'normal' })
+        { id: '1', studyRoomId: 'room_001', row: 1, col: 1, seatNumber: 'A1', type: 'normal' as const, status: 'available' as const, facilities: ['插座'] },
+        { id: '2', studyRoomId: 'room_001', row: 1, col: 2, seatNumber: 'A2', type: 'normal' as const, status: 'available' as const, facilities: ['插座'] }
       ];
       
       const result = SeatLayoutUtil.getSeatsByType(seats, 'vip');
@@ -223,9 +271,9 @@ describe('SeatLayoutUtil', () => {
   describe('getSeatsByStatus', () => {
     it('should filter seats by status', () => {
       const seats = [
-        TestDataFactory.createSeat({ id: '1', status: 'available' }),
-        TestDataFactory.createSeat({ id: '2', status: 'occupied' }),
-        TestDataFactory.createSeat({ id: '3', status: 'reserved' })
+        { id: '1', studyRoomId: 'room_001', row: 1, col: 1, seatNumber: 'A1', type: 'normal' as const, status: 'available' as const, facilities: ['插座'] },
+        { id: '2', studyRoomId: 'room_001', row: 1, col: 2, seatNumber: 'A2', type: 'normal' as const, status: 'occupied' as const, facilities: ['插座'] },
+        { id: '3', studyRoomId: 'room_001', row: 1, col: 3, seatNumber: 'A3', type: 'normal' as const, status: 'reserved' as const, facilities: ['插座'] }
       ];
       
       const result = SeatLayoutUtil.getSeatsByStatus(seats, 'occupied');
@@ -238,11 +286,11 @@ describe('SeatLayoutUtil', () => {
   describe('calculateSeatStats', () => {
     it('should calculate correct statistics', () => {
       const seats = [
-        TestDataFactory.createSeat({ status: 'available' }),
-        TestDataFactory.createSeat({ status: 'available' }),
-        TestDataFactory.createSeat({ status: 'occupied' }),
-        TestDataFactory.createSeat({ status: 'reserved' }),
-        TestDataFactory.createSeat({ status: 'maintenance' })
+        { id: '1', studyRoomId: 'room_001', row: 1, col: 1, seatNumber: 'A1', type: 'normal' as const, status: 'available' as const, facilities: ['插座'] },
+        { id: '2', studyRoomId: 'room_001', row: 1, col: 2, seatNumber: 'A2', type: 'normal' as const, status: 'available' as const, facilities: ['插座'] },
+        { id: '3', studyRoomId: 'room_001', row: 1, col: 3, seatNumber: 'A3', type: 'normal' as const, status: 'occupied' as const, facilities: ['插座'] },
+        { id: '4', studyRoomId: 'room_001', row: 1, col: 4, seatNumber: 'A4', type: 'normal' as const, status: 'reserved' as const, facilities: ['插座'] },
+        { id: '5', studyRoomId: 'room_001', row: 1, col: 5, seatNumber: 'A5', type: 'normal' as const, status: 'maintenance' as const, facilities: ['插座'] }
       ];
       
       const result = SeatLayoutUtil.calculateSeatStats(seats);

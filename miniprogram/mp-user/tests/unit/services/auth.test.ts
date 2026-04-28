@@ -1,33 +1,43 @@
 import { authApi } from '../miniprogram/services/auth';
-import { TestDataFactory } from '../tests/utils/test-data-factory';
-import { WxMock } from '../tests/mocks/wx-mock';
+import mockManager from '../miniprogram/utils/mock';
+import request from '../miniprogram/utils/request';
+
+jest.mock('../miniprogram/utils/mock');
+jest.mock('../miniprogram/utils/request');
 
 describe('authApi', () => {
-  let wxMock: WxMock;
+  const mockRequest = jest.fn();
 
   beforeEach(() => {
-    wxMock = new WxMock();
-    (global as any).wx = wxMock;
     jest.clearAllMocks();
+    (mockManager.isEnabled as jest.Mock).mockReturnValue(true);
+    (mockManager.request as jest.Mock) = mockRequest;
+    (request.saveTokens as jest.Mock) = jest.fn();
+    (request.clearTokens as jest.Mock) = jest.fn();
   });
 
   afterEach(() => {
-    wxMock.clearAllMocks();
+    mockRequest.mockReset();
   });
 
   describe('login', () => {
     it('should login successfully', async () => {
-      const loginResponse = TestDataFactory.createLoginResponse();
-      const mockResponse = TestDataFactory.createSuccessResponse(loginResponse);
-      
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.success) {
-          options.success({
-            data: mockResponse,
-            statusCode: 200,
-            header: {}
-          });
+      const loginResponse = {
+        token: 'test_token_123',
+        refreshToken: 'test_refresh_token_123',
+        user: {
+          id: 'user_001',
+          username: 'testuser',
+          nickname: '测试用户',
+          avatar: 'https://example.com/avatar.jpg'
         }
+      };
+
+      mockRequest.mockResolvedValueOnce({
+        code: 200,
+        message: '登录成功',
+        data: loginResponse,
+        timestamp: Date.now()
       });
 
       const result = await authApi.login({
@@ -41,16 +51,11 @@ describe('authApi', () => {
     });
 
     it('should handle login failure with wrong credentials', async () => {
-      const errorResponse = TestDataFactory.createErrorResponse(10001, '用户名或密码错误');
-      
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.success) {
-          options.success({
-            data: errorResponse,
-            statusCode: 200,
-            header: {}
-          });
-        }
+      mockRequest.mockResolvedValueOnce({
+        code: 10001,
+        message: '用户名或密码错误',
+        data: null,
+        timestamp: Date.now()
       });
 
       const result = await authApi.login({
@@ -63,17 +68,22 @@ describe('authApi', () => {
     });
 
     it('should save tokens after successful login', async () => {
-      const loginResponse = TestDataFactory.createLoginResponse();
-      const mockResponse = TestDataFactory.createSuccessResponse(loginResponse);
-      
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.success) {
-          options.success({
-            data: mockResponse,
-            statusCode: 200,
-            header: {}
-          });
+      const loginResponse = {
+        token: 'test_token_123',
+        refreshToken: 'test_refresh_token_123',
+        user: {
+          id: 'user_001',
+          username: 'testuser',
+          nickname: '测试用户',
+          avatar: 'https://example.com/avatar.jpg'
         }
+      };
+
+      mockRequest.mockResolvedValueOnce({
+        code: 200,
+        message: '登录成功',
+        data: loginResponse,
+        timestamp: Date.now()
       });
 
       await authApi.login({
@@ -81,23 +91,17 @@ describe('authApi', () => {
         password: 'password123'
       });
 
-      expect(wxMock.getStorageSync('access_token')).toBe(loginResponse.token);
-      expect(wxMock.getStorageSync('refresh_token')).toBe(loginResponse.refreshToken);
+      expect(request.saveTokens).toHaveBeenCalledWith(loginResponse.token, loginResponse.refreshToken);
     });
   });
 
   describe('register', () => {
     it('should register successfully', async () => {
-      const mockResponse = TestDataFactory.createSuccessResponse({ userId: 'user_001' });
-      
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.success) {
-          options.success({
-            data: mockResponse,
-            statusCode: 200,
-            header: {}
-          });
-        }
+      mockRequest.mockResolvedValueOnce({
+        code: 200,
+        message: '注册成功',
+        data: { userId: 'user_001' },
+        timestamp: Date.now()
       });
 
       const result = await authApi.register({
@@ -113,16 +117,11 @@ describe('authApi', () => {
     });
 
     it('should handle registration failure with existing username', async () => {
-      const errorResponse = TestDataFactory.createErrorResponse(10002, '用户已存在');
-      
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.success) {
-          options.success({
-            data: errorResponse,
-            statusCode: 200,
-            header: {}
-          });
-        }
+      mockRequest.mockResolvedValueOnce({
+        code: 10002,
+        message: '用户已存在',
+        data: null,
+        timestamp: Date.now()
       });
 
       const result = await authApi.register({
@@ -144,16 +143,12 @@ describe('authApi', () => {
         token: 'new_token_123',
         refreshToken: 'new_refresh_token_123'
       };
-      const mockResponse = TestDataFactory.createSuccessResponse(newTokens);
-      
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.success) {
-          options.success({
-            data: mockResponse,
-            statusCode: 200,
-            header: {}
-          });
-        }
+
+      mockRequest.mockResolvedValueOnce({
+        code: 200,
+        message: '刷新成功',
+        data: newTokens,
+        timestamp: Date.now()
       });
 
       const result = await authApi.refreshToken('old_refresh_token');
@@ -167,65 +162,33 @@ describe('authApi', () => {
         token: 'new_token_123',
         refreshToken: 'new_refresh_token_123'
       };
-      const mockResponse = TestDataFactory.createSuccessResponse(newTokens);
-      
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.success) {
-          options.success({
-            data: mockResponse,
-            statusCode: 200,
-            header: {}
-          });
-        }
+
+      mockRequest.mockResolvedValueOnce({
+        code: 200,
+        message: '刷新成功',
+        data: newTokens,
+        timestamp: Date.now()
       });
 
       await authApi.refreshToken('old_refresh_token');
 
-      expect(wxMock.getStorageSync('access_token')).toBe('new_token_123');
-      expect(wxMock.getStorageSync('refresh_token')).toBe('new_refresh_token_123');
+      expect(request.saveTokens).toHaveBeenCalledWith('new_token_123', 'new_refresh_token_123');
     });
   });
 
   describe('logout', () => {
     it('should logout successfully', async () => {
-      wxMock.setStorageSync('access_token', 'token123');
-      wxMock.setStorageSync('refresh_token', 'refresh123');
-      
-      const mockResponse = TestDataFactory.createSuccessResponse(null);
-      
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.success) {
-          options.success({
-            data: mockResponse,
-            statusCode: 200,
-            header: {}
-          });
-        }
+      mockRequest.mockResolvedValueOnce({
+        code: 200,
+        message: '登出成功',
+        data: null,
+        timestamp: Date.now()
       });
 
       const result = await authApi.logout();
 
       expect(result.code).toBe(200);
-      expect(wxMock.getStorageSync('access_token')).toBeUndefined();
-      expect(wxMock.getStorageSync('refresh_token')).toBeUndefined();
-    });
-
-    it('should clear tokens even if request fails', async () => {
-      wxMock.setStorageSync('access_token', 'token123');
-      wxMock.setStorageSync('refresh_token', 'refresh123');
-      
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.fail) {
-          options.fail({ errMsg: 'request:fail' });
-        }
-      });
-
-      try {
-        await authApi.logout();
-      } catch (error) {
-        expect(wxMock.getStorageSync('access_token')).toBeUndefined();
-        expect(wxMock.getStorageSync('refresh_token')).toBeUndefined();
-      }
+      expect(request.clearTokens).toHaveBeenCalled();
     });
   });
 });

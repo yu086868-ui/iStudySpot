@@ -1,33 +1,39 @@
-import { seatApi } from '../../miniprogram/services/seat';
-import { TestDataFactory } from '../../tests/utils/test-data-factory';
-import { WxMock } from '../../tests/mocks/wx-mock';
+import { seatApi } from '../miniprogram/services/seat';
+import mockManager from '../miniprogram/utils/mock';
+
+jest.mock('../miniprogram/utils/mock');
 
 describe('seatApi', () => {
-  let wxMock: WxMock;
+  const mockRequest = jest.fn();
 
   beforeEach(() => {
-    wxMock = new WxMock();
-    (global as any).wx = wxMock;
     jest.clearAllMocks();
+    (mockManager.isEnabled as jest.Mock).mockReturnValue(true);
+    (mockManager.request as jest.Mock) = mockRequest;
   });
 
   afterEach(() => {
-    wxMock.clearAllMocks();
+    mockRequest.mockReset();
   });
 
   describe('getSeats', () => {
     it('should get seats for study room successfully', async () => {
-      const seats = TestDataFactory.createSeats(10);
-      const mockResponse = TestDataFactory.createSuccessResponse(seats);
-      
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.success) {
-          options.success({
-            data: mockResponse,
-            statusCode: 200,
-            header: {}
-          });
-        }
+      const seats = Array.from({ length: 10 }, (_, i) => ({
+        id: `seat_${i + 1}`,
+        studyRoomId: 'room_001',
+        row: Math.floor(i / 5) + 1,
+        col: (i % 5) + 1,
+        seatNumber: `${String.fromCharCode(65 + Math.floor(i / 5))}${(i % 5) + 1}`,
+        type: 'normal' as const,
+        status: 'available' as const,
+        facilities: ['插座']
+      }));
+
+      mockRequest.mockResolvedValueOnce({
+        code: 200,
+        message: 'success',
+        data: seats,
+        timestamp: Date.now()
       });
 
       const result = await seatApi.getSeats('room_001');
@@ -38,20 +44,43 @@ describe('seatApi', () => {
 
     it('should filter seats by status', async () => {
       const seats = [
-        TestDataFactory.createSeat({ id: '1', status: 'available' }),
-        TestDataFactory.createSeat({ id: '2', status: 'occupied' }),
-        TestDataFactory.createSeat({ id: '3', status: 'available' })
-      ];
-      const mockResponse = TestDataFactory.createSuccessResponse(seats);
-      
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.success) {
-          options.success({
-            data: mockResponse,
-            statusCode: 200,
-            header: {}
-          });
+        {
+          id: 'seat_001',
+          studyRoomId: 'room_001',
+          row: 1,
+          col: 1,
+          seatNumber: 'A1',
+          type: 'normal' as const,
+          status: 'available' as const,
+          facilities: ['插座']
+        },
+        {
+          id: 'seat_002',
+          studyRoomId: 'room_001',
+          row: 1,
+          col: 2,
+          seatNumber: 'A2',
+          type: 'normal' as const,
+          status: 'occupied' as const,
+          facilities: ['插座']
+        },
+        {
+          id: 'seat_003',
+          studyRoomId: 'room_001',
+          row: 1,
+          col: 3,
+          seatNumber: 'A3',
+          type: 'normal' as const,
+          status: 'available' as const,
+          facilities: ['插座']
         }
+      ];
+
+      mockRequest.mockResolvedValueOnce({
+        code: 200,
+        message: 'success',
+        data: seats,
+        timestamp: Date.now()
       });
 
       const result = await seatApi.getSeats('room_001', { status: 'available' });
@@ -62,20 +91,43 @@ describe('seatApi', () => {
 
     it('should filter seats by type', async () => {
       const seats = [
-        TestDataFactory.createSeat({ id: '1', type: 'normal' }),
-        TestDataFactory.createSeat({ id: '2', type: 'vip' }),
-        TestDataFactory.createSeat({ id: '3', type: 'normal' })
-      ];
-      const mockResponse = TestDataFactory.createSuccessResponse(seats);
-      
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.success) {
-          options.success({
-            data: mockResponse,
-            statusCode: 200,
-            header: {}
-          });
+        {
+          id: 'seat_001',
+          studyRoomId: 'room_001',
+          row: 1,
+          col: 1,
+          seatNumber: 'A1',
+          type: 'normal' as const,
+          status: 'available' as const,
+          facilities: ['插座']
+        },
+        {
+          id: 'seat_002',
+          studyRoomId: 'room_001',
+          row: 1,
+          col: 2,
+          seatNumber: 'A2',
+          type: 'vip' as const,
+          status: 'available' as const,
+          facilities: ['插座', '台灯', '人体工学椅']
+        },
+        {
+          id: 'seat_003',
+          studyRoomId: 'room_001',
+          row: 1,
+          col: 3,
+          seatNumber: 'A3',
+          type: 'normal' as const,
+          status: 'available' as const,
+          facilities: ['插座']
         }
+      ];
+
+      mockRequest.mockResolvedValueOnce({
+        code: 200,
+        message: 'success',
+        data: seats,
+        timestamp: Date.now()
       });
 
       const result = await seatApi.getSeats('room_001', { type: 'normal' });
@@ -85,16 +137,11 @@ describe('seatApi', () => {
     });
 
     it('should return empty array when no seats found', async () => {
-      const mockResponse = TestDataFactory.createSuccessResponse([]);
-      
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.success) {
-          options.success({
-            data: mockResponse,
-            statusCode: 200,
-            header: {}
-          });
-        }
+      mockRequest.mockResolvedValueOnce({
+        code: 200,
+        message: 'success',
+        data: [],
+        timestamp: Date.now()
       });
 
       const result = await seatApi.getSeats('room_999');
@@ -106,17 +153,22 @@ describe('seatApi', () => {
 
   describe('getSeatDetail', () => {
     it('should get seat detail successfully', async () => {
-      const seat = TestDataFactory.createSeat({ id: 'seat_001', seatNumber: 'A1' });
-      const mockResponse = TestDataFactory.createSuccessResponse(seat);
-      
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.success) {
-          options.success({
-            data: mockResponse,
-            statusCode: 200,
-            header: {}
-          });
-        }
+      const seat = {
+        id: 'seat_001',
+        studyRoomId: 'room_001',
+        row: 1,
+        col: 1,
+        seatNumber: 'A1',
+        type: 'normal' as const,
+        status: 'available' as const,
+        facilities: ['插座']
+      };
+
+      mockRequest.mockResolvedValueOnce({
+        code: 200,
+        message: 'success',
+        data: seat,
+        timestamp: Date.now()
       });
 
       const result = await seatApi.getSeatDetail('seat_001');
@@ -127,16 +179,11 @@ describe('seatApi', () => {
     });
 
     it('should handle seat not found', async () => {
-      const errorResponse = TestDataFactory.createErrorResponse(30001, '座位不存在');
-      
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.success) {
-          options.success({
-            data: errorResponse,
-            statusCode: 200,
-            header: {}
-          });
-        }
+      mockRequest.mockResolvedValueOnce({
+        code: 30001,
+        message: '座位不存在',
+        data: null,
+        timestamp: Date.now()
       });
 
       const result = await seatApi.getSeatDetail('nonexistent');
@@ -146,20 +193,22 @@ describe('seatApi', () => {
     });
 
     it('should return seat with facilities', async () => {
-      const seat = TestDataFactory.createSeat({ 
+      const seat = {
         id: 'seat_001',
+        studyRoomId: 'room_001',
+        row: 1,
+        col: 1,
+        seatNumber: 'A1',
+        type: 'vip' as const,
+        status: 'available' as const,
         facilities: ['插座', '台灯', 'WiFi']
-      });
-      const mockResponse = TestDataFactory.createSuccessResponse(seat);
-      
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.success) {
-          options.success({
-            data: mockResponse,
-            statusCode: 200,
-            header: {}
-          });
-        }
+      };
+
+      mockRequest.mockResolvedValueOnce({
+        code: 200,
+        message: 'success',
+        data: seat,
+        timestamp: Date.now()
       });
 
       const result = await seatApi.getSeatDetail('seat_001');
@@ -170,20 +219,22 @@ describe('seatApi', () => {
     });
 
     it('should return seat with correct status', async () => {
-      const seat = TestDataFactory.createSeat({ 
+      const seat = {
         id: 'seat_001',
-        status: 'available'
-      });
-      const mockResponse = TestDataFactory.createSuccessResponse(seat);
-      
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.success) {
-          options.success({
-            data: mockResponse,
-            statusCode: 200,
-            header: {}
-          });
-        }
+        studyRoomId: 'room_001',
+        row: 1,
+        col: 1,
+        seatNumber: 'A1',
+        type: 'normal' as const,
+        status: 'available' as const,
+        facilities: ['插座']
+      };
+
+      mockRequest.mockResolvedValueOnce({
+        code: 200,
+        message: 'success',
+        data: seat,
+        timestamp: Date.now()
       });
 
       const result = await seatApi.getSeatDetail('seat_001');
@@ -193,20 +244,22 @@ describe('seatApi', () => {
     });
 
     it('should return seat with correct type', async () => {
-      const seat = TestDataFactory.createSeat({ 
+      const seat = {
         id: 'seat_001',
-        type: 'vip'
-      });
-      const mockResponse = TestDataFactory.createSuccessResponse(seat);
-      
-      wxMock.getMockFunction('request').mockImplementation((options: any) => {
-        if (options.success) {
-          options.success({
-            data: mockResponse,
-            statusCode: 200,
-            header: {}
-          });
-        }
+        studyRoomId: 'room_001',
+        row: 1,
+        col: 1,
+        seatNumber: 'A1',
+        type: 'vip' as const,
+        status: 'available' as const,
+        facilities: ['插座', '台灯', '人体工学椅']
+      };
+
+      mockRequest.mockResolvedValueOnce({
+        code: 200,
+        message: 'success',
+        data: seat,
+        timestamp: Date.now()
       });
 
       const result = await seatApi.getSeatDetail('seat_001');
