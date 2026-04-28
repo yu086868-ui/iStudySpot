@@ -45,22 +45,22 @@
     <view class="seat-map">
       <block wx:for="{{seatGroups}}" wx:key="name" wx:for-item="group">
         <view class="seat-group">
-          <view class="group-header">
+          <view class="group-header" wx:if="{{group.rows && group.rows.length > 0 && group.rows[0].seats}}">
             <block wx:for="{{group.rows[0].seats}}" wx:key="col" wx:for-item="seat">
               <text class="col-label">{{seat.col}}</text>
             </block>
           </view>
           
           <block wx:for="{{group.rows}}" wx:key="rowNumber" wx:for-item="row">
-            <view class="seat-row">
+            <view class="seat-row" wx:if="{{row.seats}}">
               <text class="row-label">{{row.rowNumber}}</text>
               <block wx:for="{{row.seats}}" wx:key="id" wx:for-item="seat">
                 <view 
-                  class="seat {{selectedSeat.id === seat.id ? 'seat-selected' : ''}} seat-{{seat.status}} seat-{{seat.type}}"
+                  class="seat {{selectedSeat && selectedSeat.id === seat.id ? 'seat-selected' : ''}} seat-{{seat.status}} seat-{{seat.type}}"
                   data-seat="{{seat}}"
                   bindtap="selectSeat"
                 >
-                  <text class="seat-number" wx:if="{{selectedSeat.id === seat.id}}">{{seat.seatNumber}}</text>
+                  <text class="seat-number" wx:if="{{selectedSeat && selectedSeat.id === seat.id}}">{{seat.seatNumber}}</text>
                 </view>
               </block>
             </view>
@@ -106,9 +106,9 @@
       <text class="info-label">座位类型：</text>
       <text class="info-value">{{selectedSeat.type === 'vip' ? 'VIP座位' : selectedSeat.type === 'quiet' ? '静音座位' : '普通座位'}}</text>
     </view>
-    <view class="info-row" wx:if="{{selectedSeat.facilities && selectedSeat.facilities.length > 0}}">
+    <view class="info-row" wx:if="{{selectedSeatFacilitiesText}}">
       <text class="info-label">设施：</text>
-      <text class="info-value">{{selectedSeat.facilities.join('、')}}</text>
+      <text class="info-value">{{selectedSeatFacilitiesText}}</text>
     </view>
   </view>
 

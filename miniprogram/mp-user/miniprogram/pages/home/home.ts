@@ -23,6 +23,17 @@ interface LocalReservation {
   status: string
 }
 
+const CHECKIN_BUFFER_MINUTES = 30
+
+function isReservationCheckinable(reservation: { startTime: string; endTime: string }): boolean {
+  const now = new Date()
+  const startTime = new Date(reservation.startTime)
+  const endTime = new Date(reservation.endTime)
+  const checkinWindowStart = new Date(startTime.getTime() - CHECKIN_BUFFER_MINUTES * 60 * 1000)
+  
+  return now >= checkinWindowStart && now <= endTime
+}
+
 Page({
   data: {
     userInfo: null as any,
@@ -86,9 +97,12 @@ Page({
       const reservationRes = await reservationApi.getMyReservations({ status: 'confirmed' })
       
       if (reservationRes.code === 200 && reservationRes.data?.list?.length > 0) {
-        const reservation = reservationRes.data.list[0]
-        await this.setReservedState(reservation)
-        return
+        const checkinableReservation = reservationRes.data.list.find(r => isReservationCheckinable(r))
+        
+        if (checkinableReservation) {
+          await this.setReservedState(checkinableReservation)
+          return
+        }
       }
 
       this.setNoneState()
