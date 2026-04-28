@@ -1,9 +1,17 @@
 import { WxMock } from './mocks/wx-mock';
 
-global.wx = new WxMock() as any;
+declare global {
+  namespace NodeJS {
+    interface Global {
+      wx: WxMock;
+    }
+  }
+}
+
+(global as any).wx = new WxMock();
 
 beforeEach(() => {
-  (global.wx as any).clearAllMocks();
+  (global as any).wx.clearAllMocks();
 });
 
 afterEach(() => {
