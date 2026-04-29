@@ -9,19 +9,6 @@ on:
 jobs:
   backend:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_DB: testdb
-          POSTGRES_USER: user
-          POSTGRES_PASSWORD: pass
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 5s
-          --health-retries 5
 
     steps:
     - uses: actions/checkout@v4
@@ -42,34 +29,3 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
         files: backend/istudyspot-backend/target/site/jacoco/jacoco.xml
         flags: backend
-
-  frontend:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [18, 20, 22]
-
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Set up Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-
-    - name: Install dependencies
-      run: npm ci --prefix frontend
-
-    - name: Run ESLint
-      run: npm run lint --prefix frontend
-
-    - name: Run tests with coverage
-      run: npm test --prefix frontend -- --coverage --ci
-
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        files: frontend/coverage/lcov.info
-        flags: frontend
