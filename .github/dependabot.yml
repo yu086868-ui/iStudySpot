@@ -1,0 +1,28 @@
+version: 2
+updates:
+  # GitHub Actions 工作流更新
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "github-actions"
+
+  # Maven 依赖更新（后端）
+  - package-ecosystem: "maven"
+    directory: "/backend/istudyspot-backend"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "backend"
+
+  # npm 依赖更新（前端）
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "frontend"

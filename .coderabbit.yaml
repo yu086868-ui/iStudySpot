@@ -1,0 +1,28 @@
+code_review:
+  enabled: true
+  auto_review:
+    enabled: true
+    draft_prs: false
+  
+  review_comments:
+    style_issues: true
+    performance_issues: true
+    security_issues: true
+    best_practices: true
+  
+  summary:
+    enabled: true
+    verbose: true
+
+  labels:
+    - "code-review"
+    - "ai-reviewed"
+
+  ignore_files:
+    - "*.md"
+    - "*.yml"
+    - "*.yaml"
+    - "*.json"
+    - "*.xml"
+    - "*.sql"
+    - "*.txt"
