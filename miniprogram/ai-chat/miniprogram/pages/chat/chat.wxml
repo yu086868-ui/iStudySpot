@@ -1,0 +1,45 @@
+<navigation-bar title="{{characterName}}" back="{{true}}" color="black" background="#FFF">
+  <view slot="right" class="nav-right">
+    <view class="clear-btn" bindtap="onClearChat">
+      <text>清空</text>
+    </view>
+  </view>
+</navigation-bar>
+
+<view class="chat-container">
+  <scroll-view 
+    class="message-list"
+    scroll-y
+    scroll-into-view="{{scrollIntoView}}"
+    scroll-with-animation
+  >
+    <view class="messages-wrapper">
+      <block wx:for="{{messages}}" wx:key="timestamp">
+        <chat-message
+          role="{{item.role}}"
+          content="{{item.content}}"
+          avatar="{{characterAvatar}}"
+          name="{{characterName}}"
+        />
+      </block>
+
+      <block wx:if="{{isStreaming && streamingContent}}">
+        <chat-message
+          role="assistant"
+          content="{{streamingContent}}"
+          avatar="{{characterAvatar}}"
+          name="{{characterName}}"
+          isStreaming="{{true}}"
+        />
+      </block>
+
+      <view id="bottom-anchor" class="bottom-anchor"></view>
+    </view>
+  </scroll-view>
+
+  <chat-input
+    disabled="{{isStreaming}}"
+    placeholder="输入消息与{{characterName}}对话..."
+    bind:send="onSendMessage"
+  />
+</view>

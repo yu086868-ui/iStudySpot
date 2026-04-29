@@ -1,0 +1,17 @@
+<view class="container">
+  <view class="image-wrapper" bindlongpress="endStudySession">
+    <image class="tree-image" src="/assets/tree-placeholder.png" mode="aspectFill"></image>
+  </view>
+
+  <view class="status-card">
+    <text class="status-title">学习已进行</text>
+    <text class="status-time">{{studyTime}}</text>
+    <text class="status-motto">{{motto}}</text>
+  </view>
+
+  <view class="exit-btn" bindtap="endStudySession">
+    <text class="exit-btn-text">结束本次自习</text>
+  </view>
+
+  <text class="footer-hint">长按图标或点击上方按钮以结束本次自习</text>
+</view>

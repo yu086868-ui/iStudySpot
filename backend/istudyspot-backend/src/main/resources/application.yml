@@ -16,7 +16,7 @@ spring:
       timeout: 5000ms
 
   flyway:
-    enabled: true
+    enabled: false
     baseline-on-migrate: true
     baseline-version: 1
     locations: classpath:db/migration
@@ -34,3 +34,11 @@ mybatis:
 jwt:
   secret: iStudySpotSecretKey2024
   expire: 604800
+
+# DeepSeek API 配置
+deepseek:
+  api:
+    # 从环境变量读取 API Key
+    key: ${DEEPSEEK_API_KEY:sk-your-api-key}
+    # DeepSeek API URL
+    url: https://api.deepseek.com/v1

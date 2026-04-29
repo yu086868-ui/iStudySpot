@@ -4,11 +4,13 @@ public class Result<T> {
     private Integer code;
     private String message;
     private T data;
+    private Long timestamp;
 
     public Result(Integer code, String message, T data) {
         this.code = code;
         this.message = message;
         this.data = data;
+        this.timestamp = System.currentTimeMillis();
     }
 
     public static <T> Result<T> success(T data) {
@@ -39,6 +41,22 @@ public class Result<T> {
         return new Result<>(404, message, null);
     }
 
+    public static <T> Result<T> forbidden(String message) {
+        return new Result<>(403, message, null);
+    }
+
+    public static <T> Result<T> conflict(String message) {
+        return new Result<>(409, message, null);
+    }
+
+    public static <T> Result<T> unprocessableEntity(String message) {
+        return new Result<>(422, message, null);
+    }
+
+    public static <T> Result<T> internalServerError(String message) {
+        return new Result<>(500, message, null);
+    }
+
     public Integer getCode() {
         return code;
     }
@@ -61,5 +79,13 @@ public class Result<T> {
 
     public void setData(T data) {
         this.data = data;
+    }
+
+    public Long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Long timestamp) {
+        this.timestamp = timestamp;
     }
 }

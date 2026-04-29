@@ -1,0 +1,86 @@
+.message-container {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  padding: 16rpx 24rpx;
+}
+
+.user-message {
+  flex-direction: row-reverse;
+}
+
+.avatar-wrapper {
+  flex-shrink: 0;
+}
+
+.avatar {
+  width: 76rpx;
+  height: 76rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #81c784 0%, #4caf50 100%);
+  border: 3rpx solid #e8f5e9;
+}
+
+.message-content {
+  max-width: 72%;
+  display: flex;
+  flex-direction: column;
+}
+
+.user-message .message-content {
+  align-items: flex-end;
+}
+
+.assistant-message .message-content {
+  align-items: flex-start;
+}
+
+.message-name {
+  font-size: 24rpx;
+  color: #666;
+  margin-bottom: 8rpx;
+  padding-left: 8rpx;
+  font-family: 'PingFang SC', 'Inter', sans-serif;
+}
+
+.message-bubble {
+  padding: 20rpx 28rpx;
+  border-radius: 20rpx;
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
+.user-message .message-bubble {
+  background: linear-gradient(135deg, #66bb6a 0%, #4caf50 100%);
+  color: #fff;
+  border-bottom-right-radius: 6rpx;
+  box-shadow: 0 4rpx 12rpx rgba(76, 175, 80, 0.25);
+}
+
+.assistant-message .message-bubble {
+  background-color: #fff;
+  color: #333;
+  border-bottom-left-radius: 6rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.06);
+}
+
+.message-text {
+  font-size: 30rpx;
+  line-height: 1.6;
+  font-family: 'PingFang SC', 'Inter', sans-serif;
+}
+
+.cursor-blink {
+  animation: blink 1s infinite;
+  color: #4caf50;
+  font-weight: 300;
+}
+
+@keyframes blink {
+  0%, 50% {
+    opacity: 1;
+  }
+  51%, 100% {
+    opacity: 0;
+  }
+}

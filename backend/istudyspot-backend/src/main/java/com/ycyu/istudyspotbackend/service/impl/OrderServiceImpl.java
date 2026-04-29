@@ -34,7 +34,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public Map<String, Object> createOrder(Long userId, Long seatId, LocalDateTime startTime,
+    public Map<String, Object> createOrder(Long userId, Long studyRoomId, Long seatId, LocalDateTime startTime,
                                            LocalDateTime endTime, String bookingType) {
         // 检查座位是否存在
         Seat seat = seatMapper.findById(seatId);
@@ -54,41 +54,56 @@ public class OrderServiceImpl implements OrderService {
         BigDecimal totalPrice = seat.getPricePerHour().multiply(new BigDecimal(hours));
 
         // 获取自习室信息
-        StudyRoom room = studyRoomMapper.findById(seat.getRoomId());
+        StudyRoom room = studyRoomMapper.findById(studyRoomId);
 
         // 创建订单
         Order order = new Order();
         order.setOrderNo("ORD" + System.currentTimeMillis() + userId);
         order.setUserId(userId);
         order.setSeatId(seatId);
-        order.setRoomId(seat.getRoomId());
+        order.setRoomId(studyRoomId);
         order.setStudyRoomName(room.getName());
+        order.setRoomName(room.getName());
         order.setSeatPosition(seat.getRowNum() + "-" + seat.getColNum());
+        order.setSeatNumber(seat.getSeatNumber());
         order.setStartTime(startTime);
         order.setEndTime(endTime);
         order.setTotalPrice(totalPrice);
+        order.setTotalAmount(totalPrice);
         order.setStatus("pending");
 
         orderMapper.insert(order);
 
         Map<String, Object> result = new HashMap<>();
         result.put("id", order.getId().toString());
+        result.put("studyRoomId", studyRoomId.toString());
         result.put("seatId", seatId.toString());
         result.put("userId", userId.toString());
         result.put("startTime", startTime.format(formatter));
         result.put("endTime", endTime.format(formatter));
-        result.put("totalPrice", totalPrice);
         result.put("status", "pending");
+        result.put("checkInTime", null);
+        result.put("checkOutTime", null);
         result.put("createdAt", LocalDateTime.now().format(formatter));
+        result.put("updatedAt", LocalDateTime.now().format(formatter));
         return result;
     }
 
     @Override
-    public List<Order> getOrderList(Long userId, String status) {
+    public Map<String, Object> getOrderList(Long userId, String status, String startDate, String endDate, int page, int pageSize) {
+        List<Order> orders;
         if (status != null && !status.isEmpty()) {
-            return orderMapper.findByUserIdAndStatus(userId, status);
+            orders = orderMapper.findByUserIdAndStatus(userId, status);
+        } else {
+            orders = orderMapper.findByUserId(userId);
         }
-        return orderMapper.findByUserId(userId);
+        
+        Map<String, Object> result = new HashMap<>();
+        result.put("list", orders);
+        result.put("total", orders.size());
+        result.put("page", page);
+        result.put("pageSize", pageSize);
+        return result;
     }
 
     @Override
@@ -102,7 +117,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public Map<String, Object> cancelOrder(Long orderId) {
+    public void cancelOrder(Long orderId) {
         Order order = orderMapper.findById(orderId);
         if (order == null) {
             throw new RuntimeException("订单不存在");
@@ -112,11 +127,6 @@ public class OrderServiceImpl implements OrderService {
         }
 
         orderMapper.updateStatus(orderId, "cancelled");
-
-        Map<String, Object> result = new HashMap<>();
-        result.put("id", orderId.toString());
-        result.put("status", "cancelled");
-        return result;
     }
 
     @Override
@@ -126,7 +136,7 @@ public class OrderServiceImpl implements OrderService {
         if (order == null) {
             throw new RuntimeException("订单不存在");
         }
-        if (!"paid".equals(order.getStatus())) {
+        if (!"2".equals(order.getStatus())) {
             throw new RuntimeException("订单状态不正确，无法签到");
         }
 
@@ -146,8 +156,9 @@ public class OrderServiceImpl implements OrderService {
         if (order == null) {
             throw new RuntimeException("订单不存在");
         }
+        System.out.println("Order status: " + order.getStatus());
         if (!"in_use".equals(order.getStatus())) {
-            throw new RuntimeException("订单未在使用中");
+            throw new RuntimeException("订单未在使用中，当前状态：" + order.getStatus());
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -172,7 +183,7 @@ public class OrderServiceImpl implements OrderService {
         if (order == null) {
             throw new RuntimeException("订单不存在");
         }
-        if (!"in_use".equals(order.getStatus())) {
+        if (!"3".equals(order.getStatus())) {
             throw new RuntimeException("订单未在使用中");
         }
 
@@ -190,12 +201,27 @@ public class OrderServiceImpl implements OrderService {
         // 更新订单
         order.setEndTime(newEndTime);
         order.setTotalPrice(order.getTotalPrice().add(additionalAmount));
-        orderMapper.updateStatus(orderId, "in_use");
+        order.setTotalAmount(order.getTotalAmount().add(additionalAmount));
+        orderMapper.updateStatus(orderId, "3");
 
         Map<String, Object> result = new HashMap<>();
         result.put("orderId", orderId.toString());
         result.put("additionalAmount", additionalAmount);
         result.put("newEndTime", newEndTime.format(formatter));
         return result;
+    }
+
+    @Override
+    @Transactional
+    public void markAsPaid(Long orderId) {
+        Order order = orderMapper.findById(orderId);
+        if (order == null) {
+            throw new RuntimeException("订单不存在");
+        }
+        if (!"pending".equals(order.getStatus())) {
+            throw new RuntimeException("订单状态不正确，无法支付");
+        }
+
+        orderMapper.updateStatus(orderId, "paid");
     }
 }

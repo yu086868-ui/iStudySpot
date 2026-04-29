@@ -1,0 +1,16 @@
+<view class="message-container {{role === 'user' ? 'user-message' : 'assistant-message'}}">
+  <view class="avatar-wrapper" wx:if="{{role === 'assistant'}}">
+    <image class="avatar" src="{{avatar || defaultAiAvatar}}" mode="aspectFill"></image>
+  </view>
+  
+  <view class="message-content">
+    <view class="message-name" wx:if="{{role === 'assistant' && name}}">{{name}}</view>
+    <view class="message-bubble">
+      <text class="message-text">{{content}}<text wx:if="{{isStreaming}}" class="cursor-blink">|</text></text>
+    </view>
+  </view>
+  
+  <view class="avatar-wrapper" wx:if="{{role === 'user'}}">
+    <image class="avatar" src="{{defaultUserAvatar}}" mode="aspectFill"></image>
+  </view>
+</view>

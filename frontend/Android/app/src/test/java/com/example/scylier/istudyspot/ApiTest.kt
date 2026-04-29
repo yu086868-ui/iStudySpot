@@ -1,7 +1,7 @@
 package com.example.scylier.istudyspot
 
+import com.example.scylier.istudyspot.infra.network.ApiManager
 import com.example.scylier.istudyspot.models.ApiResponse
-import com.example.scylier.istudyspot.network.ApiManager
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
 

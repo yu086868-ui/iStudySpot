@@ -20,26 +20,38 @@ public class PaymentController {
     public Result<Map<String, Object>> createPayment(
             @RequestBody PaymentDTO paymentDTO,
             @RequestAttribute Long userId) {
-        Map<String, Object> result = paymentService.createPayment(
-                userId,
-                paymentDTO.getOrderId(),
-                paymentDTO.getAmount(),
-                paymentDTO.getPaymentMethod()
-        );
-        return Result.success("支付订单创建成功", result);
+        try {
+            Map<String, Object> result = paymentService.createPayment(
+                    userId,
+                    paymentDTO.getOrderId(),
+                    paymentDTO.getAmount(),
+                    paymentDTO.getPaymentMethod()
+            );
+            return Result.success("支付订单创建成功", result);
+        } catch (RuntimeException e) {
+            return Result.error(e.getMessage());
+        }
     }
 
     @GetMapping("/{id}")
     public Result<Payment> getPaymentStatus(@PathVariable Long id) {
-        Payment payment = paymentService.getPaymentStatus(id);
-        return Result.success("获取成功", payment);
+        try {
+            Payment payment = paymentService.getPaymentStatus(id);
+            return Result.success("获取成功", payment);
+        } catch (RuntimeException e) {
+            return Result.error(e.getMessage());
+        }
     }
 
     @PostMapping("/callback")
     public Result<Map<String, Object>> payCallback(@RequestBody Map<String, Object> params) {
-        String paymentNo = (String) params.get("paymentNo");
-        boolean success = (boolean) params.get("success");
-        Map<String, Object> result = paymentService.payCallback(paymentNo, success);
-        return Result.success("回调处理成功", result);
+        try {
+            String paymentNo = (String) params.get("paymentNo");
+            boolean success = (boolean) params.get("success");
+            Map<String, Object> result = paymentService.payCallback(paymentNo, success);
+            return Result.success("回调处理成功", result);
+        } catch (RuntimeException e) {
+            return Result.error(e.getMessage());
+        }
     }
 }

@@ -1,0 +1,118 @@
+<view class="container">
+  <view class="header">
+    <text class="page-title">座位选择</text>
+    <view class="stats-bar">
+      <text class="stats-text">可用: {{seatStats.available}} / 总数: {{seatStats.total}}</text>
+    </view>
+  </view>
+
+  <view class="datetime-section">
+    <view class="picker-row">
+      <text class="picker-label">日期：</text>
+      <picker mode="date" value="{{selectedDate}}" start="{{minDate}}" end="{{maxDate}}" bindchange="onDateChange">
+        <view class="picker-value">{{selectedDate}}</view>
+      </picker>
+    </view>
+    
+    <view class="picker-row">
+      <text class="picker-label">开始时间：</text>
+      <picker mode="selector" range="{{hours}}" range-key="" value="{{selectedStartHour - 8}}" bindchange="onStartHourChange">
+        <view class="picker-value">{{selectedStartHour}}</view>
+      </picker>
+      <text class="picker-separator">:</text>
+      <picker mode="selector" range="{{minutes}}" range-key="" value="{{selectedStartMinute / 5}}" bindchange="onStartMinuteChange">
+        <view class="picker-value">{{selectedStartMinute < 10 ? '0' : ''}}{{selectedStartMinute}}</view>
+      </picker>
+    </view>
+    
+    <view class="picker-row">
+      <text class="picker-label">结束时间：</text>
+      <picker mode="selector" range="{{hours}}" range-key="" value="{{selectedEndHour - 8}}" bindchange="onEndHourChange">
+        <view class="picker-value">{{selectedEndHour}}</view>
+      </picker>
+      <text class="picker-separator">:</text>
+      <picker mode="selector" range="{{minutes}}" range-key="" value="{{selectedEndMinute / 5}}" bindchange="onEndMinuteChange">
+        <view class="picker-value">{{selectedEndMinute < 10 ? '0' : ''}}{{selectedEndMinute}}</view>
+      </picker>
+    </view>
+  </view>
+
+  <view class="time-display">
+    <text class="time-text">已选时间段：{{selectedDate}} {{selectedStartHour}}:{{selectedStartMinute < 10 ? '0' : ''}}{{selectedStartMinute}} - {{selectedEndHour}}:{{selectedEndMinute < 10 ? '0' : ''}}{{selectedEndMinute}}</text>
+  </view>
+
+  <view class="seat-section" wx:if="{{!isLoading}}">
+    <view class="seat-map">
+      <block wx:for="{{seatGroups}}" wx:key="name" wx:for-item="group">
+        <view class="seat-group">
+          <view class="group-header" wx:if="{{group.rows && group.rows.length > 0 && group.rows[0].seats}}">
+            <block wx:for="{{group.rows[0].seats}}" wx:key="col" wx:for-item="seat">
+              <text class="col-label">{{seat.col}}</text>
+            </block>
+          </view>
+          
+          <block wx:for="{{group.rows}}" wx:key="rowNumber" wx:for-item="row">
+            <view class="seat-row" wx:if="{{row.seats}}">
+              <text class="row-label">{{row.rowNumber}}</text>
+              <block wx:for="{{row.seats}}" wx:key="id" wx:for-item="seat">
+                <view 
+                  class="seat {{selectedSeat && selectedSeat.id === seat.id ? 'seat-selected' : ''}} seat-{{seat.status}} seat-{{seat.type}}"
+                  data-seat="{{seat}}"
+                  bindtap="selectSeat"
+                >
+                  <text class="seat-number" wx:if="{{selectedSeat && selectedSeat.id === seat.id}}">{{seat.seatNumber}}</text>
+                </view>
+              </block>
+            </view>
+          </block>
+        </view>
+        
+        <view class="corridor" wx:if="{{index === 0 && seatGroups.length > 1}}">
+          <text class="corridor-text">过道</text>
+        </view>
+      </block>
+    </view>
+
+    <view class="legend">
+      <view class="legend-item">
+        <view class="legend-color available"></view>
+        <text class="legend-text">可用</text>
+      </view>
+      <view class="legend-item">
+        <view class="legend-color occupied"></view>
+        <text class="legend-text">占用</text>
+      </view>
+      <view class="legend-item">
+        <view class="legend-color reserved"></view>
+        <text class="legend-text">已预约</text>
+      </view>
+      <view class="legend-item">
+        <view class="legend-color selected"></view>
+        <text class="legend-text">已选</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="loading-state" wx:else>
+    <text class="loading-text">加载座位中...</text>
+  </view>
+
+  <view class="selected-info" wx:if="{{selectedSeat}}">
+    <view class="info-row">
+      <text class="info-label">已选座位：</text>
+      <text class="info-value">{{selectedSeat.seatNumber}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">座位类型：</text>
+      <text class="info-value">{{selectedSeat.type === 'vip' ? 'VIP座位' : selectedSeat.type === 'quiet' ? '静音座位' : '普通座位'}}</text>
+    </view>
+    <view class="info-row" wx:if="{{selectedSeatFacilitiesText}}">
+      <text class="info-label">设施：</text>
+      <text class="info-value">{{selectedSeatFacilitiesText}}</text>
+    </view>
+  </view>
+
+  <view class="confirm-btn" bindtap="confirmSelection">
+    <text class="confirm-text">确认预约</text>
+  </view>
+</view>
