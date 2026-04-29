@@ -1,6 +1,11 @@
 # iStudySpot-自习室预订系统
 
-## 覆盖率徽章
+## 状态徽章
+
+### CI 状态
+[![CI](https://github.com/yu086868-ui/iStudySpot/actions/workflows/ci.yml/badge.svg)](https://github.com/yu086868-ui/iStudySpot/actions)
+
+### 覆盖率徽章
 
 ### 后端覆盖率
 **Main分支:** [![Backend Coverage (Main)](https://codecov.io/gh/yu086868-ui/iStudySpot/branch/main/graph/badge.svg?flag=backend)](https://codecov.io/gh/yu086868-ui/iStudySpot)
