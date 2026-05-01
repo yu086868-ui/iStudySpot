@@ -50,4 +50,4 @@ temp/
 *.tmp
 
 # 例外
-!android/gradle/wrapper/gradle-wrapper.jar
+!frontend/Android/gradle/wrapper/gradle-wrapper.jar
