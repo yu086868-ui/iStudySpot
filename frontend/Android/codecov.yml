@@ -1,0 +1,21 @@
+coverage:
+  status:
+    project:
+      default:
+        target: 50%
+        threshold: 5%
+    patch:
+      default:
+        target: 50%
+        threshold: 5%
+
+ignore:
+  - "app/src/main/java/com/example/scylier/istudyspot/MainActivity.kt"
+  - "app/src/main/java/com/example/scylier/istudyspot/models/**"
+  - "app/src/main/java/com/example/scylier/istudyspot/navigation/**"
+  - "app/src/main/java/com/example/scylier/istudyspot/customview/**"
+
+comment:
+  layout: "reach, diff, flags, files"
+  behavior: default
+  require_changes: false
