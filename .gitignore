@@ -48,3 +48,6 @@ logs/
 tmp/
 temp/
 *.tmp
+
+# 例外
+!frontend/Android/gradle/wrapper/gradle-wrapper.jar

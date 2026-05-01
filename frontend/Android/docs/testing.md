@@ -10,16 +10,22 @@
 app/src/
 ├── test/                          # 单元测试
 │   └── java/com/example/scylier/istudyspot/
-│       ├── AiChatViewModelTest.kt    # ViewModel测试
-│       ├── AiChatApiMockTest.kt      # AI Chat API Mock测试
-│       ├── ApiMockTest.kt            # 通用API Mock测试
+│       ├── ApiManagerTest.kt         # ApiManager测试 (28个测试)
+│       ├── MainRepositoryTest.kt     # MainRepository测试 (20个测试)
+│       ├── AiChatViewModelTest.kt    # ViewModel测试 (13个测试)
+│       ├── AiChatApiMockTest.kt      # AI Chat API Mock测试 (4个测试)
+│       ├── ApiMockTest.kt            # 通用API Mock测试 (5个测试)
 │       └── ApiTest.kt                # API集成测试
 │
 └── androidTest/                   # UI测试 (需要Android设备/模拟器)
     └── java/com/example/scylier/istudyspot/
-        ├── AiChatScreenTest.kt       # AI聊天界面测试
-        ├── HomeScreenTest.kt         # 首页界面测试
-        └── LoginScreenTest.kt        # 登录界面测试
+        ├── HomeScreenTest.kt         # 首页测试 (15个测试)
+        ├── AiChatScreenTest.kt       # AI聊天界面测试 (9个测试)
+        ├── LoginScreenTest.kt        # 登录界面测试 (9个测试)
+        ├── RegisterScreenTest.kt     # 注册界面测试 (11个测试)
+        ├── StudyRoomScreenTest.kt    # 自习室列表测试 (9个测试)
+        ├── OrderListScreenTest.kt    # 订单列表测试 (8个测试)
+        └── MoreScreenTest.kt         # 更多功能页面测试 (16个测试)
 ```
 
 ## 测试依赖
@@ -192,9 +198,33 @@ class AiChatScreenTest {
 
 | 测试类型 | 数量 | 描述 |
 |---------|------|------|
-| 交互测试 | 33+ | UI交互测试，超过要求的8个 |
-| Mock API测试 | 9+ | API Mock测试，超过要求的4个 |
+| 交互测试 | 80+ | UI交互测试，超过要求的8个 |
+| Mock API测试 | 13+ | API Mock测试，超过要求的4个 |
 | 组件渲染测试 | 多个 | 核心组件已覆盖 |
+
+### 测试文件详情
+
+#### 单元测试
+
+| 文件 | 测试数量 | 描述 |
+|------|---------|------|
+| ApiManagerTest.kt | 28个 | ApiManager所有方法测试 |
+| MainRepositoryTest.kt | 20个 | MainRepository所有方法测试 |
+| AiChatViewModelTest.kt | 13个 | ViewModel单元测试 |
+| AiChatApiMockTest.kt | 4个 | AI Chat API Mock测试 |
+| ApiMockTest.kt | 5个 | 通用API Mock测试 |
+
+#### UI测试
+
+| 文件 | 测试数量 | 描述 |
+|------|---------|------|
+| HomeScreenTest.kt | 15个 | 首页渲染/交互测试 |
+| AiChatScreenTest.kt | 9个 | AI聊天界面测试 |
+| LoginScreenTest.kt | 9个 | 登录界面测试 |
+| RegisterScreenTest.kt | 11个 | 注册界面测试 |
+| StudyRoomScreenTest.kt | 9个 | 自习室列表测试 |
+| OrderListScreenTest.kt | 8个 | 订单列表测试 |
+| MoreScreenTest.kt | 16个 | 更多功能页面测试 |
 
 ### 核心组件覆盖率目标
 
