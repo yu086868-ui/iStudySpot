@@ -1,3 +1,5 @@
+const isCI = process.env.CI === 'true' || process.env.CI === '1';
+
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
@@ -35,5 +37,12 @@ module.exports = {
     '^.+\\.tsx?$': ['ts-jest', {
       tsconfig: 'tsconfig.test.json'
     }]
-  }
+  },
+  testTimeout: isCI ? 15000 : 5000,
+  verbose: true,
+  detectOpenHandles: isCI,
+  forceExit: isCI,
+  reporters: isCI 
+    ? ['default', ['jest-junit', { outputDirectory: './reports', outputName: 'junit.xml' }]]
+    : ['default']
 };

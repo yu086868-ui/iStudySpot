@@ -49,5 +49,17 @@ tmp/
 temp/
 *.tmp
 
+# 测试覆盖率报告
+coverage/
+*.lcov
+.nyc_output/
+
+# CI 报告
+reports/
+junit.xml
+test-results/
+
+# Jest
+.jest-cache/
 # 例外
 !frontend/Android/gradle/wrapper/gradle-wrapper.jar
