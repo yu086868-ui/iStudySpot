@@ -11,8 +11,9 @@
 **Main分支:** [![Backend Coverage (Main)](https://codecov.io/gh/yu086868-ui/iStudySpot/branch/main/graph/badge.svg?flag=backend)](https://codecov.io/gh/yu086868-ui/iStudySpot)
 **Develop分支:** [![Backend Coverage (Develop)](https://codecov.io/gh/yu086868-ui/iStudySpot/branch/develop/graph/badge.svg?flag=backend)](https://codecov.io/gh/yu086868-ui/iStudySpot)
 
-### 前端覆盖率
-[![Frontend Coverage](https://codecov.io/gh/yu086868-ui/iStudySpot/branch/main/graph/badge.svg?flag=frontend)](https://codecov.io/gh/yu086868-ui/iStudySpot)
+### 前端覆盖率（Android）
+**Main分支:** [![Android Coverage (Main)](https://codecov.io/gh/yu086868-ui/iStudySpot/branch/main/graph/badge.svg?flag=android)](https://codecov.io/gh/yu086868-ui/iStudySpot)
+**Develop分支:** [![Android Coverage (Develop)](https://codecov.io/gh/yu086868-ui/iStudySpot/branch/develop/graph/badge.svg?flag=android)](https://codecov.io/gh/yu086868-ui/iStudySpot)
 
 ## 团队成员
 
@@ -27,7 +28,7 @@
 iStudySpot是一款面向付费自习室的在线预订系统，主要服务于学习学生、考研党、考证族和远程办公人群。用户可通过微信小程序实时查看自习室3D座位图，按小时/天预订座位，系统自动计算价格并支持在线支付。到店扫码签到后自动计时，离店一键签退结算。针对自习室管理者，提供可视化座位配置、灵活的价格策略（忙/闲时定价）、上座率统计和用户黑名单管理。系统通过Redis分布式锁解决高峰期热门座位并发抢座问题，确保数据一致性，同时通过定时任务自动释放超时未签到订单，提升座位利用率。
 
 ***
-  
+
 ---
 
 ## 技术栈（初步规划）

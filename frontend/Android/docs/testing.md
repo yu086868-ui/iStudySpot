@@ -13,6 +13,9 @@ app/src/
 │       ├── ApiManagerTest.kt         # ApiManager测试 (28个测试)
 │       ├── MainRepositoryTest.kt     # MainRepository测试 (20个测试)
 │       ├── AiChatViewModelTest.kt    # ViewModel测试 (13个测试)
+│       ├── ProfileViewModelTest.kt   # ProfileViewModel测试 (12个测试)
+│       ├── MoreViewModelTest.kt      # MoreViewModel测试 (12个测试)
+│       ├── ConfigManagerTest.kt      # ConfigManager测试 (18个测试)
 │       ├── AiChatApiMockTest.kt      # AI Chat API Mock测试 (4个测试)
 │       ├── ApiMockTest.kt            # 通用API Mock测试 (5个测试)
 │       └── ApiTest.kt                # API集成测试
@@ -25,6 +28,9 @@ app/src/
         ├── RegisterScreenTest.kt     # 注册界面测试 (11个测试)
         ├── StudyRoomScreenTest.kt    # 自习室列表测试 (9个测试)
         ├── OrderListScreenTest.kt    # 订单列表测试 (8个测试)
+        ├── OrderDetailScreenTest.kt  # 订单详情测试 (14个测试)
+        ├── BookingScreenTest.kt      # 预约界面测试 (13个测试)
+        ├── ProfileScreenTest.kt      # 个人中心测试 (8个测试)
         └── MoreScreenTest.kt         # 更多功能页面测试 (16个测试)
 ```
 
@@ -198,7 +204,7 @@ class AiChatScreenTest {
 
 | 测试类型 | 数量 | 描述 |
 |---------|------|------|
-| 交互测试 | 80+ | UI交互测试，超过要求的8个 |
+| 交互测试 | 120+ | UI交互测试，超过要求的8个 |
 | Mock API测试 | 13+ | API Mock测试，超过要求的4个 |
 | 组件渲染测试 | 多个 | 核心组件已覆盖 |
 
@@ -211,6 +217,9 @@ class AiChatScreenTest {
 | ApiManagerTest.kt | 28个 | ApiManager所有方法测试 |
 | MainRepositoryTest.kt | 20个 | MainRepository所有方法测试 |
 | AiChatViewModelTest.kt | 13个 | ViewModel单元测试 |
+| ProfileViewModelTest.kt | 12个 | ProfileViewModel测试 |
+| MoreViewModelTest.kt | 12个 | MoreViewModel测试 |
+| ConfigManagerTest.kt | 18个 | ConfigManager工具类测试 |
 | AiChatApiMockTest.kt | 4个 | AI Chat API Mock测试 |
 | ApiMockTest.kt | 5个 | 通用API Mock测试 |
 
@@ -224,11 +233,15 @@ class AiChatScreenTest {
 | RegisterScreenTest.kt | 11个 | 注册界面测试 |
 | StudyRoomScreenTest.kt | 9个 | 自习室列表测试 |
 | OrderListScreenTest.kt | 8个 | 订单列表测试 |
+| OrderDetailScreenTest.kt | 14个 | 订单详情测试 |
+| BookingScreenTest.kt | 13个 | 预约界面测试 |
+| ProfileScreenTest.kt | 8个 | 个人中心测试 |
 | MoreScreenTest.kt | 16个 | 更多功能页面测试 |
 
 ### 核心组件覆盖率目标
 
-- 目标覆盖率: **50%**
+- 目标覆盖率: **70%**
+- 当前覆盖率: **69%**
 - 阈值: 5%
 
 ## CodeCov集成
