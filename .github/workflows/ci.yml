@@ -2,31 +2,28 @@ name: CI
 
 on:
   push:
-    branches: [ main, master, develop ]
-    paths:
-      - 'miniprogram/mp-user/**'
-      - '.github/workflows/ci.yml'
+    branches: [main, master, develop]
   pull_request:
-    branches: [ main, master, develop ]
-    paths:
-      - 'miniprogram/mp-user/**'
-      - '.github/workflows/ci.yml'
-
-defaults:
-  run:
-    working-directory: miniprogram/mp-user
+    branches: [main, master, develop]
 
 jobs:
-  test:
+  # 前端测试（仅当修改前端文件时触发）
+  frontend:
     runs-on: ubuntu-latest
+    if: |
+      contains(github.event.head_commit.modified, 'miniprogram/mp-user/') ||
+      github.event_name == 'pull_request'
     
     strategy:
       matrix:
         node-version: [18.x, 20.x]
     
+    defaults:
+      run:
+        working-directory: miniprogram/mp-user
+    
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
     
     - name: Setup Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
@@ -50,61 +47,30 @@ jobs:
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: coverage-report-node-${{ matrix.node-version }}
+        name: frontend-coverage-node-${{ matrix.node-version }}
         path: miniprogram/mp-user/coverage/
-        retention-days: 7
-    
-    - name: Upload test results
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: test-results-node-${{ matrix.node-version }}
-        path: miniprogram/mp-user/reports/
-        retention-days: 7
 
-  test-windows:
-    runs-on: windows-latest
-    
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
-        cache: 'npm'
-        cache-dependency-path: miniprogram/mp-user/package-lock.json
-    
-    - name: Install dependencies
-      working-directory: miniprogram/mp-user
-      run: npm ci
-    
-    - name: Run tests
-      working-directory: miniprogram/mp-user
-      run: npm run test:ci
-      env:
-        CI: true
-
-  security:
+  # 后端测试
+  backend:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
     
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
       with:
-        node-version: '20.x'
-        cache: 'npm'
-        cache-dependency-path: miniprogram/mp-user/package-lock.json
+        java-version: '17'
+        distribution: 'temurin'
+        cache: 'maven'
     
-    - name: Install dependencies
-      working-directory: miniprogram/mp-user
-      run: npm ci
+    - name: Build with Maven
+      run: cd backend/istudyspot-backend && mvn -B clean test jacoco:report
+      continue-on-error: false
     
-    - name: Run security audit
-      working-directory: miniprogram/mp-user
-      run: npm audit --audit-level=moderate
-      continue-on-error: true
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: backend/istudyspot-backend/target/site/jacoco/jacoco.xml
+        flags: backend

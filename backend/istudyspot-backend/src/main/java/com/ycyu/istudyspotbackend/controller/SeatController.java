@@ -7,37 +7,28 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
-@RequestMapping("/api/seat")
+@RequestMapping("/api")
 public class SeatController {
 
     @Autowired
     private SeatService seatService;
 
-    @GetMapping("/status")
-    public Result<List<Seat>> getSeatStatus(@RequestParam Long roomId) {
-        List<Seat> seats = seatService.getSeatStatus(roomId);
-        return Result.success(seats);
+    @GetMapping("/studyrooms/{studyRoomId}/seats")
+    public Result<List<Seat>> getSeatList(
+            @PathVariable Long studyRoomId,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) Integer row,
+            @RequestParam(required = false) Integer col) {
+        List<Seat> seats = seatService.getSeatList(studyRoomId, status, type, row, col);
+        return Result.success("success", seats);
     }
 
-    @PostMapping("/calculate")
-    public Result<Map<String, Object>> calculatePrice(@RequestBody Map<String, Object> params) {
-        Long seatId = Long.valueOf(params.get("seatId").toString());
-        String startTime = params.get("startTime").toString();
-        String endTime = params.get("endTime").toString();
-        Map<String, Object> result = seatService.calculatePrice(seatId, startTime, endTime);
-        return Result.success(result);
-    }
-
-    @PostMapping("/book")
-    public Result<Map<String, Object>> createOrder(@RequestBody Map<String, Object> params,
-                                                   @RequestAttribute Long userId) {
-        Long seatId = Long.valueOf(params.get("seatId").toString());
-        String startTime = params.get("startTime").toString();
-        String endTime = params.get("endTime").toString();
-        Map<String, Object> result = seatService.createOrder(userId, seatId, startTime, endTime);
-        return Result.success(result);
+    @GetMapping("/seats/{id}")
+    public Result<Seat> getSeatDetail(@PathVariable Long id) {
+        Seat seat = seatService.getSeatDetail(id);
+        return Result.success("success", seat);
     }
 }

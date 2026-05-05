@@ -9,29 +9,44 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("/api/users/me")
 public class UserController {
 
     @Autowired
     private UserService userService;
 
-    @PostMapping("/login")
-    public Result<Map<String, Object>> login(@RequestBody Map<String, String> params) {
-        String code = params.get("code");
-        Map<String, Object> result = userService.wxLogin(code);
-        return Result.success(result);
-    }
-
-    @GetMapping("/info")
+    @GetMapping
     public Result<User> getUserInfo(@RequestAttribute Long userId) {
-        User user = userService.getUserInfo(userId);
-        return Result.success(user);
+        try {
+            User user = userService.getUserInfo(userId);
+            return Result.success("获取成功", user);
+        } catch (RuntimeException e) {
+            return Result.error(e.getMessage());
+        }
     }
 
-    @PutMapping("/update")
+    @PutMapping
     public Result<User> updateUserInfo(@RequestBody User user, @RequestAttribute Long userId) {
-        user.setId(userId);
-        User updated = userService.updateUserInfo(user);
-        return Result.success(updated);
+        try {
+            user.setId(userId);
+            User updated = userService.updateUserInfo(user);
+            return Result.success("更新成功", updated);
+        } catch (RuntimeException e) {
+            return Result.error(e.getMessage());
+        }
+    }
+
+    @PutMapping("/password")
+    public Result<Void> updatePassword(
+            @RequestBody Map<String, String> params,
+            @RequestAttribute Long userId) {
+        try {
+            String oldPassword = params.get("oldPassword");
+            String newPassword = params.get("newPassword");
+            userService.updatePassword(userId, oldPassword, newPassword);
+            return Result.success("密码修改成功", null);
+        } catch (RuntimeException e) {
+            return Result.error(e.getMessage());
+        }
     }
 }

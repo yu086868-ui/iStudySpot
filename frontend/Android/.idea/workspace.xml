@@ -1,10 +1,57 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AndroidLayouts">
+    <shared>
+      <config />
+    </shared>
+    <layouts>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/drawable/bg_red_dot.xml">
+        <config>
+          <theme>@style/Theme.IStudySpot</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/activity_main.xml">
+        <config>
+          <theme>@style/Theme.IStudySpot</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/fragment_more.xml">
+        <config>
+          <theme>@style/Theme.IStudySpot</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/fragment_profile.xml">
+        <config>
+          <theme>@style/Theme.IStudySpot</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/fragment_rules.xml">
+        <config>
+          <theme>@style/Theme.IStudySpot</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/more_item_view.xml">
+        <config>
+          <theme>@style/Theme.IStudySpot</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/menu/bottom_navigation_menu.xml">
+        <config>
+          <theme>@style/Theme.IStudySpot</theme>
+        </config>
+      </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/navigation/nav_graph.xml">
+        <config>
+          <theme>@style/Theme.IStudySpot</theme>
+        </config>
+      </layout>
+    </layouts>
+  </component>
   <component name="AutoImportSettings">
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7fb01acc-ed7b-4c80-a21d-e647d4d3226c" name="Changes" comment="" />
+    <list default="true" id="3a6b51a8-f9c9-41fb-82aa-c7da64a37e8a" name="Changes" comment="修改了MoreFragment并把其中一些View进行了解耦" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -15,7 +62,8 @@
   </component>
   <component name="CopilotPersistence">
     <persistenceIdMap>
-      <entry key="_F:/SomeWork/iStudySpot-Android" value="3BOLAFtFHjakwTSDhE1g3RzaQN0" />
+      <entry key="_F:/SomeWork/iStudySpot-Android" value="3BZRfsmfTJim9aizOGG1J6V8bWT" />
+      <entry key="_F:/SomeWork/iStudySpot/frontend/Android" value="3BhVNoQs3alqyK8EsFMfpWkQMOA" />
     </persistenceIdMap>
   </component>
   <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[]" />
@@ -24,49 +72,122 @@
       <ProjectState />
     </projectState>
   </component>
+  <component name="ExternalProjectsManager">
+    <system id="GRADLE">
+      <state>
+        <task path="$PROJECT_DIR$">
+          <activation />
+        </task>
+        <task path="$PROJECT_DIR$/app">
+          <activation />
+        </task>
+        <projects_view>
+          <tree_state>
+            <expand>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="IStudySpot" type="f1a62948:ProjectNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="IStudySpot" type="f1a62948:ProjectNode" />
+                <item name="app" type="2d1252cf:ModuleNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="IStudySpot" type="f1a62948:ProjectNode" />
+                <item name="app" type="2d1252cf:ModuleNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="IStudySpot" type="f1a62948:ProjectNode" />
+                <item name="app" type="2d1252cf:ModuleNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+                <item name="other" type="c8890929:TasksNode$1" />
+              </path>
+            </expand>
+            <select />
+          </tree_state>
+        </projects_view>
+      </state>
+    </system>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="resourceFile" />
+      </list>
+    </option>
+  </component>
   <component name="Git.Settings">
+    <excluded-from-favorite>
+      <branch-storage>
+        <map>
+          <entry type="LOCAL">
+            <value>
+              <list>
+                <branch-info repo="$PROJECT_DIR$/../.." source="main" />
+              </list>
+            </value>
+          </entry>
+        </map>
+      </branch-storage>
+    </excluded-from-favorite>
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="main" />
+        <entry key="$PROJECT_DIR$/../.." value="main" />
+        <entry key="$PROJECT_DIR$" value="0.0.4-feature" />
       </map>
     </option>
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "Siangus"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;Siangus&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/Scylier-project/iStudySpot-Android",
-    "accountId": "b3d4ac99-7716-424b-9f5e-91ecc9ada4b4"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/yu086868-ui/iStudySpot&quot;,
+    &quot;accountId&quot;: &quot;b3d4ac99-7716-424b-9f5e-91ecc9ada4b4&quot;
   }
-}]]></component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 1
-}]]></component>
-  <component name="ProjectId" id="3BOLAFtFHjakwTSDhE1g3RzaQN0" />
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 1
+}</component>
+  <component name="ProjectId" id="3BZRfsmfTJim9aizOGG1J6V8bWT" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.cidr.known.project.marker": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.readMode.enableVisualFormatting": "true",
-    "cf.first.check.clang-format": "false",
-    "cidr.known.project.marker": "true",
-    "git-widget-placeholder": "0.0.2-feature",
-    "last_opened_file_path": "F:/SomeWork/iStudySpot-Android"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Android App.app.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.Android.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.Android:app [testDebugUnitTest].executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
+    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;frontend-android-week8&quot;,
+    &quot;last_opened_file_path&quot;: &quot;F:/Scylier-Project/active/school/iStudySpot/frontend/Android&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;project.propVCSSupport.DirectoryMappings&quot;
   }
-}]]></component>
-  <component name="RunManager">
+}</component>
+  <component name="RunAnythingCache">
+    <option name="myCommands">
+      <command value="gradle --info" />
+    </option>
+  </component>
+  <component name="RunManager" selected="Android App.app">
     <configuration name="app" type="AndroidRunConfigurationType" factoryName="Android App" activateToolWindowBeforeRun="false">
-      <module name="My_Application.app" />
+      <module name="IStudySpot.app" />
       <option name="ANDROID_RUN_CONFIGURATION_SCHEMA_VERSION" value="1" />
       <option name="DEPLOY" value="true" />
       <option name="DEPLOY_APK_FROM_BUNDLE" value="false" />
@@ -137,16 +258,77 @@
         <option name="Android.Gradle.BeforeRunTask" enabled="true" />
       </method>
     </configuration>
+    <configuration name="Android" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" value="--info" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list />
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="Android:app [testDebugUnitTest]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/app" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value="testDebugUnitTest" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Gradle.Android" />
+        <item itemvalue="Gradle.Android:app [testDebugUnitTest]" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="7fb01acc-ed7b-4c80-a21d-e647d4d3226c" name="Changes" comment="" />
-      <created>1774355025405</created>
+      <changelist id="3a6b51a8-f9c9-41fb-82aa-c7da64a37e8a" name="Changes" comment="" />
+      <created>1774694713126</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1774355025405</updated>
+      <updated>1774694713126</updated>
     </task>
+    <task id="LOCAL-00001" summary="修改了MoreFragment并把其中一些View进行了解耦">
+      <option name="closed" value="true" />
+      <created>1774697311843</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1774697311843</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="修改了MoreFragment并把其中一些View进行了解耦" />
+    <option name="LAST_COMMIT_MESSAGE" value="修改了MoreFragment并把其中一些View进行了解耦" />
   </component>
   <component name="github-copilot-workspace">
     <instructionFileLocations>
@@ -155,5 +337,31 @@
     <promptFileLocations>
       <option value=".github/prompts" />
     </promptFileLocations>
+  </component>
+  <component name="play_dynamic_filters_status">
+    <option name="appIdToCheckInfo">
+      <map>
+        <entry key="com.example.scylier.istudyspot">
+          <value>
+            <CheckInfo lastCheckTimestamp="1776143702168" />
+          </value>
+        </entry>
+        <entry key="com.example.scylier.istudyspot.test">
+          <value>
+            <CheckInfo lastCheckTimestamp="1776143702168" />
+          </value>
+        </entry>
+        <entry key="com.example.scylier.nmbxd">
+          <value>
+            <CheckInfo lastCheckTimestamp="1774695839307" />
+          </value>
+        </entry>
+        <entry key="com.example.scylier.nmbxd.test">
+          <value>
+            <CheckInfo lastCheckTimestamp="1774695839307" />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
 </project>

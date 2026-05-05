@@ -61,3 +61,5 @@ test-results/
 
 # Jest
 .jest-cache/
+# 例外
+!frontend/Android/gradle/wrapper/gradle-wrapper.jar
