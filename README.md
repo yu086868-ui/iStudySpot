@@ -11,8 +11,15 @@
 **Main分支:** [![Backend Coverage (Main)](https://codecov.io/gh/yu086868-ui/iStudySpot/branch/main/graph/badge.svg?flag=backend)](https://codecov.io/gh/yu086868-ui/iStudySpot)
 **Develop分支:** [![Backend Coverage (Develop)](https://codecov.io/gh/yu086868-ui/iStudySpot/branch/develop/graph/badge.svg?flag=backend)](https://codecov.io/gh/yu086868-ui/iStudySpot)
 
-### 前端覆盖率
-[![Frontend Coverage](https://codecov.io/gh/yu086868-ui/iStudySpot/branch/main/graph/badge.svg?flag=frontend)](https://codecov.io/gh/yu086868-ui/iStudySpot)
+### 前端覆盖率（Android）
+**Main分支:** [![Android Coverage (Main)](https://codecov.io/gh/yu086868-ui/iStudySpot/branch/main/graph/badge.svg?flag=android)](https://codecov.io/gh/yu086868-ui/iStudySpot)
+**Develop分支:** [![Android Coverage (Develop)](https://codecov.io/gh/yu086868-ui/iStudySpot/branch/develop/graph/badge.svg?flag=android)](https://codecov.io/gh/yu086868-ui/iStudySpot)
+
+#### 测试覆盖情况
+- **单元测试**: 70+ 测试用例，覆盖 ApiManager、MainRepository、AiChatViewModel 等核心组件
+- **UI测试**: 77+ 测试用例，覆盖 HomeScreen、AiChatScreen、LoginScreen、RegisterScreen、StudyRoomScreen、OrderListScreen、MoreScreen 等核心界面
+- **Mock API测试**: 13+ 测试用例，使用 MockWebServer 模拟网络请求
+- **目标覆盖率**: 50%
 
 ## 团队成员
 
