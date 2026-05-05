@@ -1,0 +1,110 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master, develop ]
+    paths:
+      - 'miniprogram/mp-user/**'
+      - '.github/workflows/ci.yml'
+  pull_request:
+    branches: [ main, master, develop ]
+    paths:
+      - 'miniprogram/mp-user/**'
+      - '.github/workflows/ci.yml'
+
+defaults:
+  run:
+    working-directory: miniprogram/mp-user
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: miniprogram/mp-user/package-lock.json
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run linting
+      run: npm run lint
+    
+    - name: Run tests with coverage
+      run: npm run test:ci
+      env:
+        CI: true
+    
+    - name: Upload coverage reports
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: coverage-report-node-${{ matrix.node-version }}
+        path: miniprogram/mp-user/coverage/
+        retention-days: 7
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results-node-${{ matrix.node-version }}
+        path: miniprogram/mp-user/reports/
+        retention-days: 7
+
+  test-windows:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        cache-dependency-path: miniprogram/mp-user/package-lock.json
+    
+    - name: Install dependencies
+      working-directory: miniprogram/mp-user
+      run: npm ci
+    
+    - name: Run tests
+      working-directory: miniprogram/mp-user
+      run: npm run test:ci
+      env:
+        CI: true
+
+  security:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        cache-dependency-path: miniprogram/mp-user/package-lock.json
+    
+    - name: Install dependencies
+      working-directory: miniprogram/mp-user
+      run: npm ci
+    
+    - name: Run security audit
+      working-directory: miniprogram/mp-user
+      run: npm audit --audit-level=moderate
+      continue-on-error: true
