@@ -1,10 +1,9 @@
 package com.ycyu.istudyspotbackend.service;
 
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public interface DeepSeekService {
     /**
@@ -15,5 +14,5 @@ public interface DeepSeekService {
     /**
      * 流式调用 DeepSeek API
      */
-    SseEmitter streamChat(String model, List<Map<String, String>> messages) throws IOException;
+    void streamChat(String model, List<Map<String, String>> messages, Consumer<String> onData, Runnable onComplete, Consumer<Throwable> onError) throws IOException;
 }

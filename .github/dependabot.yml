@@ -8,6 +8,10 @@ updates:
     labels:
       - "dependencies"
       - "github-actions"
+    groups:
+      actions:
+        patterns:
+          - "*"
 
   # Maven 依赖更新（后端）
   - package-ecosystem: "maven"
@@ -17,12 +21,42 @@ updates:
     labels:
       - "dependencies"
       - "backend"
+    groups:
+      spring-boot:
+        patterns:
+          - "org.springframework.boot:*"
+      mysql:
+        patterns:
+          - "com.mysql:*"
+      redis:
+        patterns:
+          - "org.springframework.data:spring-data-redis"
+          - "redis.clients:jedis"
 
-  # npm 依赖更新（前端）
+  # npm 依赖更新（AI 聊天模块）
   - package-ecosystem: "npm"
-    directory: "/frontend"
+    directory: "/miniprogram/ai-chat"
     schedule:
       interval: "weekly"
     labels:
       - "dependencies"
       - "frontend"
+      - "ai-chat"
+    groups:
+      ai-chat-deps:
+        patterns:
+          - "*"
+
+  # npm 依赖更新（用户小程序）
+  - package-ecosystem: "npm"
+    directory: "/miniprogram/mp-user"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "frontend"
+      - "mp-user"
+    groups:
+      mp-user-deps:
+        patterns:
+          - "*"

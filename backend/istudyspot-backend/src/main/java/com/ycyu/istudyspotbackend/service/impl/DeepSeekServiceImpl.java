@@ -12,8 +12,6 @@ import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -23,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 
 @Service
 public class DeepSeekServiceImpl implements DeepSeekService {
@@ -94,9 +93,7 @@ public class DeepSeekServiceImpl implements DeepSeekService {
     }
 
     @Override
-    public SseEmitter streamChat(String model, List<Map<String, String>> messages) throws IOException {
-        SseEmitter emitter = new SseEmitter();
-
+    public void streamChat(String model, List<Map<String, String>> messages, Consumer<String> onData, Runnable onComplete, Consumer<Throwable> onError) throws IOException {
         executorService.execute(() -> {
             try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
                 // 构建请求体
@@ -118,9 +115,6 @@ public class DeepSeekServiceImpl implements DeepSeekService {
                 try (CloseableHttpResponse response = httpClient.execute(httpPost);
                      BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), StandardCharsets.UTF_8))) {
 
-                    // 发送开始事件
-                    emitter.send(SseEmitter.event().data("{\"type\": \"start\"}"));
-
                     String line;
                     boolean hasGarbled = false;
                     while ((line = reader.readLine()) != null) {
@@ -139,7 +133,7 @@ public class DeepSeekServiceImpl implements DeepSeekService {
                                     Map<?, ?> error = (Map<?, ?>) responseMap.get("error");
                                     String errorMessage = (String) error.get("message");
                                     System.out.println("DeepSeek API error: " + errorMessage);
-                                    emitter.send(SseEmitter.event().data("{\"type\": \"error\", \"message\": \"Error from DeepSeek API: " + errorMessage + "\"}"));
+                                    onData.accept("{\"type\": \"error\", \"message\": \"Error from DeepSeek API: " + errorMessage + "\"}");
                                     hasGarbled = true;
                                     break;
                                 }
@@ -153,11 +147,11 @@ public class DeepSeekServiceImpl implements DeepSeekService {
                                         // 检查是否有问号问题
                                         if (content.contains("????????")) {
                                             System.out.println("DeepSeek API response contains garbled characters");
-                                            emitter.send(SseEmitter.event().data("{\"type\": \"error\", \"message\": \"Sorry, I can't understand the response from the server. Please try again later.\"}"));
+                                            onData.accept("{\"type\": \"error\", \"message\": \"Sorry, I can't understand the response from the server. Please try again later.\"}");
                                             hasGarbled = true;
                                             break;
                                         }
-                                        emitter.send(SseEmitter.event().data("{\"type\": \"delta\", \"content\": \"" + content + "\"}"));
+                                        onData.accept("{\"type\": \"delta\", \"content\": \"" + content + "\"}");
                                     }
                                 }
                             } catch (Exception e) {
@@ -169,29 +163,19 @@ public class DeepSeekServiceImpl implements DeepSeekService {
 
                     if (!hasGarbled) {
                         // 发送结束事件
-                        emitter.send(SseEmitter.event().data("{\"type\": \"end\"}"));
+                        onData.accept("{\"type\": \"end\"}");
                     }
-                    emitter.complete();
+                    onComplete.run();
                 } catch (Exception e) {
                     e.printStackTrace();
-                    try {
-                        emitter.send(SseEmitter.event().data("{\"type\": \"error\", \"message\": \"Error calling DeepSeek API\"}"));
-                    } catch (IOException ex) {
-                        ex.printStackTrace();
-                    }
-                    emitter.completeWithError(e);
+                    onData.accept("{\"type\": \"error\", \"message\": \"Error calling DeepSeek API\"}");
+                    onError.accept(e);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                try {
-                    emitter.send(SseEmitter.event().data("{\"type\": \"error\", \"message\": \"Error calling DeepSeek API\"}"));
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-                emitter.completeWithError(e);
+                onData.accept("{\"type\": \"error\", \"message\": \"Error calling DeepSeek API\"}");
+                onError.accept(e);
             }
         });
-
-        return emitter;
     }
 }
