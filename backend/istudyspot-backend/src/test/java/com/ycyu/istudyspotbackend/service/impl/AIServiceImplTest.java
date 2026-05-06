@@ -666,4 +666,63 @@ public class AIServiceImplTest {
         assertTrue(prompt.contains("热情友好"));
         assertTrue(prompt.contains("亲切自然"));
     }
+
+    @Test
+    void testStreamChatCallbackOnCompletion() throws InterruptedException, IOException {
+        SseEmitter mockEmitter = new SseEmitter();
+        when(deepSeekService.streamChat(anyString(), anyList())).thenReturn(mockEmitter);
+
+        SseEmitter emitter = aiService.streamChat("test-callback-completion", "scientist", "你好");
+        
+        assertNotNull(emitter);
+        
+        Thread.sleep(100);
+        
+        mockEmitter.complete();
+        
+        Thread.sleep(100);
+        
+        verify(deepSeekService, times(1)).streamChat(anyString(), anyList());
+    }
+
+    @Test
+    void testStreamChatCallbackOnError() throws InterruptedException, IOException {
+        SseEmitter mockEmitter = new SseEmitter();
+        when(deepSeekService.streamChat(anyString(), anyList())).thenReturn(mockEmitter);
+
+        SseEmitter emitter = aiService.streamChat("test-callback-error", "scientist", "你好");
+        
+        assertNotNull(emitter);
+        
+        Thread.sleep(100);
+        
+        mockEmitter.completeWithError(new RuntimeException("Test error"));
+        
+        Thread.sleep(100);
+        
+        verify(deepSeekService, times(1)).streamChat(anyString(), anyList());
+    }
+
+    @Test
+    void testStreamChatCallbackOnTimeout() throws InterruptedException, IOException {
+        SseEmitter mockEmitter = new SseEmitter(500L);
+        when(deepSeekService.streamChat(anyString(), anyList())).thenReturn(mockEmitter);
+
+        SseEmitter emitter = aiService.streamChat("test-callback-timeout", "scientist", "你好");
+        
+        assertNotNull(emitter);
+        
+        Thread.sleep(700);
+        
+        verify(deepSeekService, times(1)).streamChat(anyString(), anyList());
+    }
+
+    @Test
+    void testStreamChatInvalidCharacterId() throws InterruptedException {
+        SseEmitter emitter = aiService.streamChat("test-invalid-char-id", "unknown-character", "你好");
+        
+        assertNotNull(emitter);
+        
+        Thread.sleep(100);
+    }
 }
