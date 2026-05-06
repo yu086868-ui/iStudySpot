@@ -94,7 +94,7 @@ public class AIServiceImpl implements AIService {
 
     @Override
     public SseEmitter streamChat(String sessionId, String characterId, String message) {
-        SseEmitter emitter = new SseEmitter();
+        SseEmitter emitter = new SseEmitter(300000L);
 
         executorService.submit(() -> {
             try {
@@ -126,33 +126,29 @@ public class AIServiceImpl implements AIService {
                     messages.add(msgMap);
                 }
 
-                SseEmitter deepSeekEmitter = deepSeekService.streamChat("deepseek-chat", messages);
-                
-                deepSeekEmitter.onCompletion(() -> {
-                    try {
-                        emitter.complete();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                });
-                
-                deepSeekEmitter.onError(e -> {
-                    try {
-                        emitter.send(SseEmitter.event().data("{\"type\": \"error\", \"message\": \"STREAM_ERROR\"}"));
-                    } catch (IOException ex) {
-                        ex.printStackTrace();
-                    }
-                    emitter.completeWithError(e);
-                });
-                
-                deepSeekEmitter.onTimeout(() -> {
-                    try {
-                        emitter.send(SseEmitter.event().data("{\"type\": \"error\", \"message\": \"TIMEOUT\"}"));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    emitter.complete();
-                });
+                deepSeekService.streamChat("deepseek-chat", messages, 
+                    chunk -> {
+                        try {
+                            emitter.send(SseEmitter.event().data(chunk));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    },
+                    () -> {
+                        try {
+                            emitter.complete();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    },
+                    e -> {
+                        try {
+                            emitter.send(SseEmitter.event().data("{\"type\": \"error\", \"message\": \"STREAM_ERROR\"}"));
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
+                        emitter.completeWithError(e);
+                    });
 
             } catch (Exception e) {
                 try {

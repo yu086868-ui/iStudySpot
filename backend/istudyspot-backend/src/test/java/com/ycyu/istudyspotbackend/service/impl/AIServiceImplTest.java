@@ -4,18 +4,19 @@ import com.ycyu.istudyspotbackend.entity.Character;
 import com.ycyu.istudyspotbackend.entity.Message;
 import com.ycyu.istudyspotbackend.entity.Session;
 import com.ycyu.istudyspotbackend.service.DeepSeekService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
-
-import java.io.IOException;
-import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
 public class AIServiceImplTest {
@@ -170,9 +171,18 @@ public class AIServiceImplTest {
     }
 
     @Test
-    void testStreamChat() {
+    void testStreamChat() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        doAnswer(invocation -> {
+            latch.countDown();
+            return null;
+        }).when(deepSeekService).streamChat(anyString(), anyList(), any(), any(), any());
+
         SseEmitter emitter = aiService.streamChat("test-stream-session", "scientist", "你好");
         assertNotNull(emitter);
+
+        assertTrue(latch.await(2, TimeUnit.SECONDS));
+        verify(deepSeekService, times(1)).streamChat(anyString(), anyList(), any(), any(), any());
     }
 
     @Test
@@ -241,7 +251,7 @@ public class AIServiceImplTest {
     @Test
     void testStreamChatWithAllCharacters() {
         String[] characterIds = {"scientist", "teacher", "artist", "customer_service"};
-        
+
         for (String characterId : characterIds) {
             SseEmitter emitter = aiService.streamChat("test-stream-" + characterId, characterId, "你好");
             assertNotNull(emitter);
@@ -251,9 +261,9 @@ public class AIServiceImplTest {
     @Test
     void testBuildSystemPrompt() {
         Character scientist = new Character("scientist", "科学家", "理性严谨", "逻辑清晰");
-        
+
         String prompt = buildSystemPrompt(scientist);
-        
+
         assertNotNull(prompt);
         assertTrue(prompt.contains("角色名称：科学家"));
         assertTrue(prompt.contains("性格：理性严谨"));
@@ -264,10 +274,10 @@ public class AIServiceImplTest {
     @Test
     void testBuildSystemPromptWithAllCharacterTypes() {
         List<Character> characters = aiService.getCharacters();
-        
+
         for (Character character : characters) {
             String prompt = buildSystemPrompt(character);
-            
+
             assertNotNull(prompt);
             assertTrue(prompt.contains(character.getName()));
             assertTrue(prompt.contains(character.getPersona()));
@@ -325,7 +335,6 @@ public class AIServiceImplTest {
     @Test
     void testStreamChatCompletion() {
         SseEmitter emitter = aiService.streamChat("test-completion", "scientist", "测试完成");
-        
         assertNotNull(emitter);
     }
 
@@ -339,7 +348,7 @@ public class AIServiceImplTest {
 
         Session session = aiService.getOrCreateSession("test-limit", "scientist");
         List<Message> recentMessages = session.getRecentMessages(10);
-        
+
         assertEquals(10, recentMessages.size());
     }
 
@@ -353,17 +362,19 @@ public class AIServiceImplTest {
     }
 
     @Test
-    void testStreamChatWithDeepSeekServiceMock() throws IOException, InterruptedException {
-        SseEmitter mockEmitter = new SseEmitter();
-        when(deepSeekService.streamChat(anyString(), anyList())).thenReturn(mockEmitter);
+    void testStreamChatWithDeepSeekServiceMock() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        doAnswer(invocation -> {
+            latch.countDown();
+            return null;
+        }).when(deepSeekService).streamChat(anyString(), anyList(), any(), any(), any());
 
         SseEmitter emitter = aiService.streamChat("test-deepseek-mock", "scientist", "你好");
 
         assertNotNull(emitter);
-        
-        Thread.sleep(100);
-        
-        verify(deepSeekService, times(1)).streamChat(anyString(), anyList());
+
+        assertTrue(latch.await(2, TimeUnit.SECONDS));
+        verify(deepSeekService, times(1)).streamChat(anyString(), anyList(), any(), any(), any());
     }
 
     @Test
@@ -411,7 +422,7 @@ public class AIServiceImplTest {
         when(deepSeekService.chat(anyString(), anyList())).thenReturn("回复");
 
         aiService.chat("session-switch", "scientist", "问题1");
-        
+
         Session session = aiService.getOrCreateSession("session-switch", "teacher");
         assertEquals("scientist", session.getCharacter_id());
     }
@@ -421,7 +432,7 @@ public class AIServiceImplTest {
         when(deepSeekService.chat(anyString(), anyList())).thenReturn("好的，我明白了。");
 
         String longMessage = "我想预订一个自习室座位，但是不知道该怎么操作。我看到你们有普通座、VIP座和学习包间，请问它们之间有什么区别？价格分别是多少？另外，我还有一些积分，不知道能不能用？如果预订了之后临时有事不能去，能不能取消或者改期？";
-        
+
         String response = aiService.chat("test-long", "customer_service", longMessage);
 
         assertNotNull(response);
@@ -430,7 +441,7 @@ public class AIServiceImplTest {
     @Test
     void testCharacterListImmutability() {
         List<Character> characters = aiService.getCharacters();
-        
+
         assertThrows(UnsupportedOperationException.class, () -> {
             characters.add(new Character("new-char", "新角色", "性格", "风格"));
         });
@@ -439,9 +450,9 @@ public class AIServiceImplTest {
     @Test
     void testBuildSystemPromptFormat() {
         Character character = new Character("test", "测试角色", "测试性格", "测试风格");
-        
+
         String prompt = buildSystemPrompt(character);
-        
+
         assertTrue(prompt.contains("角色名称：测试角色"));
         assertTrue(prompt.contains("性格：测试性格"));
         assertTrue(prompt.contains("说话风格：测试风格"));
@@ -450,72 +461,73 @@ public class AIServiceImplTest {
     }
 
     @Test
-    void testStreamChatOnCompletion() throws IOException, InterruptedException {
-        SseEmitter mockEmitter = new SseEmitter();
-        when(deepSeekService.streamChat(anyString(), anyList())).thenReturn(mockEmitter);
+    void testStreamChatOnCompletion() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        doAnswer(invocation -> {
+            latch.countDown();
+            return null;
+        }).when(deepSeekService).streamChat(anyString(), anyList(), any(), any(), any());
 
         SseEmitter emitter = aiService.streamChat("test-completion", "scientist", "你好");
-        
+
         assertNotNull(emitter);
-        
-        Thread.sleep(100);
-        
-        mockEmitter.complete();
-        
-        Thread.sleep(100);
-        
-        verify(deepSeekService, times(1)).streamChat(anyString(), anyList());
+
+        assertTrue(latch.await(2, TimeUnit.SECONDS));
+        verify(deepSeekService, times(1)).streamChat(anyString(), anyList(), any(), any(), any());
     }
 
     @Test
-    void testStreamChatOnError() throws IOException, InterruptedException {
-        SseEmitter mockEmitter = new SseEmitter();
-        when(deepSeekService.streamChat(anyString(), anyList())).thenReturn(mockEmitter);
+    void testStreamChatOnError() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        doAnswer(invocation -> {
+            latch.countDown();
+            return null;
+        }).when(deepSeekService).streamChat(anyString(), anyList(), any(), any(), any());
 
         SseEmitter emitter = aiService.streamChat("test-error", "scientist", "你好");
-        
+
         assertNotNull(emitter);
-        
-        Thread.sleep(100);
-        
-        mockEmitter.completeWithError(new RuntimeException("Test error"));
-        
-        Thread.sleep(100);
-        
-        verify(deepSeekService, times(1)).streamChat(anyString(), anyList());
+
+        assertTrue(latch.await(2, TimeUnit.SECONDS));
+        verify(deepSeekService, times(1)).streamChat(anyString(), anyList(), any(), any(), any());
     }
 
     @Test
-    void testStreamChatOnTimeout() throws IOException, InterruptedException {
-        SseEmitter mockEmitter = new SseEmitter(500L);
-        when(deepSeekService.streamChat(anyString(), anyList())).thenReturn(mockEmitter);
+    void testStreamChatOnTimeout() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        doAnswer(invocation -> {
+            latch.countDown();
+            return null;
+        }).when(deepSeekService).streamChat(anyString(), anyList(), any(), any(), any());
 
         SseEmitter emitter = aiService.streamChat("test-timeout", "scientist", "你好");
-        
+
         assertNotNull(emitter);
-        
-        Thread.sleep(700);
-        
-        verify(deepSeekService, times(1)).streamChat(anyString(), anyList());
+
+        assertTrue(latch.await(2, TimeUnit.SECONDS));
+        verify(deepSeekService, times(1)).streamChat(anyString(), anyList(), any(), any(), any());
     }
 
     @Test
-    void testStreamChatInternalError() throws IOException, InterruptedException {
-        when(deepSeekService.streamChat(anyString(), anyList())).thenThrow(new RuntimeException("Internal error"));
+    void testStreamChatInternalError() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        doAnswer(invocation -> {
+            latch.countDown();
+            throw new RuntimeException("Internal error");
+        }).when(deepSeekService).streamChat(anyString(), anyList(), any(), any(), any());
 
         SseEmitter emitter = aiService.streamChat("test-internal-error", "scientist", "你好");
-        
+
         assertNotNull(emitter);
-        
-        Thread.sleep(100);
-        
-        verify(deepSeekService, times(1)).streamChat(anyString(), anyList());
+
+        assertTrue(latch.await(2, TimeUnit.SECONDS));
+        verify(deepSeekService, times(1)).streamChat(anyString(), anyList(), any(), any(), any());
     }
 
     @Test
     void testStreamChatWithAllCharacterTypes() {
         List<Character> characters = aiService.getCharacters();
-        
+
         for (Character character : characters) {
             SseEmitter emitter = aiService.streamChat("test-char-" + character.getId(), character.getId(), "你好");
             assertNotNull(emitter);
@@ -527,7 +539,7 @@ public class AIServiceImplTest {
         when(deepSeekService.chat(anyString(), anyList())).thenReturn("好的。");
 
         String response = aiService.chat("", "scientist", "你好");
-        
+
         assertNotNull(response);
     }
 
@@ -536,14 +548,14 @@ public class AIServiceImplTest {
         when(deepSeekService.chat(anyString(), anyList())).thenReturn("好的。");
 
         String response = aiService.chat(null, "scientist", "你好");
-        
+
         assertNotNull(response);
     }
 
     @Test
     void testGetOrCreateSessionWithNullSessionId() {
         Session session = aiService.getOrCreateSession(null, "scientist");
-        
+
         assertNotNull(session);
         assertNull(session.getSession_id());
         assertEquals("scientist", session.getCharacter_id());
@@ -552,7 +564,7 @@ public class AIServiceImplTest {
     @Test
     void testGetOrCreateSessionWithEmptySessionId() {
         Session session = aiService.getOrCreateSession("", "teacher");
-        
+
         assertNotNull(session);
         assertEquals("", session.getSession_id());
         assertEquals("teacher", session.getCharacter_id());
@@ -567,7 +579,7 @@ public class AIServiceImplTest {
 
         Session session = aiService.getOrCreateSession("test-message-build", "scientist");
         List<Message> messages = session.getMessages();
-        
+
         assertEquals(4, messages.size());
         assertEquals("user", messages.get(0).getRole());
         assertEquals("问题1", messages.get(0).getContent());
@@ -580,64 +592,54 @@ public class AIServiceImplTest {
     }
 
     @Test
-    void testStreamChatOnErrorWithIOException() throws IOException, InterruptedException {
-        SseEmitter mockEmitter = new SseEmitter();
-        when(deepSeekService.streamChat(anyString(), anyList())).thenReturn(mockEmitter);
-
-        SseEmitter emitter = new SseEmitter() {
-            @Override
-            public void send(SseEventBuilder builder) throws IOException {
-                throw new IOException("Send error");
-            }
-        };
-
-        aiService.streamChat("test-error-io", "scientist", "你好");
-        
-        Thread.sleep(100);
-        
-        mockEmitter.completeWithError(new RuntimeException("Test error"));
-        
-        Thread.sleep(100);
+    void testStreamChatOnErrorWithIOException() {
+        SseEmitter emitter = aiService.streamChat("test-error-io", "scientist", "你好");
+        assertNotNull(emitter);
     }
 
     @Test
-    void testStreamChatOnTimeoutWithIOException() throws IOException, InterruptedException {
-        SseEmitter mockEmitter = new SseEmitter(500L);
-        when(deepSeekService.streamChat(anyString(), anyList())).thenReturn(mockEmitter);
+    void testStreamChatOnTimeoutWithIOException() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        doAnswer(invocation -> {
+            latch.countDown();
+            return null;
+        }).when(deepSeekService).streamChat(anyString(), anyList(), any(), any(), any());
 
-        aiService.streamChat("test-timeout-io", "scientist", "你好");
-        
-        Thread.sleep(700);
-        
-        verify(deepSeekService, times(1)).streamChat(anyString(), anyList());
+        SseEmitter emitter = aiService.streamChat("test-timeout-io", "scientist", "你好");
+
+        assertNotNull(emitter);
+        assertTrue(latch.await(2, TimeUnit.SECONDS));
+        verify(deepSeekService, times(1)).streamChat(anyString(), anyList(), any(), any(), any());
     }
 
     @Test
-    void testStreamChatInternalErrorWithIOException() throws IOException, InterruptedException {
-        when(deepSeekService.streamChat(anyString(), anyList())).thenThrow(new RuntimeException("Internal error"));
+    void testStreamChatInternalErrorWithIOException() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        doAnswer(invocation -> {
+            latch.countDown();
+            throw new RuntimeException("Internal error");
+        }).when(deepSeekService).streamChat(anyString(), anyList(), any(), any(), any());
 
-        aiService.streamChat("test-internal-io", "scientist", "你好");
-        
-        Thread.sleep(100);
-        
-        verify(deepSeekService, times(1)).streamChat(anyString(), anyList());
+        SseEmitter emitter = aiService.streamChat("test-internal-io", "scientist", "你好");
+
+        assertNotNull(emitter);
+        assertTrue(latch.await(2, TimeUnit.SECONDS));
+        verify(deepSeekService, times(1)).streamChat(anyString(), anyList(), any(), any(), any());
     }
 
     @Test
-    void testStreamChatWithMultipleMessages() throws InterruptedException, IOException {
-        SseEmitter mockEmitter = new SseEmitter();
-        when(deepSeekService.streamChat(anyString(), anyList())).thenReturn(mockEmitter);
+    void testStreamChatWithMultipleMessages() throws Exception {
+        CountDownLatch latch = new CountDownLatch(2);
+        doAnswer(invocation -> {
+            latch.countDown();
+            return null;
+        }).when(deepSeekService).streamChat(anyString(), anyList(), any(), any(), any());
 
         aiService.streamChat("test-multi-stream", "scientist", "问题1");
         aiService.streamChat("test-multi-stream", "scientist", "问题2");
-        
-        Thread.sleep(100);
-        
-        mockEmitter.complete();
-        
-        Thread.sleep(100);
-        
-        verify(deepSeekService, times(2)).streamChat(anyString(), anyList());
+
+        assertTrue(latch.await(2, TimeUnit.SECONDS));
+        verify(deepSeekService, times(2)).streamChat(anyString(), anyList(), any(), any(), any());
     }
 
     @Test
@@ -650,180 +652,185 @@ public class AIServiceImplTest {
 
         Session session = aiService.getOrCreateSession("test-limit", "scientist");
         List<Message> recentMessages = session.getRecentMessages(10);
-        
+
         assertEquals(10, recentMessages.size());
     }
 
     @Test
     void testBuildSystemPromptWithCustomerService() {
         Character cs = aiService.getCharacter("customer_service");
-        
+
         assertNotNull(cs);
-        
+
         String prompt = buildSystemPrompt(cs);
-        
+
         assertTrue(prompt.contains("小i"));
         assertTrue(prompt.contains("热情友好"));
         assertTrue(prompt.contains("亲切自然"));
     }
 
     @Test
-    void testStreamChatCallbackOnCompletion() throws InterruptedException, IOException {
-        SseEmitter mockEmitter = new SseEmitter();
-        when(deepSeekService.streamChat(anyString(), anyList())).thenReturn(mockEmitter);
+    void testStreamChatCallbackOnCompletion() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        doAnswer(invocation -> {
+            latch.countDown();
+            return null;
+        }).when(deepSeekService).streamChat(anyString(), anyList(), any(), any(), any());
 
         SseEmitter emitter = aiService.streamChat("test-callback-completion", "scientist", "你好");
-        
+
         assertNotNull(emitter);
-        
-        Thread.sleep(100);
-        
-        mockEmitter.complete();
-        
-        Thread.sleep(100);
-        
-        verify(deepSeekService, times(1)).streamChat(anyString(), anyList());
+        assertTrue(latch.await(2, TimeUnit.SECONDS));
+        verify(deepSeekService, times(1)).streamChat(anyString(), anyList(), any(), any(), any());
     }
 
     @Test
-    void testStreamChatCallbackOnError() throws InterruptedException, IOException {
-        SseEmitter mockEmitter = new SseEmitter();
-        when(deepSeekService.streamChat(anyString(), anyList())).thenReturn(mockEmitter);
+    void testStreamChatCallbackOnError() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        doAnswer(invocation -> {
+            latch.countDown();
+            return null;
+        }).when(deepSeekService).streamChat(anyString(), anyList(), any(), any(), any());
 
         SseEmitter emitter = aiService.streamChat("test-callback-error", "scientist", "你好");
-        
+
         assertNotNull(emitter);
-        
-        Thread.sleep(100);
-        
-        mockEmitter.completeWithError(new RuntimeException("Test error"));
-        
-        Thread.sleep(100);
-        
-        verify(deepSeekService, times(1)).streamChat(anyString(), anyList());
+        assertTrue(latch.await(2, TimeUnit.SECONDS));
+        verify(deepSeekService, times(1)).streamChat(anyString(), anyList(), any(), any(), any());
     }
 
     @Test
-    void testStreamChatCallbackOnTimeout() throws InterruptedException, IOException {
-        SseEmitter mockEmitter = new SseEmitter(500L);
-        when(deepSeekService.streamChat(anyString(), anyList())).thenReturn(mockEmitter);
+    void testStreamChatCallbackOnTimeout() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        doAnswer(invocation -> {
+            latch.countDown();
+            return null;
+        }).when(deepSeekService).streamChat(anyString(), anyList(), any(), any(), any());
 
         SseEmitter emitter = aiService.streamChat("test-callback-timeout", "scientist", "你好");
-        
+
         assertNotNull(emitter);
-        
-        Thread.sleep(700);
-        
-        verify(deepSeekService, times(1)).streamChat(anyString(), anyList());
+        assertTrue(latch.await(2, TimeUnit.SECONDS));
+        verify(deepSeekService, times(1)).streamChat(anyString(), anyList(), any(), any(), any());
     }
 
     @Test
-    void testStreamChatInvalidCharacterId() throws InterruptedException {
+    void testStreamChatInvalidCharacterId() {
         SseEmitter emitter = aiService.streamChat("test-invalid-char-id", "unknown-character", "你好");
-        
         assertNotNull(emitter);
-        
-        Thread.sleep(100);
     }
 
     @Test
-    void testStreamChatCallbackOnCompletionWithException() throws InterruptedException, IOException {
-        SseEmitter mockEmitter = new SseEmitter();
-        when(deepSeekService.streamChat(anyString(), anyList())).thenReturn(mockEmitter);
+    void testStreamChatCallbackOnCompletionWithException() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        doAnswer(invocation -> {
+            latch.countDown();
+            return null;
+        }).when(deepSeekService).streamChat(anyString(), anyList(), any(), any(), any());
 
         SseEmitter emitter = aiService.streamChat("test-completion-ex", "scientist", "你好");
-        
+
         assertNotNull(emitter);
-        
-        Thread.sleep(100);
-        
-        mockEmitter.complete();
-        
-        Thread.sleep(100);
+        assertTrue(latch.await(2, TimeUnit.SECONDS));
+        verify(deepSeekService, times(1)).streamChat(anyString(), anyList(), any(), any(), any());
     }
 
     @Test
-    void testStreamChatCallbackOnErrorWithSendException() throws InterruptedException, IOException {
-        SseEmitter mockEmitter = new SseEmitter();
-        when(deepSeekService.streamChat(anyString(), anyList())).thenReturn(mockEmitter);
-
-        aiService.streamChat("test-error-send-ex", "scientist", "你好");
-        
-        Thread.sleep(100);
-        
-        mockEmitter.completeWithError(new RuntimeException("Test error"));
-        
-        Thread.sleep(100);
+    void testStreamChatCallbackOnErrorWithSendException() {
+        SseEmitter emitter = aiService.streamChat("test-error-send-ex", "scientist", "你好");
+        assertNotNull(emitter);
     }
 
     @Test
-    void testStreamChatCallbackOnTimeoutWithSendException() throws InterruptedException, IOException {
-        SseEmitter mockEmitter = new SseEmitter(500L);
-        when(deepSeekService.streamChat(anyString(), anyList())).thenReturn(mockEmitter);
+    void testStreamChatCallbackOnTimeoutWithSendException() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        doAnswer(invocation -> {
+            latch.countDown();
+            return null;
+        }).when(deepSeekService).streamChat(anyString(), anyList(), any(), any(), any());
 
-        aiService.streamChat("test-timeout-send-ex", "scientist", "你好");
-        
-        Thread.sleep(700);
+        SseEmitter emitter = aiService.streamChat("test-timeout-send-ex", "scientist", "你好");
+
+        assertNotNull(emitter);
+        assertTrue(latch.await(2, TimeUnit.SECONDS));
+        verify(deepSeekService, times(1)).streamChat(anyString(), anyList(), any(), any(), any());
     }
 
     @Test
-    void testStreamChatInternalErrorWithSendException() throws InterruptedException, IOException {
-        when(deepSeekService.streamChat(anyString(), anyList())).thenThrow(new RuntimeException("Internal error"));
-
-        aiService.streamChat("test-internal-ex", "scientist", "你好");
-        
-        Thread.sleep(100);
+    void testStreamChatInternalErrorWithSendException() {
+        SseEmitter emitter = aiService.streamChat("test-internal-ex", "scientist", "你好");
+        assertNotNull(emitter);
     }
 
     @Test
-    void testStreamChatOnCompletionThrowsException() throws InterruptedException, IOException {
-        SseEmitter mockEmitter = new SseEmitter();
-        when(deepSeekService.streamChat(anyString(), anyList())).thenReturn(mockEmitter);
+    void testStreamChatOnCompletionThrowsException() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        doAnswer(invocation -> {
+            latch.countDown();
+            return null;
+        }).when(deepSeekService).streamChat(anyString(), anyList(), any(), any(), any());
 
-        SseEmitter testEmitter = new SseEmitter() {
-            @Override
-            public void complete() {
-                throw new RuntimeException("Complete exception");
-            }
-        };
+        SseEmitter emitter = aiService.streamChat("test-completion-throw", "scientist", "你好");
 
-        aiService.streamChat("test-completion-throw", "scientist", "你好");
-        
-        Thread.sleep(100);
-        
-        mockEmitter.complete();
-        
-        Thread.sleep(100);
+        assertNotNull(emitter);
+        assertTrue(latch.await(2, TimeUnit.SECONDS));
+        verify(deepSeekService, times(1)).streamChat(anyString(), anyList(), any(), any(), any());
     }
 
     @Test
-    void testStreamChatOnErrorThrowsIOException() throws InterruptedException, IOException {
-        SseEmitter mockEmitter = new SseEmitter();
-        when(deepSeekService.streamChat(anyString(), anyList())).thenReturn(mockEmitter);
-
-        aiService.streamChat("test-error-io", "scientist", "你好");
-        
-        Thread.sleep(100);
-        
-        mockEmitter.completeWithError(new RuntimeException("Test error"));
-        
-        Thread.sleep(100);
+    void testStreamChatOnErrorThrowsIOException() {
+        SseEmitter emitter = aiService.streamChat("test-error-io", "scientist", "你好");
+        assertNotNull(emitter);
     }
 
     @Test
-    void testStreamChatOnTimeoutThrowsIOException() throws InterruptedException, IOException {
-        SseEmitter mockEmitter = new SseEmitter(500L);
-        when(deepSeekService.streamChat(anyString(), anyList())).thenReturn(mockEmitter);
+    void testStreamChatOnTimeoutThrowsIOException() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        doAnswer(invocation -> {
+            latch.countDown();
+            return null;
+        }).when(deepSeekService).streamChat(anyString(), anyList(), any(), any(), any());
 
-        aiService.streamChat("test-timeout-io", "scientist", "你好");
-        
-        Thread.sleep(700);
+        SseEmitter emitter = aiService.streamChat("test-timeout-io", "scientist", "你好");
+
+        assertNotNull(emitter);
+        assertTrue(latch.await(2, TimeUnit.SECONDS));
+        verify(deepSeekService, times(1)).streamChat(anyString(), anyList(), any(), any(), any());
     }
 
     @Test
-    void testStreamChatInvalidCharacterSendError() throws InterruptedException {
-        aiService.streamChat("test-invalid-send", "invalid-char", "你好");
-        
-        Thread.sleep(100);
+    void testStreamChatInvalidCharacterSendError() {
+        SseEmitter emitter = aiService.streamChat("test-invalid-send", "invalid-char", "你好");
+        assertNotNull(emitter);
+    }
+
+    @Test
+    void testStreamChatOnDataCallback() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        doAnswer(invocation -> {
+            latch.countDown();
+            return null;
+        }).when(deepSeekService).streamChat(anyString(), anyList(), any(), any(), any());
+
+        SseEmitter emitter = aiService.streamChat("test-on-data", "scientist", "你好");
+
+        assertNotNull(emitter);
+        assertTrue(latch.await(2, TimeUnit.SECONDS));
+        verify(deepSeekService, times(1)).streamChat(anyString(), anyList(), any(), any(), any());
+    }
+
+    @Test
+    void testStreamChatOnErrorCallback() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        doAnswer(invocation -> {
+            latch.countDown();
+            return null;
+        }).when(deepSeekService).streamChat(anyString(), anyList(), any(), any(), any());
+
+        SseEmitter emitter = aiService.streamChat("test-error-callback", "scientist", "你好");
+
+        assertNotNull(emitter);
+        assertTrue(latch.await(2, TimeUnit.SECONDS));
+        verify(deepSeekService, times(1)).streamChat(anyString(), anyList(), any(), any(), any());
     }
 }

@@ -1,7 +1,6 @@
 version: '3.8'
 
 services:
-<<<<<<< HEAD
   mysql:
     image: mysql:8.4
     container_name: istudyspot-mysql
@@ -9,7 +8,7 @@ services:
     ports:
       - "3306:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-123456}
       MYSQL_DATABASE: iseatspace
     command: >
       --character-set-server=utf8mb4
@@ -17,7 +16,7 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p123456"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD:-123456}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -26,7 +25,6 @@ services:
     image: redis:7-alpine
     container_name: istudyspot-redis
     restart: always
-    # 不映射端口到宿主机，只在容器网络内访问
     expose:
       - "6379"
     volumes:
@@ -48,9 +46,11 @@ services:
     environment:
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/iseatspace?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
       - SPRING_DATASOURCE_USERNAME=root
-      - SPRING_DATASOURCE_PASSWORD=123456
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-123456}
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_DATA_REDIS_PORT=6379
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-test-key}
+      - DEEPSEEK_API_URL=${DEEPSEEK_API_URL:-https://api.deepseek.com/v1}
     depends_on:
       mysql:
         condition: service_healthy
@@ -66,28 +66,3 @@ services:
 volumes:
   mysql_data:
   redis_data:
-=======
-  backend:
-    build: .
-    ports:
-      - "8080:8080"
-    environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/iseatspace?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
-      - SPRING_DATASOURCE_USERNAME=root
-      - SPRING_DATASOURCE_PASSWORD=123456
-    depends_on:
-      - db
-
-  db:
-    image: mysql:8.0
-    environment:
-      - MYSQL_ROOT_PASSWORD=123456
-      - MYSQL_DATABASE=iseatspace
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysql-data:/var/lib/mysql
-
-volumes:
-  mysql-data:
->>>>>>> d1d4e326aa89a66aefc2f368a5a726a7d2d63cf7

@@ -86,7 +86,27 @@ public class CustomerServiceServiceImpl implements CustomerServiceService {
 
         List<Map<String, String>> messages = buildMessages(sessionId, message);
 
-        return deepSeekService.streamChat("deepseek-chat", messages);
+        SseEmitter emitter = new SseEmitter(300000L);
+
+        deepSeekService.streamChat("deepseek-chat", messages,
+            chunk -> {
+                try {
+                    emitter.send(SseEmitter.event().data(chunk));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            },
+            emitter::complete,
+            e -> {
+                try {
+                    emitter.send(SseEmitter.event().data("{\"type\": \"error\", \"message\": \"STREAM_ERROR\"}"));
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+                emitter.completeWithError(e);
+            });
+
+        return emitter;
     }
 
     @Override
