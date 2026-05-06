@@ -774,4 +774,56 @@ public class AIServiceImplTest {
         
         Thread.sleep(100);
     }
+
+    @Test
+    void testStreamChatOnCompletionThrowsException() throws InterruptedException, IOException {
+        SseEmitter mockEmitter = new SseEmitter();
+        when(deepSeekService.streamChat(anyString(), anyList())).thenReturn(mockEmitter);
+
+        SseEmitter testEmitter = new SseEmitter() {
+            @Override
+            public void complete() {
+                throw new RuntimeException("Complete exception");
+            }
+        };
+
+        aiService.streamChat("test-completion-throw", "scientist", "你好");
+        
+        Thread.sleep(100);
+        
+        mockEmitter.complete();
+        
+        Thread.sleep(100);
+    }
+
+    @Test
+    void testStreamChatOnErrorThrowsIOException() throws InterruptedException, IOException {
+        SseEmitter mockEmitter = new SseEmitter();
+        when(deepSeekService.streamChat(anyString(), anyList())).thenReturn(mockEmitter);
+
+        aiService.streamChat("test-error-io", "scientist", "你好");
+        
+        Thread.sleep(100);
+        
+        mockEmitter.completeWithError(new RuntimeException("Test error"));
+        
+        Thread.sleep(100);
+    }
+
+    @Test
+    void testStreamChatOnTimeoutThrowsIOException() throws InterruptedException, IOException {
+        SseEmitter mockEmitter = new SseEmitter(500L);
+        when(deepSeekService.streamChat(anyString(), anyList())).thenReturn(mockEmitter);
+
+        aiService.streamChat("test-timeout-io", "scientist", "你好");
+        
+        Thread.sleep(700);
+    }
+
+    @Test
+    void testStreamChatInvalidCharacterSendError() throws InterruptedException {
+        aiService.streamChat("test-invalid-send", "invalid-char", "你好");
+        
+        Thread.sleep(100);
+    }
 }
