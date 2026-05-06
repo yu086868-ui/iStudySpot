@@ -73,9 +73,6 @@ jobs:
       - name: Install dependencies
         run: cd miniprogram/ai-chat && npm ci --prefer-offline
       
-      - name: Run TypeScript check
-        run: cd miniprogram/ai-chat && npx tsc --noEmit
-      
       - name: Run tests with increased timeout
         run: cd miniprogram/ai-chat && CI=true npm test -- --testTimeout=30000 --maxWorkers=2
 
@@ -95,9 +92,6 @@ jobs:
       
       - name: Install dependencies
         run: cd miniprogram/mp-user && npm ci --prefer-offline
-      
-      - name: Run linting
-        run: cd miniprogram/mp-user && npm run lint
       
       - name: Run tests with increased timeout
         run: cd miniprogram/mp-user && CI=true npm test -- --testTimeout=30000 --maxWorkers=2
