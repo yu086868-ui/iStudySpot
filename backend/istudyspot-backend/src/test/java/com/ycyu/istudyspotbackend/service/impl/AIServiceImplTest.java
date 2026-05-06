@@ -11,9 +11,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -109,6 +111,8 @@ public class AIServiceImplTest {
     void testStreamChatOnDataCallback() throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
         doAnswer(invocation -> {
+            Consumer<String> onData = invocation.getArgument(2);
+            onData.accept("test chunk");
             latch.countDown();
             return null;
         }).when(deepSeekService).streamChat(anyString(), anyList(), any(), any(), any());
@@ -120,9 +124,27 @@ public class AIServiceImplTest {
     }
 
     @Test
+    void testStreamChatOnCompletion() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        doAnswer(invocation -> {
+            Runnable onComplete = invocation.getArgument(3);
+            onComplete.run();
+            latch.countDown();
+            return null;
+        }).when(deepSeekService).streamChat(anyString(), anyList(), any(), any(), any());
+
+        SseEmitter emitter = aiService.streamChat("test-on-complete", "scientist", "你好");
+        assertNotNull(emitter);
+
+        assertTrue(latch.await(2, TimeUnit.SECONDS));
+    }
+
+    @Test
     void testStreamChatOnErrorCallback() throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
         doAnswer(invocation -> {
+            Consumer<Throwable> onError = invocation.getArgument(4);
+            onError.accept(new RuntimeException("Test error"));
             latch.countDown();
             return null;
         }).when(deepSeekService).streamChat(anyString(), anyList(), any(), any(), any());
@@ -319,6 +341,18 @@ public class AIServiceImplTest {
         assertTrue(prompt.contains("性格：理性严谨"));
         assertTrue(prompt.contains("说话风格：逻辑清晰"));
         assertTrue(prompt.contains("不要提到自己是AI"));
+    }
+
+    @Test
+    void testBuildSystemPromptAllCharacters() {
+        List<Character> characters = aiService.getCharacters();
+        for (Character character : characters) {
+            String prompt = buildSystemPrompt(character);
+            assertNotNull(prompt);
+            assertTrue(prompt.contains(character.getName()));
+            assertTrue(prompt.contains(character.getPersona()));
+            assertTrue(prompt.contains(character.getSpeaking_style()));
+        }
     }
 
     private String buildSystemPrompt(Character character) {

@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -27,10 +27,6 @@ public class CustomerServiceServiceImplTest {
 
     @InjectMocks
     private CustomerServiceServiceImpl customerServiceService;
-
-    @BeforeEach
-    void setUp() {
-    }
 
     @Test
     void testGetWelcomeMessage() {
@@ -221,5 +217,80 @@ public class CustomerServiceServiceImplTest {
         String response = customerServiceService.chatWithCustomerService("test-special", "价格是多少？@#$%");
 
         assertNotNull(response);
+    }
+
+    @Test
+    void testStreamChatWithCustomerServiceOnDataCallback() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        doAnswer(invocation -> {
+            Consumer<String> onData = invocation.getArgument(2);
+            onData.accept("test data");
+            latch.countDown();
+            return null;
+        }).when(deepSeekService).streamChat(anyString(), anyList(), any(), any(), any());
+
+        SseEmitter emitter = customerServiceService.streamChatWithCustomerService("test-stream-data", "你好");
+        assertNotNull(emitter);
+        assertTrue(latch.await(2, TimeUnit.SECONDS));
+    }
+
+    @Test
+    void testStreamChatWithCustomerServiceOnComplete() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        doAnswer(invocation -> {
+            Runnable onComplete = invocation.getArgument(3);
+            onComplete.run();
+            latch.countDown();
+            return null;
+        }).when(deepSeekService).streamChat(anyString(), anyList(), any(), any(), any());
+
+        SseEmitter emitter = customerServiceService.streamChatWithCustomerService("test-stream-complete", "你好");
+        assertNotNull(emitter);
+        assertTrue(latch.await(2, TimeUnit.SECONDS));
+    }
+
+    @Test
+    void testStreamChatWithCustomerServiceOnError() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        doAnswer(invocation -> {
+            Consumer<Throwable> onError = invocation.getArgument(4);
+            onError.accept(new RuntimeException("Test error"));
+            latch.countDown();
+            return null;
+        }).when(deepSeekService).streamChat(anyString(), anyList(), any(), any(), any());
+
+        SseEmitter emitter = customerServiceService.streamChatWithCustomerService("test-stream-error", "你好");
+        assertNotNull(emitter);
+        assertTrue(latch.await(2, TimeUnit.SECONDS));
+    }
+
+    @Test
+    void testBuildMessagesWithHistory() {
+        when(deepSeekService.chat(anyString(), anyList())).thenReturn("回复");
+        
+        customerServiceService.chatWithCustomerService("test-build-messages", "问题1");
+        customerServiceService.chatWithCustomerService("test-build-messages", "问题2");
+
+        List<CustomerServiceMessage> history = customerServiceService.getSessionHistory("test-build-messages");
+        assertEquals(4, history.size());
+    }
+
+    @Test
+    void testSaveMessageWithNullSessionId() {
+        when(deepSeekService.chat(anyString(), anyList())).thenReturn("回复");
+        
+        customerServiceService.chatWithCustomerService(null, "测试消息");
+        
+        List<CustomerServiceMessage> history = customerServiceService.getSessionHistory(null);
+        assertEquals(2, history.size());
+    }
+
+    @Test
+    void testRecommendedQuestionsImmutability() {
+        List<String> questions = customerServiceService.getRecommendedQuestions();
+        
+        assertThrows(UnsupportedOperationException.class, () -> {
+            questions.add("新问题");
+        });
     }
 }
