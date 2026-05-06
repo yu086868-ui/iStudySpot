@@ -301,37 +301,6 @@ public class AIServiceImplTest {
     }
 
     @Test
-    void testChatWithTeacher() {
-        when(deepSeekService.chat(anyString(), anyList())).thenReturn("这个问题提得很好！");
-
-        String response = aiService.chat("test-teacher", "teacher", "如何学习编程？");
-
-        assertNotNull(response);
-        assertTrue(response.contains("很好"));
-        verify(deepSeekService, times(1)).chat(anyString(), anyList());
-    }
-
-    @Test
-    void testChatWithArtist() {
-        when(deepSeekService.chat(anyString(), anyList())).thenReturn("这个问题让我想到了一幅美丽的画面。");
-
-        String response = aiService.chat("test-artist", "artist", "什么是艺术？");
-
-        assertNotNull(response);
-        assertTrue(response.contains("美丽"));
-    }
-
-    @Test
-    void testChatWithCustomerService() {
-        when(deepSeekService.chat(anyString(), anyList())).thenReturn("您好！我是智能助手小i。");
-
-        String response = aiService.chat("test-cs", "customer_service", "你好");
-
-        assertNotNull(response);
-        assertTrue(response.contains("小i"));
-    }
-
-    @Test
     void testBuildSystemPrompt() {
         Character scientist = new Character("scientist", "科学家", "理性严谨", "逻辑清晰");
         String prompt = buildSystemPrompt(scientist);
@@ -370,4 +339,36 @@ public class AIServiceImplTest {
                 "\n" +
                 "请根据对话继续交流。";
     }
-}
+
+    @Test
+    void testChatWithTeacher() {
+        when(deepSeekService.chat(anyString(), anyList())).thenReturn("这个问题提得很好！");
+
+        String response = aiService.chat("test-teacher", "teacher", "如何学习编程？");
+
+        assertNotNull(response);
+        assertTrue(response.contains("很好"));
+        verify(deepSeekService, times(1)).chat(anyString(), anyList());
+    }
+
+    @Test
+    void testChatWithArtist() {
+        when(deepSeekService.chat(anyString(), anyList())).thenReturn("这个问题让我想到了一幅美丽的画面。");
+
+        String response = aiService.chat("test-artist", "artist", "什么是艺术？");
+
+        assertNotNull(response);
+        assertTrue(response.contains("美丽"));
+    }
+
+    @Test
+    void testChatWithCustomerService() {
+        when(deepSeekService.chat(anyString(), anyList())).thenReturn("您好！我是智能助手小i。");
+
+        String response = aiService.chat("test-cs", "customer_service", "你好");
+
+        assertNotNull(response);
+        assertTrue(response.contains("小i"));
+    }
+
+    }
