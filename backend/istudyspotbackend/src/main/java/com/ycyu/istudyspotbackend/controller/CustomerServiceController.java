@@ -1,5 +1,6 @@
 package com.ycyu.istudyspotbackend.controller;
 
+import com.ycyu.istudyspotbackend.entity.CustomerServiceMessage;
 import com.ycyu.istudyspotbackend.service.CustomerServiceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -7,8 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -45,39 +46,63 @@ public class CustomerServiceController {
             result.put("response", response);
             return new ResponseEntity<>(result, HttpStatus.OK);
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "INTERNAL_ERROR", "detail", e.getMessage()));
+                    .body(Map.of("error", "INTERNAL_ERROR"));
         }
     }
 
     @PostMapping("/chat/stream")
     public SseEmitter streamChatWithCustomerService(
-            @RequestBody Map<String, String> request) throws IOException {
-        String sessionId = request.get("sessionId");
-        String message = request.get("message");
+            @RequestBody Map<String, String> request) {
+        try {
+            String sessionId = request.get("sessionId");
+            String message = request.get("message");
 
-        if (sessionId == null || sessionId.isEmpty()) {
+            if (sessionId == null || sessionId.isEmpty()) {
+                SseEmitter emitter = new SseEmitter();
+                try {
+                    emitter.send(SseEmitter.event().data("{\"type\": \"error\", \"message\": \"EMPTY_SESSION_ID\"}"));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                emitter.complete();
+                return emitter;
+            }
+            if (message == null || message.isEmpty()) {
+                SseEmitter emitter = new SseEmitter();
+                try {
+                    emitter.send(SseEmitter.event().data("{\"type\": \"error\", \"message\": \"EMPTY_MESSAGE\"}"));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                emitter.complete();
+                return emitter;
+            }
+
+            return customerServiceService.streamChatWithCustomerService(sessionId, message);
+        } catch (Exception e) {
             SseEmitter emitter = new SseEmitter();
-            emitter.send(SseEmitter.event().data("{\"type\": \"error\", \"message\": \"EMPTY_SESSION_ID\"}"));
+            try {
+                emitter.send(SseEmitter.event().data("{\"type\": \"error\", \"message\": \"INTERNAL_ERROR\"}"));
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
             emitter.complete();
             return emitter;
         }
-        if (message == null || message.isEmpty()) {
-            SseEmitter emitter = new SseEmitter();
-            emitter.send(SseEmitter.event().data("{\"type\": \"error\", \"message\": \"EMPTY_MESSAGE\"}"));
-            emitter.complete();
-            return emitter;
-        }
-
-        return customerServiceService.streamChatWithCustomerService(sessionId, message);
     }
 
     @GetMapping("/history")
     public ResponseEntity<Map<String, Object>> getSessionHistory(
             @RequestParam String sessionId) {
-        Map<String, Object> result = new HashMap<>();
-        result.put("messages", customerServiceService.getSessionHistory(sessionId));
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        try {
+            List<CustomerServiceMessage> messages = customerServiceService.getSessionHistory(sessionId);
+            Map<String, Object> result = new HashMap<>();
+            result.put("messages", messages);
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "INTERNAL_ERROR"));
+        }
     }
 }
