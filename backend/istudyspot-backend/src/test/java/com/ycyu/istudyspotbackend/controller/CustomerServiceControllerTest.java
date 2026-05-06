@@ -36,20 +36,16 @@ public class CustomerServiceControllerTest {
 
     @Test
     public void testGetWelcomeInfo() {
-        // 准备测试数据
         String expectedWelcomeMessage = "Welcome to customer service!";
         ArrayList<String> expectedRecommendedQuestions = new ArrayList<>();
         expectedRecommendedQuestions.add("How to book a seat?");
         expectedRecommendedQuestions.add("What are the opening hours?");
 
-        // 模拟服务方法
         when(customerServiceService.getWelcomeMessage()).thenReturn(expectedWelcomeMessage);
         when(customerServiceService.getRecommendedQuestions()).thenReturn(expectedRecommendedQuestions);
 
-        // 调用控制器方法
         ResponseEntity<Map<String, Object>> response = customerServiceController.getWelcomeInfo();
 
-        // 验证结果
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(expectedWelcomeMessage, response.getBody().get("welcomeMessage"));
@@ -60,18 +56,18 @@ public class CustomerServiceControllerTest {
 
     @Test
     public void testChatWithCustomerService() {
-        // 准备测试数据
         String sessionId = "session123";
         String message = "Test message";
         String expectedResponse = "Hello, how can I help you?";
 
-        // 模拟服务方法
         when(customerServiceService.chatWithCustomerService(sessionId, message)).thenReturn(expectedResponse);
 
-        // 调用控制器方法
-        ResponseEntity<Map<String, Object>> response = customerServiceController.chatWithCustomerService(sessionId, message);
+        Map<String, String> request = new HashMap<>();
+        request.put("sessionId", sessionId);
+        request.put("message", message);
 
-        // 验证结果
+        ResponseEntity<Map<String, Object>> response = customerServiceController.chatWithCustomerService(request);
+
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(expectedResponse, response.getBody().get("response"));
@@ -79,26 +75,49 @@ public class CustomerServiceControllerTest {
     }
 
     @Test
+    public void testChatWithCustomerServiceEmptySessionId() {
+        Map<String, String> request = new HashMap<>();
+        request.put("sessionId", "");
+        request.put("message", "Test message");
+
+        ResponseEntity<Map<String, Object>> response = customerServiceController.chatWithCustomerService(request);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("EMPTY_SESSION_ID", response.getBody().get("error"));
+    }
+
+    @Test
+    public void testChatWithCustomerServiceEmptyMessage() {
+        Map<String, String> request = new HashMap<>();
+        request.put("sessionId", "session123");
+        request.put("message", "");
+
+        ResponseEntity<Map<String, Object>> response = customerServiceController.chatWithCustomerService(request);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("EMPTY_MESSAGE", response.getBody().get("error"));
+    }
+
+    @Test
     public void testStreamChatWithCustomerService() throws IOException {
-        // 准备测试数据
         String sessionId = "session123";
         String message = "Test message";
         SseEmitter expectedEmitter = new SseEmitter();
 
-        // 模拟服务方法
         when(customerServiceService.streamChatWithCustomerService(sessionId, message)).thenReturn(expectedEmitter);
 
-        // 调用控制器方法
-        SseEmitter emitter = customerServiceController.streamChatWithCustomerService(sessionId, message);
+        Map<String, String> request = new HashMap<>();
+        request.put("sessionId", sessionId);
+        request.put("message", message);
 
-        // 验证结果
+        SseEmitter emitter = customerServiceController.streamChatWithCustomerService(request);
+
         assertNotNull(emitter);
         verify(customerServiceService, times(1)).streamChatWithCustomerService(sessionId, message);
     }
 
     @Test
     public void testGetSessionHistory() {
-        // 准备测试数据
         String sessionId = "session123";
         List<CustomerServiceMessage> expectedMessages = new ArrayList<>();
         CustomerServiceMessage message1 = new CustomerServiceMessage();
@@ -110,17 +129,13 @@ public class CustomerServiceControllerTest {
         message2.setContent("How can I help you?");
         expectedMessages.add(message2);
 
-        // 模拟服务方法
         when(customerServiceService.getSessionHistory(sessionId)).thenReturn(expectedMessages);
 
-        // 调用控制器方法
         ResponseEntity<Map<String, Object>> response = customerServiceController.getSessionHistory(sessionId);
 
-        // 验证结果
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(expectedMessages, response.getBody().get("messages"));
         verify(customerServiceService, times(1)).getSessionHistory(sessionId);
     }
 }
-

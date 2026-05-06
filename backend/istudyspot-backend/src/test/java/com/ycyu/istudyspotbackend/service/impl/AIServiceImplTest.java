@@ -26,42 +26,40 @@ public class AIServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        // 初始化测试环境
     }
 
     @Test
     void testGetCharacters() {
-        // 测试获取角色列表
         List<Character> characters = aiService.getCharacters();
 
-        // 验证结果
         assertNotNull(characters);
         assertFalse(characters.isEmpty());
-        assertEquals(3, characters.size());
+        assertEquals(4, characters.size());
     }
 
     @Test
     void testGetCharacter() {
-        // 测试获取角色
         Character character = aiService.getCharacter("scientist");
         assertNotNull(character);
         assertEquals("scientist", character.getId());
         assertEquals("科学家", character.getName());
 
-        // 测试获取不存在的角色
+        Character character2 = aiService.getCharacter("customer_service");
+        assertNotNull(character2);
+        assertEquals("customer_service", character2.getId());
+        assertEquals("小i", character2.getName());
+
         Character nonExistentCharacter = aiService.getCharacter("non-existent");
         assertNull(nonExistentCharacter);
     }
 
     @Test
     void testGetOrCreateSession() {
-        // 测试获取或创建会话
         Session session = aiService.getOrCreateSession("test-session-123", "scientist");
         assertNotNull(session);
         assertEquals("test-session-123", session.getSession_id());
         assertEquals("scientist", session.getCharacter_id());
 
-        // 测试获取已存在的会话
         Session existingSession = aiService.getOrCreateSession("test-session-123", "scientist");
         assertNotNull(existingSession);
         assertSame(session, existingSession);
@@ -69,17 +67,17 @@ public class AIServiceImplTest {
 
     @Test
     void testChat() {
-        // 测试与角色聊天
+        when(deepSeekService.chat(anyString(), anyList())).thenReturn("从科学的角度来看，这个问题涉及到多个领域的知识。");
+
         String response = aiService.chat("test-session-123", "scientist", "你好");
 
-        // 验证结果
         assertNotNull(response);
         assertTrue(response.contains("科学"));
+        verify(deepSeekService, times(1)).chat(anyString(), anyList());
     }
 
     @Test
     void testChatWithInvalidCharacter() {
-        // 测试与不存在的角色聊天
         assertThrows(IllegalArgumentException.class, () -> {
             aiService.chat("test-session-123", "non-existent", "你好");
         });
@@ -87,14 +85,12 @@ public class AIServiceImplTest {
 
     @Test
     void testStreamChat() {
-        // 测试流式聊天
         SseEmitter emitter = aiService.streamChat("test-session-123", "scientist", "你好");
         assertNotNull(emitter);
     }
 
     @Test
     void testStreamChatWithInvalidCharacter() {
-        // 测试与不存在的角色流式聊天
         SseEmitter emitter = aiService.streamChat("test-session-123", "non-existent", "你好");
         assertNotNull(emitter);
     }

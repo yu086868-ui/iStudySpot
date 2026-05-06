@@ -45,7 +45,7 @@ public class CustomerServiceServiceImplTest {
         // 验证结果
         assertNotNull(recommendedQuestions);
         assertFalse(recommendedQuestions.isEmpty());
-        assertEquals(4, recommendedQuestions.size());
+        assertEquals(8, recommendedQuestions.size());
     }
 
     @Test
