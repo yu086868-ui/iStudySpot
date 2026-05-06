@@ -11,6 +11,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +41,7 @@ public class AIServiceImpl implements AIService {
 
     @Override
     public List<Character> getCharacters() {
-        return characters;
+        return Collections.unmodifiableList(characters);
     }
 
     @Override

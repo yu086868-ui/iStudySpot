@@ -14,6 +14,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.io.IOException;
 import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
@@ -235,5 +236,216 @@ public class AIServiceImplTest {
         List<Message> recentMessages = session.getRecentMessages(100);
 
         assertEquals(4, recentMessages.size());
+    }
+
+    @Test
+    void testStreamChatWithAllCharacters() {
+        String[] characterIds = {"scientist", "teacher", "artist", "customer_service"};
+        
+        for (String characterId : characterIds) {
+            SseEmitter emitter = aiService.streamChat("test-stream-" + characterId, characterId, "你好");
+            assertNotNull(emitter);
+        }
+    }
+
+    @Test
+    void testBuildSystemPrompt() {
+        Character scientist = new Character("scientist", "科学家", "理性严谨", "逻辑清晰");
+        
+        String prompt = buildSystemPrompt(scientist);
+        
+        assertNotNull(prompt);
+        assertTrue(prompt.contains("角色名称：科学家"));
+        assertTrue(prompt.contains("性格：理性严谨"));
+        assertTrue(prompt.contains("说话风格：逻辑清晰"));
+        assertTrue(prompt.contains("不要提到自己是AI"));
+    }
+
+    @Test
+    void testBuildSystemPromptWithAllCharacterTypes() {
+        List<Character> characters = aiService.getCharacters();
+        
+        for (Character character : characters) {
+            String prompt = buildSystemPrompt(character);
+            
+            assertNotNull(prompt);
+            assertTrue(prompt.contains(character.getName()));
+            assertTrue(prompt.contains(character.getPersona()));
+            assertTrue(prompt.contains(character.getSpeaking_style()));
+        }
+    }
+
+    private String buildSystemPrompt(Character character) {
+        return "你正在扮演一个角色，请严格遵守以下设定：\n" +
+                "\n" +
+                "角色名称：" + character.getName() + "\n" +
+                "性格：" + character.getPersona() + "\n" +
+                "说话风格：" + character.getSpeaking_style() + "\n" +
+                "\n" +
+                "要求：\n" +
+                "- 始终保持角色语气\n" +
+                "- 不要提到自己是AI\n" +
+                "- 不要跳出角色\n" +
+                "- 回答要友好、有帮助\n" +
+                "\n" +
+                "请根据对话继续交流。";
+    }
+
+    @Test
+    void testChatWithMultipleMessages() {
+        when(deepSeekService.chat(anyString(), anyList()))
+                .thenReturn("回复1")
+                .thenReturn("回复2")
+                .thenReturn("回复3");
+
+        aiService.chat("test-multi", "scientist", "问题1");
+        aiService.chat("test-multi", "scientist", "问题2");
+        aiService.chat("test-multi", "scientist", "问题3");
+
+        Session session = aiService.getOrCreateSession("test-multi", "scientist");
+        assertEquals(6, session.getMessages().size());
+    }
+
+    @Test
+    void testChatBuildsCorrectMessages() {
+        when(deepSeekService.chat(anyString(), anyList())).thenReturn("回复");
+
+        aiService.chat("test-messages", "scientist", "你好");
+
+        Session session = aiService.getOrCreateSession("test-messages", "scientist");
+        List<Message> messages = session.getMessages();
+
+        assertEquals(2, messages.size());
+        assertEquals("user", messages.get(0).getRole());
+        assertEquals("你好", messages.get(0).getContent());
+        assertEquals("assistant", messages.get(1).getRole());
+        assertEquals("回复", messages.get(1).getContent());
+    }
+
+    @Test
+    void testStreamChatCompletion() {
+        SseEmitter emitter = aiService.streamChat("test-completion", "scientist", "测试完成");
+        
+        assertNotNull(emitter);
+    }
+
+    @Test
+    void testSessionMessagesLimit() {
+        when(deepSeekService.chat(anyString(), anyList())).thenReturn("回复");
+
+        for (int i = 0; i < 25; i++) {
+            aiService.chat("test-limit", "scientist", "问题" + i);
+        }
+
+        Session session = aiService.getOrCreateSession("test-limit", "scientist");
+        List<Message> recentMessages = session.getRecentMessages(10);
+        
+        assertEquals(10, recentMessages.size());
+    }
+
+    @Test
+    void testChatWithNullMessage() {
+        when(deepSeekService.chat(anyString(), anyList())).thenReturn("好的。");
+
+        String response = aiService.chat("test-null", "scientist", null);
+
+        assertNotNull(response);
+    }
+
+    @Test
+    void testStreamChatWithDeepSeekServiceMock() throws IOException, InterruptedException {
+        SseEmitter mockEmitter = new SseEmitter();
+        when(deepSeekService.streamChat(anyString(), anyList())).thenReturn(mockEmitter);
+
+        SseEmitter emitter = aiService.streamChat("test-deepseek-mock", "scientist", "你好");
+
+        assertNotNull(emitter);
+        
+        Thread.sleep(100);
+        
+        verify(deepSeekService, times(1)).streamChat(anyString(), anyList());
+    }
+
+    @Test
+    void testStreamChatInvalidCharacter() {
+        SseEmitter emitter = aiService.streamChat("test-invalid-char", "non-existent", "你好");
+        assertNotNull(emitter);
+    }
+
+    @Test
+    void testStreamChatWithEmptySessionId() {
+        SseEmitter emitter = aiService.streamChat("", "scientist", "你好");
+        assertNotNull(emitter);
+    }
+
+    @Test
+    void testStreamChatWithNullSessionId() {
+        SseEmitter emitter = aiService.streamChat(null, "scientist", "你好");
+        assertNotNull(emitter);
+    }
+
+    @Test
+    void testStreamChatWithNullMessage() {
+        SseEmitter emitter = aiService.streamChat("test-null-msg", "scientist", null);
+        assertNotNull(emitter);
+    }
+
+    @Test
+    void testMultipleSessions() {
+        when(deepSeekService.chat(anyString(), anyList())).thenReturn("回复");
+
+        aiService.chat("session-a", "scientist", "问题A");
+        aiService.chat("session-b", "teacher", "问题B");
+        aiService.chat("session-a", "scientist", "问题A2");
+
+        Session sessionA = aiService.getOrCreateSession("session-a", "scientist");
+        Session sessionB = aiService.getOrCreateSession("session-b", "teacher");
+
+        assertEquals(4, sessionA.getMessages().size());
+        assertEquals(2, sessionB.getMessages().size());
+        assertNotSame(sessionA, sessionB);
+    }
+
+    @Test
+    void testSwitchCharacterInSession() {
+        when(deepSeekService.chat(anyString(), anyList())).thenReturn("回复");
+
+        aiService.chat("session-switch", "scientist", "问题1");
+        
+        Session session = aiService.getOrCreateSession("session-switch", "teacher");
+        assertEquals("scientist", session.getCharacter_id());
+    }
+
+    @Test
+    void testChatWithVeryLongMessage() {
+        when(deepSeekService.chat(anyString(), anyList())).thenReturn("好的，我明白了。");
+
+        String longMessage = "我想预订一个自习室座位，但是不知道该怎么操作。我看到你们有普通座、VIP座和学习包间，请问它们之间有什么区别？价格分别是多少？另外，我还有一些积分，不知道能不能用？如果预订了之后临时有事不能去，能不能取消或者改期？";
+        
+        String response = aiService.chat("test-long", "customer_service", longMessage);
+
+        assertNotNull(response);
+    }
+
+    @Test
+    void testCharacterListImmutability() {
+        List<Character> characters = aiService.getCharacters();
+        
+        assertThrows(UnsupportedOperationException.class, () -> {
+            characters.add(new Character("new-char", "新角色", "性格", "风格"));
+        });
+    }
+
+    @Test
+    void testBuildSystemPromptFormat() {
+        Character character = new Character("test", "测试角色", "测试性格", "测试风格");
+        
+        String prompt = buildSystemPrompt(character);
+        
+        assertTrue(prompt.contains("角色名称：测试角色"));
+        assertTrue(prompt.contains("性格：测试性格"));
+        assertTrue(prompt.contains("说话风格：测试风格"));
+        assertTrue(prompt.contains("不要提到自己是AI"));
+        assertTrue(prompt.contains("始终保持角色语气"));
     }
 }
