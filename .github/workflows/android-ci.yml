@@ -39,7 +39,7 @@ jobs:
       run: ./gradlew jacocoTestReport
 
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v6
       with:
         files: ./app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
         flags: android

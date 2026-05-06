@@ -49,7 +49,7 @@ jobs:
         run: cd backend/istudyspot-backend && mvn -B clean test jacoco:report
       
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: backend/istudyspot-backend/target/site/jacoco/jacoco.xml
