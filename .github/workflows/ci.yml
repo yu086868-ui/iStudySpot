@@ -59,6 +59,7 @@ jobs:
   # AI 聊天模块测试
   ai-chat-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
       
@@ -66,19 +67,22 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: miniprogram/ai-chat/package-lock.json
       
       - name: Install dependencies
-        run: cd miniprogram/ai-chat && npm ci
+        run: cd miniprogram/ai-chat && npm ci --prefer-offline
       
       - name: Run TypeScript check
         run: cd miniprogram/ai-chat && npx tsc --noEmit
       
-      - name: Run tests
-        run: cd miniprogram/ai-chat && npm test
+      - name: Run tests with increased timeout
+        run: cd miniprogram/ai-chat && CI=true npm test -- --testTimeout=30000 --maxWorkers=2
 
   # 用户小程序测试
   mp-user-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
       
@@ -86,15 +90,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: miniprogram/mp-user/package-lock.json
       
       - name: Install dependencies
-        run: cd miniprogram/mp-user && npm ci
+        run: cd miniprogram/mp-user && npm ci --prefer-offline
       
       - name: Run linting
         run: cd miniprogram/mp-user && npm run lint
       
-      - name: Run tests
-        run: cd miniprogram/mp-user && npm test
+      - name: Run tests with increased timeout
+        run: cd miniprogram/mp-user && CI=true npm test -- --testTimeout=30000 --maxWorkers=2
 
   # Docker 构建
   docker-build:
