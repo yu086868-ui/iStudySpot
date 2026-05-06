@@ -74,7 +74,15 @@ jobs:
         run: cd miniprogram/ai-chat && npm ci --prefer-offline
       
       - name: Run tests with increased timeout
-        run: cd miniprogram/ai-chat && CI=true npm test -- --testTimeout=30000 --maxWorkers=2
+        run: cd miniprogram/ai-chat && CI=true npm test -- --testTimeout=30000 --maxWorkers=2 --coverage
+      
+      - name: Upload ai-chat coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: miniprogram/ai-chat/coverage/lcov.info
+          flags: ai-chat
+          name: ai-chat-coverage
 
   # 用户小程序测试
   mp-user-test:
@@ -94,7 +102,15 @@ jobs:
         run: cd miniprogram/mp-user && npm ci --prefer-offline
       
       - name: Run tests with increased timeout
-        run: cd miniprogram/mp-user && CI=true npm test -- --testTimeout=30000 --maxWorkers=2
+        run: cd miniprogram/mp-user && CI=true npm test -- --testTimeout=30000 --maxWorkers=2 --coverage
+      
+      - name: Upload mp-user coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: miniprogram/mp-user/coverage/lcov.info
+          flags: mp-user
+          name: mp-user-coverage
 
   # Docker 构建
   docker-build:
