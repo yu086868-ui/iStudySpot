@@ -277,4 +277,63 @@ public class AIServiceImplTest {
             characters.add(new Character("new-char", "新角色", "性格", "风格"));
         });
     }
+
+    @Test
+    void testChatWithTeacher() {
+        when(deepSeekService.chat(anyString(), anyList())).thenReturn("这个问题提得很好！");
+
+        String response = aiService.chat("test-teacher", "teacher", "如何学习编程？");
+
+        assertNotNull(response);
+        assertTrue(response.contains("很好"));
+        verify(deepSeekService, times(1)).chat(anyString(), anyList());
+    }
+
+    @Test
+    void testChatWithArtist() {
+        when(deepSeekService.chat(anyString(), anyList())).thenReturn("这个问题让我想到了一幅美丽的画面。");
+
+        String response = aiService.chat("test-artist", "artist", "什么是艺术？");
+
+        assertNotNull(response);
+        assertTrue(response.contains("美丽"));
+    }
+
+    @Test
+    void testChatWithCustomerService() {
+        when(deepSeekService.chat(anyString(), anyList())).thenReturn("您好！我是智能助手小i。");
+
+        String response = aiService.chat("test-cs", "customer_service", "你好");
+
+        assertNotNull(response);
+        assertTrue(response.contains("小i"));
+    }
+
+    @Test
+    void testBuildSystemPrompt() {
+        Character scientist = new Character("scientist", "科学家", "理性严谨", "逻辑清晰");
+        String prompt = buildSystemPrompt(scientist);
+
+        assertNotNull(prompt);
+        assertTrue(prompt.contains("角色名称：科学家"));
+        assertTrue(prompt.contains("性格：理性严谨"));
+        assertTrue(prompt.contains("说话风格：逻辑清晰"));
+        assertTrue(prompt.contains("不要提到自己是AI"));
+    }
+
+    private String buildSystemPrompt(Character character) {
+        return "你正在扮演一个角色，请严格遵守以下设定：\n" +
+                "\n" +
+                "角色名称：" + character.getName() + "\n" +
+                "性格：" + character.getPersona() + "\n" +
+                "说话风格：" + character.getSpeaking_style() + "\n" +
+                "\n" +
+                "要求：\n" +
+                "- 始终保持角色语气\n" +
+                "- 不要提到自己是AI\n" +
+                "- 不要跳出角色\n" +
+                "- 回答要友好、有帮助\n" +
+                "\n" +
+                "请根据对话继续交流。";
+    }
 }
