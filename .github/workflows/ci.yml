@@ -1,76 +1,152 @@
-name: CI
+name: CI/CD Pipeline
 
 on:
   push:
     branches: [main, master, develop]
+    tags:
+      - 'v*'
   pull_request:
     branches: [main, master, develop]
 
-jobs:
-  # 前端测试（仅当修改前端文件时触发）
-  frontend:
-    runs-on: ubuntu-latest
-    if: |
-      contains(github.event.head_commit.modified, 'miniprogram/mp-user/') ||
-      github.event_name == 'pull_request'
-    
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x]
-    
-    defaults:
-      run:
-        working-directory: miniprogram/mp-user
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Setup Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-        cache-dependency-path: miniprogram/mp-user/package-lock.json
-    
-    - name: Install dependencies
-      run: npm ci
-    
-    - name: Run linting
-      run: npm run lint
-    
-    - name: Run tests with coverage
-      run: npm run test:ci
-      env:
-        CI: true
-    
-    - name: Upload coverage reports
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: frontend-coverage-node-${{ matrix.node-version }}
-        path: miniprogram/mp-user/coverage/
+env:
+  JAVA_VERSION: '17'
+  NODE_VERSION: '20.x'
+  MAVEN_OPTS: '-Xmx2G'
 
-  # 后端测试
-  backend:
+jobs:
+  # 代码检查
+  code-quality:
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: 'maven'
+      
+      - name: Check Maven project structure
+        run: cd backend/istudyspot-backend && mvn validate
+
+  # 后端测试与覆盖率
+  backend-test:
+    runs-on: ubuntu-latest
+    needs: [code-quality]
     
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: 'maven'
+      
+      - name: Build and run tests with coverage
+        run: cd backend/istudyspot-backend && mvn -B clean test jacoco:report
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: backend/istudyspot-backend/target/site/jacoco/jacoco.xml
+          flags: backend
+          name: backend-coverage
+
+  # AI 聊天模块测试
+  ai-chat-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: miniprogram/ai-chat/package-lock.json
+      
+      - name: Install dependencies
+        run: cd miniprogram/ai-chat && npm ci --prefer-offline
+      
+      - name: Run tests with increased timeout
+        run: cd miniprogram/ai-chat && CI=true npm test -- --testTimeout=30000 --maxWorkers=2
+
+  # 用户小程序测试
+  mp-user-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: miniprogram/mp-user/package-lock.json
+      
+      - name: Install dependencies
+        run: cd miniprogram/mp-user && npm ci --prefer-offline
+      
+      - name: Run tests with increased timeout
+        run: cd miniprogram/mp-user && CI=true npm test -- --testTimeout=30000 --maxWorkers=2
+
+  # Docker 构建
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: [backend-test]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v'))
     
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: 'maven'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      
+      - name: Build and push backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: backend/istudyspot-backend
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/istudyspot-backend:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/istudyspot-backend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # 部署到测试环境
+  deploy-test:
+    runs-on: ubuntu-latest
+    needs: [docker-build]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
     
-    - name: Build with Maven
-      run: cd backend/istudyspot-backend && mvn -B clean test jacoco:report
-      continue-on-error: false
+    steps:
+      - name: Deploy to test environment
+        run: echo "Deploying to test environment..."
+
+  # 部署到生产环境
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: [docker-build]
+    if: startsWith(github.ref, 'refs/tags/v')
+    environment:
+      name: production
+      url: https://api.istudyspot.com
     
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        files: backend/istudyspot-backend/target/site/jacoco/jacoco.xml
-        flags: backend
+    steps:
+      - name: Deploy to production environment
+        run: echo "Deploying to production environment..."

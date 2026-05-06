@@ -1,0 +1,54 @@
+codecov:
+  token: ${{ secrets.CODECOV_TOKEN }}
+
+coverage:
+  status:
+    project:
+      default:
+        target: 80%
+        threshold: 5%
+        base: auto
+    patch:
+      default:
+        target: 80%
+        threshold: 10%
+
+comment:
+  layout: "reach,diff,flags,files"
+  behavior: default
+  require_changes: false
+
+flags:
+  backend:
+    paths:
+      - "backend/istudyspot-backend/"
+    carryforward: true
+  ai-chat:
+    paths:
+      - "miniprogram/ai-chat/"
+    carryforward: true
+  mp-user:
+    paths:
+      - "miniprogram/mp-user/"
+    carryforward: true
+
+ignore:
+  - "**/config/"
+  - "**/dto/"
+  - "**/entity/"
+  - "**/mapper/"
+  - "**/controller/"
+  - "**/IstudyspotBackendApplication.java"
+
+parsers:
+  java:
+    branch_detection:
+      conditional: true
+      loop: true
+      method: false
+      exception: true
+
+reports:
+  - "backend/istudyspot-backend/target/site/jacoco/jacoco.xml"
+  - "miniprogram/ai-chat/coverage/coverage-final.json"
+  - "miniprogram/mp-user/coverage/coverage-final.json"
