@@ -448,4 +448,134 @@ public class AIServiceImplTest {
         assertTrue(prompt.contains("不要提到自己是AI"));
         assertTrue(prompt.contains("始终保持角色语气"));
     }
+
+    @Test
+    void testStreamChatOnCompletion() throws IOException, InterruptedException {
+        SseEmitter mockEmitter = new SseEmitter();
+        when(deepSeekService.streamChat(anyString(), anyList())).thenReturn(mockEmitter);
+
+        SseEmitter emitter = aiService.streamChat("test-completion", "scientist", "你好");
+        
+        assertNotNull(emitter);
+        
+        Thread.sleep(100);
+        
+        mockEmitter.complete();
+        
+        Thread.sleep(100);
+        
+        verify(deepSeekService, times(1)).streamChat(anyString(), anyList());
+    }
+
+    @Test
+    void testStreamChatOnError() throws IOException, InterruptedException {
+        SseEmitter mockEmitter = new SseEmitter();
+        when(deepSeekService.streamChat(anyString(), anyList())).thenReturn(mockEmitter);
+
+        SseEmitter emitter = aiService.streamChat("test-error", "scientist", "你好");
+        
+        assertNotNull(emitter);
+        
+        Thread.sleep(100);
+        
+        mockEmitter.completeWithError(new RuntimeException("Test error"));
+        
+        Thread.sleep(100);
+        
+        verify(deepSeekService, times(1)).streamChat(anyString(), anyList());
+    }
+
+    @Test
+    void testStreamChatOnTimeout() throws IOException, InterruptedException {
+        SseEmitter mockEmitter = new SseEmitter(500L);
+        when(deepSeekService.streamChat(anyString(), anyList())).thenReturn(mockEmitter);
+
+        SseEmitter emitter = aiService.streamChat("test-timeout", "scientist", "你好");
+        
+        assertNotNull(emitter);
+        
+        Thread.sleep(700);
+        
+        verify(deepSeekService, times(1)).streamChat(anyString(), anyList());
+    }
+
+    @Test
+    void testStreamChatInternalError() throws IOException, InterruptedException {
+        when(deepSeekService.streamChat(anyString(), anyList())).thenThrow(new RuntimeException("Internal error"));
+
+        SseEmitter emitter = aiService.streamChat("test-internal-error", "scientist", "你好");
+        
+        assertNotNull(emitter);
+        
+        Thread.sleep(100);
+        
+        verify(deepSeekService, times(1)).streamChat(anyString(), anyList());
+    }
+
+    @Test
+    void testStreamChatWithAllCharacterTypes() {
+        List<Character> characters = aiService.getCharacters();
+        
+        for (Character character : characters) {
+            SseEmitter emitter = aiService.streamChat("test-char-" + character.getId(), character.getId(), "你好");
+            assertNotNull(emitter);
+        }
+    }
+
+    @Test
+    void testChatWithEmptySessionId() {
+        when(deepSeekService.chat(anyString(), anyList())).thenReturn("好的。");
+
+        String response = aiService.chat("", "scientist", "你好");
+        
+        assertNotNull(response);
+    }
+
+    @Test
+    void testChatWithNullSessionId() {
+        when(deepSeekService.chat(anyString(), anyList())).thenReturn("好的。");
+
+        String response = aiService.chat(null, "scientist", "你好");
+        
+        assertNotNull(response);
+    }
+
+    @Test
+    void testGetOrCreateSessionWithNullSessionId() {
+        Session session = aiService.getOrCreateSession(null, "scientist");
+        
+        assertNotNull(session);
+        assertNull(session.getSession_id());
+        assertEquals("scientist", session.getCharacter_id());
+    }
+
+    @Test
+    void testGetOrCreateSessionWithEmptySessionId() {
+        Session session = aiService.getOrCreateSession("", "teacher");
+        
+        assertNotNull(session);
+        assertEquals("", session.getSession_id());
+        assertEquals("teacher", session.getCharacter_id());
+    }
+
+    @Test
+    void testChatMessageBuilding() {
+        when(deepSeekService.chat(anyString(), anyList())).thenReturn("回复");
+
+        aiService.chat("test-message-build", "scientist", "问题1");
+        aiService.chat("test-message-build", "scientist", "问题2");
+
+        Session session = aiService.getOrCreateSession("test-message-build", "scientist");
+        List<Message> messages = session.getMessages();
+        
+        assertEquals(4, messages.size());
+        assertEquals("user", messages.get(0).getRole());
+        assertEquals("问题1", messages.get(0).getContent());
+        assertEquals("assistant", messages.get(1).getRole());
+        assertEquals("回复", messages.get(1).getContent());
+        assertEquals("user", messages.get(2).getRole());
+        assertEquals("问题2", messages.get(2).getContent());
+        assertEquals("assistant", messages.get(3).getRole());
+        assertEquals("回复", messages.get(3).getContent());
+    }
 }
