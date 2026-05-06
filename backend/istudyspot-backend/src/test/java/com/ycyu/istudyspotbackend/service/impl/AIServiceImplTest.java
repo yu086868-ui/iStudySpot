@@ -371,4 +371,32 @@ public class AIServiceImplTest {
         assertTrue(response.contains("小i"));
     }
 
+    @Test
+    void testStreamChatWithOnErrorCallback() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        doAnswer(invocation -> {
+            Consumer<Throwable> onError = invocation.getArgument(4);
+            onError.accept(new RuntimeException("Test error"));
+            latch.countDown();
+            return null;
+        }).when(deepSeekService).streamChat(anyString(), anyList(), any(), any(), any());
+
+        SseEmitter emitter = aiService.streamChat("test-on-error-callback", "scientist", "你好");
+        assertNotNull(emitter);
+
+        assertTrue(latch.await(2, TimeUnit.SECONDS));
+    }
+
+    @Test
+    void testStreamChatWithNullCharacterId() {
+        SseEmitter emitter = aiService.streamChat("test-null-char", null, "你好");
+        assertNotNull(emitter);
+    }
+
+    @Test
+    void testStreamChatWithEmptyCharacterId() {
+        SseEmitter emitter = aiService.streamChat("test-empty-char", "", "你好");
+        assertNotNull(emitter);
+    }
+
     }
