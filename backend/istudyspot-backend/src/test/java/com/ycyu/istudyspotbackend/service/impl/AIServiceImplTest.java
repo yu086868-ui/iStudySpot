@@ -578,4 +578,92 @@ public class AIServiceImplTest {
         assertEquals("assistant", messages.get(3).getRole());
         assertEquals("回复", messages.get(3).getContent());
     }
+
+    @Test
+    void testStreamChatOnErrorWithIOException() throws IOException, InterruptedException {
+        SseEmitter mockEmitter = new SseEmitter();
+        when(deepSeekService.streamChat(anyString(), anyList())).thenReturn(mockEmitter);
+
+        SseEmitter emitter = new SseEmitter() {
+            @Override
+            public void send(SseEventBuilder builder) throws IOException {
+                throw new IOException("Send error");
+            }
+        };
+
+        aiService.streamChat("test-error-io", "scientist", "你好");
+        
+        Thread.sleep(100);
+        
+        mockEmitter.completeWithError(new RuntimeException("Test error"));
+        
+        Thread.sleep(100);
+    }
+
+    @Test
+    void testStreamChatOnTimeoutWithIOException() throws IOException, InterruptedException {
+        SseEmitter mockEmitter = new SseEmitter(500L);
+        when(deepSeekService.streamChat(anyString(), anyList())).thenReturn(mockEmitter);
+
+        aiService.streamChat("test-timeout-io", "scientist", "你好");
+        
+        Thread.sleep(700);
+        
+        verify(deepSeekService, times(1)).streamChat(anyString(), anyList());
+    }
+
+    @Test
+    void testStreamChatInternalErrorWithIOException() throws IOException, InterruptedException {
+        when(deepSeekService.streamChat(anyString(), anyList())).thenThrow(new RuntimeException("Internal error"));
+
+        aiService.streamChat("test-internal-io", "scientist", "你好");
+        
+        Thread.sleep(100);
+        
+        verify(deepSeekService, times(1)).streamChat(anyString(), anyList());
+    }
+
+    @Test
+    void testStreamChatWithMultipleMessages() throws InterruptedException, IOException {
+        SseEmitter mockEmitter = new SseEmitter();
+        when(deepSeekService.streamChat(anyString(), anyList())).thenReturn(mockEmitter);
+
+        aiService.streamChat("test-multi-stream", "scientist", "问题1");
+        aiService.streamChat("test-multi-stream", "scientist", "问题2");
+        
+        Thread.sleep(100);
+        
+        mockEmitter.complete();
+        
+        Thread.sleep(100);
+        
+        verify(deepSeekService, times(2)).streamChat(anyString(), anyList());
+    }
+
+    @Test
+    void testChatWithRecentMessagesLimit() {
+        when(deepSeekService.chat(anyString(), anyList())).thenReturn("回复");
+
+        for (int i = 0; i < 15; i++) {
+            aiService.chat("test-limit", "scientist", "问题" + i);
+        }
+
+        Session session = aiService.getOrCreateSession("test-limit", "scientist");
+        List<Message> recentMessages = session.getRecentMessages(10);
+        
+        assertEquals(10, recentMessages.size());
+    }
+
+    @Test
+    void testBuildSystemPromptWithCustomerService() {
+        Character cs = aiService.getCharacter("customer_service");
+        
+        assertNotNull(cs);
+        
+        String prompt = buildSystemPrompt(cs);
+        
+        assertTrue(prompt.contains("小i"));
+        assertTrue(prompt.contains("热情友好"));
+        assertTrue(prompt.contains("亲切自然"));
+    }
 }
