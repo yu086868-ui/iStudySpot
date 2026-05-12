@@ -1,0 +1,68 @@
+title = "Gitleaks Configuration"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "android-api-key"
+description = "Android API Key"
+regex = '''[A-Za-z0-9]{32,}'''
+tags = ["api-key", "android"]
+
+[[rules]]
+id = "google-services-json"
+description = "Google Services JSON"
+regex = '''google-services\.json'''
+tags = ["google", "firebase"]
+
+[[rules]]
+id = "keystore-password"
+description = "Keystore Password"
+regex = '''(?i)(keystore|storepass|keypass)\s*[=:]\s*\S+'''
+tags = ["keystore", "password"]
+
+[[rules]]
+id = "firebase-api-key"
+description = "Firebase API Key"
+regex = '''AIza[0-9A-Za-z\-]{35}'''
+tags = ["firebase", "api-key"]
+
+[[rules]]
+id = "aws-access-key"
+description = "AWS Access Key"
+regex = '''AKIA[0-9A-Z]{16}'''
+tags = ["aws", "access-key"]
+
+[[rules]]
+id = "aws-secret-key"
+description = "AWS Secret Key"
+regex = '''(?i)aws(.{0,20})?['\"][0-9a-zA-Z\/+]{40}['\"]'''
+tags = ["aws", "secret"]
+
+[[rules]]
+id = "private-key"
+description = "Private Key"
+regex = '''-----BEGIN (?:RSA |DSA |EC |OPENSSH )?PRIVATE KEY-----'''
+tags = ["private-key", "pem"]
+
+[[rules]]
+id = "gradle-properties-secret"
+description = "Gradle Properties Secret"
+regex = '''(?i)(password|secret|token|api[_-]?key)\s*[=:]\s*\S+'''
+tags = ["gradle", "secret"]
+
+[allowlist]
+description = "Global Allowlist"
+paths = [
+    '''^frontend/Android/gradle/wrapper/gradle-wrapper\.properties$''',
+    '''^frontend/Android/app/build/.*$''',
+    '''^frontend/Android/\.gradle/.*$''',
+    '''^\.github/.*$''',
+    '''^frontend/Android/app/src/test/.*$''',
+    '''^frontend/Android/app/src/androidTest/.*$''',
+]
+regexes = [
+    '''BUILD_CONFIG_.*''',
+    '''mock_.*''',
+    '''test_.*''',
+]
