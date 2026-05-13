@@ -174,6 +174,7 @@ fun AppNavigation(
 
                         scope.launch {
                             val response = repository.createOrder(
+                                args.studyRoomId,
                                 args.seatId,
                                 startTime,
                                 endTime,

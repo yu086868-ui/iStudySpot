@@ -36,7 +36,7 @@ class ApiManagerTest {
 
     @Test
     fun testRefreshToken_success() = runBlocking {
-        val response = apiManager.refreshToken()
+        val response = apiManager.refreshToken("test_refresh_token")
 
         assertTrue(response is com.example.scylier.istudyspot.models.ApiResponse.Success)
         val success = response as com.example.scylier.istudyspot.models.ApiResponse.Success
@@ -57,7 +57,7 @@ class ApiManagerTest {
 
     @Test
     fun testGetStudyRooms_withPagination() = runBlocking {
-        val response = apiManager.getStudyRooms(page = 2, size = 5)
+        val response = apiManager.getStudyRooms(page = 2, pageSize = 5)
 
         assertTrue(response is com.example.scylier.istudyspot.models.ApiResponse.Success)
     }
@@ -116,6 +116,7 @@ class ApiManagerTest {
     @Test
     fun testCreateOrder_success() = runBlocking {
         val response = apiManager.createOrder(
+            studyRoomId = "1",
             seatId = "seat_1_1",
             startTime = "2026-10-01T10:00:00",
             endTime = "2026-10-01T12:00:00",

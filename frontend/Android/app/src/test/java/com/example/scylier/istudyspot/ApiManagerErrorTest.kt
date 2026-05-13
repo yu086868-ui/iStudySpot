@@ -174,8 +174,8 @@ class ApiManagerErrorTest {
     fun testApiManager_createOrder_withDifferentBookingTypes() = runBlocking {
         val apiManager = ApiManager()
 
-        val response1 = apiManager.createOrder("seat1", "2026-10-01T10:00:00", "2026-10-01T12:00:00", "hourly")
-        val response2 = apiManager.createOrder("seat2", "2026-10-01T14:00:00", "2026-10-01T18:00:00", "half_day")
+        val response1 = apiManager.createOrder("1", "seat1", "2026-10-01T10:00:00", "2026-10-01T12:00:00", "hourly")
+        val response2 = apiManager.createOrder("1", "seat2", "2026-10-01T14:00:00", "2026-10-01T18:00:00", "half_day")
 
         assertTrue(response1 is com.example.scylier.istudyspot.models.ApiResponse.Success)
         assertTrue(response2 is com.example.scylier.istudyspot.models.ApiResponse.Success)
@@ -194,7 +194,7 @@ class ApiManagerErrorTest {
     fun testApiManager_getUserOrders_withPagination() = runBlocking {
         val apiManager = ApiManager()
 
-        val response = apiManager.getUserOrders(page = 1, size = 5)
+        val response = apiManager.getUserOrders(page = 1, pageSize = 5)
 
         assertTrue(response is com.example.scylier.istudyspot.models.ApiResponse.Success)
     }

@@ -13,12 +13,11 @@ import java.net.SocketTimeoutException
 
 class ApiManager(private val token: String? = null, private val context: Context? = null) {
     private val apiService = ApiClient.createService(ApiService::class.java, token)
-    private val useMockData = true // 控制是否使用Mock数据
+    private val useMockData = true
 
     suspend fun <T> executeRequest(request: suspend () -> Response<BaseResponse<T>>): ApiResponse<T> {
         return withContext(Dispatchers.IO) {
             try {
-                // 检查网络状态
                 if (context != null && !isNetworkAvailable(context)) {
                     return@withContext ApiResponse.Error(408, "网络连接不可用，请检查网络设置")
                 }
@@ -49,8 +48,6 @@ class ApiManager(private val token: String? = null, private val context: Context
         }
     }
 
-
-
     private fun isNetworkAvailable(context: Context): Boolean {
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val network = connectivityManager.activeNetwork
@@ -64,7 +61,6 @@ class ApiManager(private val token: String? = null, private val context: Context
 
     // 认证相关 API
     suspend fun login(username: String, password: String) = executeRequest {
-        // 为login提供专门的Mock数据
         if (useMockData) {
             return@executeRequest Response.success(
                 BaseResponse(
@@ -86,7 +82,6 @@ class ApiManager(private val token: String? = null, private val context: Context
     }
 
     suspend fun register(username: String, password: String, nickname: String) = executeRequest {
-        // 为register提供专门的Mock数据
         if (useMockData) {
             return@executeRequest Response.success(
                 BaseResponse(
@@ -107,25 +102,36 @@ class ApiManager(private val token: String? = null, private val context: Context
         apiService.register(com.example.scylier.istudyspot.models.auth.RegisterRequest(username, password, nickname))
     }
 
-    suspend fun refreshToken() = executeRequest {
-        // 为refreshToken提供专门的Mock数据
+    suspend fun refreshToken(refreshToken: String) = executeRequest {
         if (useMockData) {
             return@executeRequest Response.success(
                 BaseResponse(
                     code = 200,
                     message = "刷新成功",
                     data = com.example.scylier.istudyspot.models.auth.TokenResponse(
-                        token = "mock_token"
+                        token = "mock_new_token"
                     )
                 )
             )
         }
-        apiService.refreshToken()
+        apiService.refreshToken(mapOf("refreshToken" to refreshToken))
+    }
+
+    suspend fun logout() = executeRequest {
+        if (useMockData) {
+            return@executeRequest Response.success(
+                BaseResponse<Unit>(
+                    code = 200,
+                    message = "登出成功",
+                    data = Unit
+                )
+            )
+        }
+        apiService.logout()
     }
 
     // 自习室相关 API
-    suspend fun getStudyRooms(page: Int = 1, size: Int = 10) = executeRequest {
-        // 为getStudyRooms提供专门的Mock数据
+    suspend fun getStudyRooms(page: Int = 1, pageSize: Int = 20, status: String? = null, keyword: String? = null) = executeRequest {
         if (useMockData) {
             return@executeRequest Response.success(
                 BaseResponse(
@@ -155,11 +161,10 @@ class ApiManager(private val token: String? = null, private val context: Context
                 )
             )
         }
-        apiService.getStudyRooms(page, size)
+        apiService.getStudyRooms(page, pageSize, status, null, keyword)
     }
 
     suspend fun getStudyRoomDetail(id: String) = executeRequest {
-        // 为getStudyRoomDetail提供专门的Mock数据
         if (useMockData) {
             return@executeRequest Response.success(
                 BaseResponse(
@@ -181,8 +186,7 @@ class ApiManager(private val token: String? = null, private val context: Context
     }
 
     // 座位相关 API
-    suspend fun getStudyRoomSeats(id: String) = executeRequest {
-        // 为getStudyRoomSeats提供专门的Mock数据
+    suspend fun getStudyRoomSeats(id: String, status: String? = null, type: String? = null) = executeRequest {
         if (useMockData) {
             val seats = mutableListOf<com.example.scylier.istudyspot.models.studyroom.SeatInfo>()
             for (row in 1..5) {
@@ -212,11 +216,10 @@ class ApiManager(private val token: String? = null, private val context: Context
                 )
             )
         }
-        apiService.getStudyRoomSeats(id)
+        apiService.getStudyRoomSeats(id, status, type)
     }
 
     suspend fun getSeatDetail(id: String) = executeRequest {
-        // 为getSeatDetail提供专门的Mock数据
         if (useMockData) {
             return@executeRequest Response.success(
                 BaseResponse(
@@ -238,9 +241,8 @@ class ApiManager(private val token: String? = null, private val context: Context
         apiService.getSeatDetail(id)
     }
 
-    // 订单相关 API
-    suspend fun createOrder(seatId: String, startTime: String, endTime: String, bookingType: String) = executeRequest {
-        // 为createOrder提供专门的Mock数据
+    // 预约/订单相关 API
+    suspend fun createOrder(studyRoomId: String, seatId: String, startTime: String, endTime: String, bookingType: String) = executeRequest {
         if (useMockData) {
             return@executeRequest Response.success(
                 BaseResponse(
@@ -259,11 +261,10 @@ class ApiManager(private val token: String? = null, private val context: Context
                 )
             )
         }
-        apiService.createOrder(com.example.scylier.istudyspot.models.order.CreateOrderRequest(seatId, startTime, endTime, bookingType))
+        apiService.createOrder(com.example.scylier.istudyspot.models.order.CreateOrderRequest(studyRoomId, seatId, startTime, endTime, bookingType))
     }
 
-    suspend fun getUserOrders(status: String? = null, page: Int = 1, size: Int = 10) = executeRequest {
-        // 为getUserOrders提供专门的Mock数据
+    suspend fun getUserOrders(status: String? = null, startDate: String? = null, endDate: String? = null, page: Int = 1, pageSize: Int = 20) = executeRequest {
         if (useMockData) {
             val orders = listOf(
                 com.example.scylier.istudyspot.models.order.OrderItem(
@@ -300,11 +301,10 @@ class ApiManager(private val token: String? = null, private val context: Context
                 )
             )
         }
-        apiService.getUserOrders(status, page, size)
+        apiService.getUserOrders(status, startDate, endDate, page, pageSize)
     }
 
     suspend fun getOrderDetail(id: String) = executeRequest {
-        // 为getOrderDetail提供专门的Mock数据
         if (useMockData) {
             return@executeRequest Response.success(
                 BaseResponse(
@@ -330,7 +330,6 @@ class ApiManager(private val token: String? = null, private val context: Context
     }
 
     suspend fun cancelOrder(id: String) = executeRequest {
-        // 为cancelOrder提供专门的Mock数据
         if (useMockData) {
             return@executeRequest Response.success(
                 BaseResponse(
@@ -346,34 +345,65 @@ class ApiManager(private val token: String? = null, private val context: Context
         apiService.cancelOrder(id)
     }
 
+    suspend fun payOrder(id: String) = executeRequest {
+        if (useMockData) {
+            return@executeRequest Response.success(
+                BaseResponse(
+                    code = 200,
+                    message = "支付成功",
+                    data = mapOf("orderId" to id, "status" to "paid")
+                )
+            )
+        }
+        apiService.payOrder(id)
+    }
+
+    suspend fun getReservationRules() = executeRequest {
+        if (useMockData) {
+            return@executeRequest Response.success(
+                BaseResponse(
+                    code = 200,
+                    message = "获取成功",
+                    data = mapOf(
+                        "maxAdvanceDays" to 7,
+                        "maxDailyReservations" to 2,
+                        "maxDurationHours" to 4,
+                        "minDurationMinutes" to 30,
+                        "cancellationDeadlineMinutes" to 15,
+                        "noShowPenalty" to 5
+                    )
+                )
+            )
+        }
+        apiService.getReservationRules()
+    }
+
     // 签到/签退相关 API
-    suspend fun checkin(id: String, checkinCode: String) = executeRequest {
-        // 为checkin提供专门的Mock数据
+    suspend fun checkin(reservationId: String, seatId: String) = executeRequest {
         if (useMockData) {
             return@executeRequest Response.success(
                 BaseResponse(
                     code = 200,
                     message = "签到成功",
                     data = com.example.scylier.istudyspot.models.order.CheckinResponse(
-                        id = id,
+                        id = reservationId,
                         checkinTime = "2026-10-01T10:00:00",
                         status = "in_use"
                     )
                 )
             )
         }
-        apiService.checkin(id, com.example.scylier.istudyspot.models.order.CheckinRequest(checkinCode))
+        apiService.checkin(mapOf("reservationId" to reservationId, "seatId" to seatId))
     }
 
-    suspend fun checkout(id: String) = executeRequest {
-        // 为checkout提供专门的Mock数据
+    suspend fun checkout(checkInRecordId: String) = executeRequest {
         if (useMockData) {
             return@executeRequest Response.success(
                 BaseResponse(
                     code = 200,
                     message = "签退成功",
                     data = com.example.scylier.istudyspot.models.order.CheckoutResponse(
-                        id = id,
+                        id = checkInRecordId,
                         checkoutTime = "2026-10-01T12:00:00",
                         actualDuration = 120,
                         actualPrice = 20.0,
@@ -382,12 +412,37 @@ class ApiManager(private val token: String? = null, private val context: Context
                 )
             )
         }
-        apiService.checkout(id)
+        apiService.checkout(mapOf("checkInRecordId" to checkInRecordId))
+    }
+
+    suspend fun getCheckinRecords(startDate: String? = null, endDate: String? = null, page: Int = 1, pageSize: Int = 20) = executeRequest {
+        if (useMockData) {
+            return@executeRequest Response.success(
+                BaseResponse(
+                    code = 200,
+                    message = "获取成功",
+                    data = mapOf("list" to emptyList<Any>(), "total" to 0, "page" to page, "pageSize" to pageSize)
+                )
+            )
+        }
+        apiService.getCheckinRecords(startDate, endDate, page, pageSize)
+    }
+
+    suspend fun getCurrentCheckin() = executeRequest {
+        if (useMockData) {
+            return@executeRequest Response.success(
+                BaseResponse(
+                    code = 200,
+                    message = "获取成功",
+                    data = mapOf("isCheckedIn" to false, "checkInRecord" to null)
+                )
+            )
+        }
+        apiService.getCurrentCheckin()
     }
 
     // 用户相关 API
     suspend fun getUserInfo() = executeRequest {
-        // 为getUserInfo提供专门的Mock数据
         if (useMockData) {
             return@executeRequest Response.success(
                 BaseResponse(
@@ -408,7 +463,6 @@ class ApiManager(private val token: String? = null, private val context: Context
     }
 
     suspend fun updateUserInfo(nickname: String? = null, avatar: String? = null, phone: String? = null, email: String? = null) = executeRequest {
-        // 为updateUserInfo提供专门的Mock数据
         if (useMockData) {
             return@executeRequest Response.success(
                 BaseResponse(
@@ -429,7 +483,6 @@ class ApiManager(private val token: String? = null, private val context: Context
     }
 
     suspend fun changePassword(oldPassword: String, newPassword: String) = executeRequest {
-        // 为changePassword提供专门的Mock数据
         if (useMockData) {
             return@executeRequest Response.success(
                 BaseResponse(
@@ -444,7 +497,6 @@ class ApiManager(private val token: String? = null, private val context: Context
 
     // 支付相关 API
     suspend fun createPayment(orderId: String, amount: Double, paymentMethod: String) = executeRequest {
-        // 为createPayment提供专门的Mock数据
         if (useMockData) {
             return@executeRequest Response.success(
                 BaseResponse(
@@ -465,7 +517,6 @@ class ApiManager(private val token: String? = null, private val context: Context
     }
 
     suspend fun getPaymentStatus(id: String) = executeRequest {
-        // 为getPaymentStatus提供专门的Mock数据
         if (useMockData) {
             return@executeRequest Response.success(
                 BaseResponse(
@@ -488,7 +539,6 @@ class ApiManager(private val token: String? = null, private val context: Context
 
     // 统计相关 API
     suspend fun getStudyRoomStatistics(id: String, startDate: String, endDate: String) = executeRequest {
-        // 为getStudyRoomStatistics提供专门的Mock数据
         if (useMockData) {
             val dailyData = listOf(
                 com.example.scylier.istudyspot.models.statistics.DailyData(
@@ -521,5 +571,131 @@ class ApiManager(private val token: String? = null, private val context: Context
             )
         }
         apiService.getStudyRoomStatistics(id, startDate, endDate)
+    }
+
+    // 公告相关 API
+    suspend fun getAnnouncements(type: String? = null, priority: String? = null, page: Int = 1, pageSize: Int = 20) = executeRequest {
+        if (useMockData) {
+            return@executeRequest Response.success(
+                BaseResponse(
+                    code = 200,
+                    message = "获取成功",
+                    data = mapOf("list" to emptyList<Any>(), "total" to 0, "page" to page, "pageSize" to pageSize)
+                )
+            )
+        }
+        apiService.getAnnouncements(type, priority, page, pageSize)
+    }
+
+    suspend fun getAnnouncementDetail(id: String) = executeRequest {
+        if (useMockData) {
+            return@executeRequest Response.success(
+                BaseResponse(
+                    code = 200,
+                    message = "获取成功",
+                    data = mapOf("id" to id, "title" to "系统公告", "content" to "欢迎使用iStudySpot", "type" to "system", "priority" to "high")
+                )
+            )
+        }
+        apiService.getAnnouncementDetail(id)
+    }
+
+    // 规则相关 API
+    suspend fun getRules(studyRoomId: String? = null, category: String? = null) = executeRequest {
+        if (useMockData) {
+            return@executeRequest Response.success(
+                BaseResponse(
+                    code = 200,
+                    message = "获取成功",
+                    data = emptyList<Map<String, Any?>>()
+                )
+            )
+        }
+        apiService.getRules(studyRoomId, category)
+    }
+
+    suspend fun getRuleDetail(id: String) = executeRequest {
+        if (useMockData) {
+            return@executeRequest Response.success(
+                BaseResponse(
+                    code = 200,
+                    message = "获取成功",
+                    data = mapOf("id" to id, "title" to "预约规则", "content" to "请遵守预约规则", "category" to "booking")
+                )
+            )
+        }
+        apiService.getRuleDetail(id)
+    }
+
+    // AI聊天相关 API
+    suspend fun getAiCharacters() = executeRequest {
+        if (useMockData) {
+            return@executeRequest Response.success(
+                BaseResponse(
+                    code = 200,
+                    message = "获取成功",
+                    data = listOf(
+                        mapOf("id" to "1", "name" to "学习助手", "persona" to "friendly", "speaking_style" to "casual")
+                    )
+                )
+            )
+        }
+        apiService.getAiCharacters()
+    }
+
+    suspend fun sendAiMessage(message: String, sessionId: String? = null, characterId: String? = null) = executeRequest {
+        if (useMockData) {
+            return@executeRequest Response.success(
+                BaseResponse(
+                    code = 200,
+                    message = "success",
+                    data = com.example.scylier.istudyspot.models.ai.AiChatResponse(
+                        reply = "这是AI助手的回复",
+                        sessionId = sessionId ?: "session_${System.currentTimeMillis()}"
+                    )
+                )
+            )
+        }
+        apiService.sendAiMessage(com.example.scylier.istudyspot.models.ai.AiChatRequest(message, sessionId, characterId))
+    }
+
+    // 智能客服相关 API
+    suspend fun getCustomerServiceWelcome() = executeRequest {
+        if (useMockData) {
+            return@executeRequest Response.success(
+                BaseResponse(
+                    code = 200,
+                    message = "获取成功",
+                    data = mapOf("welcomeMessage" to "您好！我是iStudySpot智能客服，有什么可以帮您？", "recommendedQuestions" to listOf("如何预约座位？", "自习室开放时间？"))
+                )
+            )
+        }
+        apiService.getCustomerServiceWelcome()
+    }
+
+    suspend fun customerServiceChat(sessionId: String, message: String) = executeRequest {
+        if (useMockData) {
+            return@executeRequest Response.success(
+                BaseResponse(
+                    code = 200,
+                    message = "获取成功",
+                    data = mapOf("response" to "这是智能客服的回复")
+                )
+            )
+        }
+        apiService.customerServiceChat(sessionId, message)
+    }
+
+    suspend fun getCustomerServiceHistory(sessionId: String) = executeRequest {
+        if (useMockData) {
+            return@executeRequest Response.success(
+                BaseResponse(
+                    code = 200,
+                    message = "获取成功",
+                    data = mapOf("messages" to emptyList<Any>())
+                )
+            )
+        }
+        apiService.getCustomerServiceHistory(sessionId)
     }
 }

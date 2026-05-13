@@ -86,7 +86,7 @@ class AiChatViewModel : ViewModel() {
         return try {
             val request = AiChatRequest(
                 message = content,
-                sessionId = sessionId
+                session_id = sessionId
             )
             val response = apiService.sendAiMessage(request)
             if (response.isSuccessful && response.body() != null) {

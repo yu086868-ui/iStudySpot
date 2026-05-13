@@ -57,14 +57,14 @@ class ApiManagerComprehensiveTest {
 
     @Test
     fun testRefreshToken_returnsSuccessResponse() = runBlocking {
-        val response = apiManager.refreshToken()
+        val response = apiManager.refreshToken("test_refresh_token")
 
         assertTrue(response is ApiResponse.Success)
     }
 
     @Test
     fun testRefreshToken_responseContainsToken() = runBlocking {
-        val response = apiManager.refreshToken() as ApiResponse.Success
+        val response = apiManager.refreshToken("test_refresh_token") as ApiResponse.Success
 
         assertNotNull(response.data.token)
     }
@@ -198,28 +198,28 @@ class ApiManagerComprehensiveTest {
 
     @Test
     fun testCreateOrder_returnsSuccessResponse() = runBlocking {
-        val response = apiManager.createOrder("seat1", "2026-10-01T10:00:00", "2026-10-01T12:00:00", "hourly")
+        val response = apiManager.createOrder("1", "seat1", "2026-10-01T10:00:00", "2026-10-01T12:00:00", "hourly")
 
         assertTrue(response is ApiResponse.Success)
     }
 
     @Test
     fun testCreateOrder_responseContainsId() = runBlocking {
-        val response = apiManager.createOrder("seat1", "2026-10-01T10:00:00", "2026-10-01T12:00:00", "hourly") as ApiResponse.Success
+        val response = apiManager.createOrder("1", "seat1", "2026-10-01T10:00:00", "2026-10-01T12:00:00", "hourly") as ApiResponse.Success
 
         assertNotNull(response.data.id)
     }
 
     @Test
     fun testCreateOrder_responseContainsCorrectSeatId() = runBlocking {
-        val response = apiManager.createOrder("seat1", "2026-10-01T10:00:00", "2026-10-01T12:00:00", "hourly") as ApiResponse.Success
+        val response = apiManager.createOrder("1", "seat1", "2026-10-01T10:00:00", "2026-10-01T12:00:00", "hourly") as ApiResponse.Success
 
         assertEquals("seat1", response.data.seatId)
     }
 
     @Test
     fun testCreateOrder_responseContainsStatus() = runBlocking {
-        val response = apiManager.createOrder("seat1", "2026-10-01T10:00:00", "2026-10-01T12:00:00", "hourly") as ApiResponse.Success
+        val response = apiManager.createOrder("1", "seat1", "2026-10-01T10:00:00", "2026-10-01T12:00:00", "hourly") as ApiResponse.Success
 
         assertEquals("pending", response.data.status)
     }
