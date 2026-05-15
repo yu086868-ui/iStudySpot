@@ -5,7 +5,8 @@ package com.example.scylier.istudyspot.models.ai
  */
 data class AiChatRequest(
     val message: String,
-    val sessionId: String? = null
+    val session_id: String? = null,
+    val character_id: String? = null
 )
 
 /**

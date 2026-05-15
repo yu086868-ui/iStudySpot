@@ -62,7 +62,7 @@ class MainRepositoryComprehensiveTest {
 
     @Test
     fun testRepository_getStudyRooms_customParams() = runBlocking {
-        val response = repository.getStudyRooms(page = 2, size = 5)
+        val response = repository.getStudyRooms(page = 2, pageSize = 5)
 
         assertTrue(response is com.example.scylier.istudyspot.models.ApiResponse.Success)
     }
@@ -111,6 +111,7 @@ class MainRepositoryComprehensiveTest {
     @Test
     fun testRepository_createOrder_success() = runBlocking {
         val response = repository.createOrder(
+            studyRoomId = "1",
             seatId = "seat_1_1",
             startTime = "2026-10-01T10:00:00",
             endTime = "2026-10-01T12:00:00",
@@ -142,7 +143,7 @@ class MainRepositoryComprehensiveTest {
 
     @Test
     fun testRepository_getUserOrders_withPagination() = runBlocking {
-        val response = repository.getUserOrders(page = 1, size = 5, token = "test_token")
+        val response = repository.getUserOrders(page = 1, pageSize = 5, token = "test_token")
 
         assertTrue(response is com.example.scylier.istudyspot.models.ApiResponse.Success)
     }

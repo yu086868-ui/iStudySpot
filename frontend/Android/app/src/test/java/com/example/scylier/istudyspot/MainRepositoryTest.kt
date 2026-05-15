@@ -89,6 +89,7 @@ class MainRepositoryTest {
     @Test
     fun testRepository_createOrder_success() = runBlocking {
         val response = repository.createOrder(
+            studyRoomId = "1",
             seatId = "seat_1_1",
             startTime = "2026-10-01T10:00:00",
             endTime = "2026-10-01T12:00:00",

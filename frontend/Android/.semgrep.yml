@@ -1,0 +1,150 @@
+rules:
+  - id: android-hardcoded-secrets
+    patterns:
+      - pattern-either:
+          - pattern: |
+              val $VAR = "..."
+          - pattern: |
+              const val $VAR = "..."
+      - metavariable-regex:
+          metavariable: $VAR
+          regex: "(?i)(password|secret|api_key|token|auth)"
+      - metavariable-analysis:
+          analyzer: entropy
+          metavariable: $VAR
+    message: "Potential hardcoded secret detected in Android code"
+    severity: WARNING
+    languages: [kotlin]
+
+  - id: android-insecure-storage
+    patterns:
+      - pattern-either:
+          - pattern: |
+              SharedPreferences.Editor.putString($KEY, $VALUE)
+          - pattern: |
+              $SP.edit().putString($KEY, $VALUE)
+    message: "Sensitive data may be stored insecurely in SharedPreferences"
+    severity: WARNING
+    languages: [kotlin]
+
+  - id: android-webview-javascript-enabled
+    patterns:
+      - pattern: |
+          $WEBVIEW.settings.javaScriptEnabled = true
+    message: "JavaScript enabled in WebView - ensure proper validation"
+    severity: INFO
+    languages: [kotlin]
+
+  - id: android-webview-debugging-enabled
+    patterns:
+      - pattern: |
+          WebView.setWebContentsDebuggingEnabled(true)
+    message: "WebView debugging enabled - should be disabled in production"
+    severity: WARNING
+    languages: [kotlin]
+
+  - id: android-exported-component
+    patterns:
+      - pattern: |
+          android:exported="true"
+    message: "Component is exported - verify if this is intended"
+    severity: WARNING
+    languages: [xml]
+
+  - id: android-allow-backup
+    patterns:
+      - pattern: |
+          android:allowBackup="true"
+    message: "Backup is enabled - sensitive data may be backed up"
+    severity: INFO
+    languages: [xml]
+
+  - id: android-debuggable
+    patterns:
+      - pattern: |
+          android:debuggable="true"
+    message: "Application is debuggable - should be false in production"
+    severity: ERROR
+    languages: [xml]
+
+  - id: android-http-connection
+    patterns:
+      - pattern-either:
+          - pattern: |
+              URL("http://...")
+          - pattern: |
+              "http://..."
+    message: "HTTP connection detected - use HTTPS instead"
+    severity: WARNING
+    languages: [kotlin]
+
+  - id: android-logging-sensitive
+    patterns:
+      - pattern-either:
+          - pattern: |
+              Log.d($TAG, $MSG)
+          - pattern: |
+              Log.e($TAG, $MSG)
+          - pattern: |
+              Log.i($TAG, $MSG)
+          - pattern: |
+              Log.v($TAG, $MSG)
+          - pattern: |
+              Log.w($TAG, $MSG)
+      - metavariable-regex:
+          metavariable: $MSG
+          regex: "(?i)(password|token|secret|key|auth)"
+    message: "Sensitive data may be logged"
+    severity: WARNING
+    languages: [kotlin]
+
+  - id: android-sql-injection
+    patterns:
+      - pattern: |
+          $DB.rawQuery($QUERY + $VAR, ...)
+      - pattern: |
+          $DB.execSQL($QUERY + $VAR, ...)
+    message: "Potential SQL injection - use parameterized queries"
+    severity: ERROR
+    languages: [kotlin]
+
+  - id: android-insecure-random
+    patterns:
+      - pattern: |
+          java.util.Random()
+    message: "Insecure random number generator - use SecureRandom for security"
+    severity: WARNING
+    languages: [kotlin]
+
+  - id: android-weak-crypto
+    patterns:
+      - pattern-either:
+          - pattern: |
+              Cipher.getInstance("DES")
+          - pattern: |
+              Cipher.getInstance("AES/ECB/...")
+    message: "Weak cryptographic algorithm detected"
+    severity: WARNING
+    languages: [kotlin]
+
+  - id: android-implicit-intent
+    patterns:
+      - pattern: |
+          Intent($ACTION)
+      - metavariable-regex:
+          metavariable: $ACTION
+          regex: "(?i)(call|sms|email|browser)"
+    message: "Implicit intent may be intercepted - consider using explicit intent"
+    severity: INFO
+    languages: [kotlin]
+
+  - id: android-tls-disabled
+    patterns:
+      - pattern-either:
+          - pattern: |
+              TrustManager[] { ... }
+          - pattern: |
+              X509TrustManager { ... }
+    message: "Custom TrustManager detected - ensure TLS is not disabled"
+    severity: WARNING
+    languages: [kotlin]
