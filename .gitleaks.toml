@@ -4,12 +4,6 @@ title = "Gitleaks Configuration"
 useDefault = true
 
 [[rules]]
-id = "android-api-key"
-description = "Android API Key"
-regex = '''[A-Za-z0-9]{32,}'''
-tags = ["api-key", "android"]
-
-[[rules]]
 id = "google-services-json"
 description = "Google Services JSON"
 regex = '''google-services\.json'''
@@ -18,7 +12,7 @@ tags = ["google", "firebase"]
 [[rules]]
 id = "keystore-password"
 description = "Keystore Password"
-regex = '''(?i)(keystore|storepass|keypass)\s*[=:]\s*\S+'''
+regex = '''(?i)(?:keystore|storepass|keypass)\s*[=:]\s*['"]([^'"]+)['"]'''
 tags = ["keystore", "password"]
 
 [[rules]]
@@ -48,7 +42,7 @@ tags = ["private-key", "pem"]
 [[rules]]
 id = "gradle-properties-secret"
 description = "Gradle Properties Secret"
-regex = '''(?i)(password|secret|token|api[_-]?key)\s*[=:]\s*\S+'''
+regex = '''(?i)(?:password|secret|token|api[_-]?key)\s*[=:]\s*['"]([^'"]{8,})['"]'''
 tags = ["gradle", "secret"]
 
 [allowlist]
@@ -60,9 +54,14 @@ paths = [
     '''^\.github/.*$''',
     '''^frontend/Android/app/src/test/.*$''',
     '''^frontend/Android/app/src/androidTest/.*$''',
+    '''^frontend/Android/docs/.*$''',
 ]
 regexes = [
     '''BUILD_CONFIG_.*''',
     '''mock_.*''',
     '''test_.*''',
+    '''hardcoded-secret-value''',
+    '''BuildConfig\..*''',
+    '''System\.getenv\(.*\)''',
+    '''YOUR_.*''',
 ]

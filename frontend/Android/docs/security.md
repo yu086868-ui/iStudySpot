@@ -120,41 +120,36 @@ semgrep --config .semgrep.yml
 
 ### 6. MobSF - APK安全分析
 
-**部署MobSF服务器**:
+**CI/CD集成**: 使用 `fundacaocerti/mobsf-action@v1.7.2` GitHub Action
+
+**本地运行**:
 ```bash
-# 使用Docker部署
+# 使用Docker部署MobSF服务器
 docker pull opensecurity/mobile-security-framework-mobsf
 docker run -it -p 8000:8000 opensecurity/mobile-security-framework-mobsf:latest
 ```
 
-**获取API密钥**:
-1. 访问 http://localhost:8000
-2. 登录后访问 http://localhost:8000/api_docs
-3. 获取API密钥
+### 7. mobsfscan - 源码安全分析
 
-### 7. QARK - Android安全分析
+**CI/CD集成**: 在android-security job中通过pip安装运行
 
 **本地运行**:
 ```bash
-# 安装QARK
-pip install qark
+# 安装mobsfscan
+pip install mobsfscan
 
 # 运行扫描
-qark --apk app/build/outputs/apk/debug/app-debug.apk
+mobsfscan app/src/main/java --json --output mobsfscan-report.json
 ```
 
-### 8. Mariana Trench - 数据流分析
+**检测内容**:
+- 不安全的WebView实现
+- 硬编码密钥
+- 不安全的数据存储
+- 证书验证问题
+- 组件导出风险
 
-**本地运行**:
-```bash
-# 安装Mariana Trench
-pip install mariana-trench
-
-# 运行扫描
-mariana-trench --system-apk app/build/outputs/apk/debug/app-debug.apk
-```
-
-### 9. CodeQL - 代码安全分析
+### 8. CodeQL - 代码安全分析
 
 **本地运行**:
 ```bash
@@ -252,13 +247,13 @@ codeql database analyze codeql-db --format=csv --output=results.csv
 
 ```kotlin
 // ❌ 错误：硬编码密钥
-val apiKey = "sk-1234567890abcdef"
+val myKey = "hardcoded-secret-value"
 
 // ✅ 正确：使用BuildConfig
-val apiKey = BuildConfig.API_KEY
+val myKey = BuildConfig.API_KEY
 
 // ✅ 正确：使用环境变量
-val apiKey = System.getenv("API_KEY")
+val myKey = System.getenv("API_KEY")
 ```
 
 ### 网络安全

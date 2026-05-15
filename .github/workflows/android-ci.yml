@@ -70,24 +70,23 @@ jobs:
     - name: Build Debug APK
       run: ./gradlew assembleDebug
 
-    - name: Run MobSF Security Scan
-      uses: opsecid/mobsf-action@v1
+    - name: Set up Python
+      uses: actions/setup-python@v5
       with:
-        apk_path: frontend/Android/app/build/outputs/apk/debug/app-debug.apk
-        mobsf_api_key: ${{ secrets.MOBSF_API_KEY }}
-        mobsf_server: ${{ secrets.MOBSF_SERVER }}
+        python-version: '3.11'
+
+    - name: Run MobSF Security Scan
+      uses: fundacaocerti/mobsf-action@v1.7.2
+      with:
+        scan_type: apk
+        file_name: frontend/Android/app/build/outputs/apk/debug/app-debug.apk
+        output_file: mobsf-report
       continue-on-error: true
 
-    - name: Run QARK Security Analysis
+    - name: Run mobsfscan Source Code Analysis
       run: |
-        pip install qark
-        qark --apk app/build/outputs/apk/debug/app-debug.apk --report-dir security-reports/qark
-      continue-on-error: true
-
-    - name: Run Mariana Trench Analysis
-      run: |
-        pip install mariana-trench
-        mariana-trench --system-apk app/build/outputs/apk/debug/app-debug.apk
+        pip install mobsfscan
+        mobsfscan frontend/Android/app/src/main/java --json --output security-reports/mobsfscan.json || true
       continue-on-error: true
 
     - name: Run Android Lint Security Check
