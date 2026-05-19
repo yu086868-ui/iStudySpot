@@ -1,6 +1,6 @@
 # 项目规则（微信小程序前端）
 
-## 技术栈 
+## 技术栈 
 
 - 平台：微信小程序
 - 语言：TypeScript
@@ -63,16 +63,62 @@
 
 ***
 
-## 禁止事项（重要）
+## 语法兼容性（重要）
+
+微信小程序真机调试环境对部分 ES6+ 语法不支持，必须使用兼容写法：
+
+### 禁止使用的语法
+
+| 禁止语法 | 错误示例 | 正确替代方案 |
+|---------|---------|-------------|
+| 可选链操作符 | `obj?.prop` | `obj && obj.prop` |
+| 可选链调用 | `func?.()` | `func && func()` |
+| 可选链数组 | `arr?.[0]` | `arr && arr[0]` |
+| 空值合并操作符 | `value ?? default` | `value \|\| default` |
+| 类字段初始化 | `class A { x = 1 }` | `class A { x; constructor() { this.x = 1 } }` |
+
+### 代码示例
+
+```typescript
+// ❌ 错误：可选链操作符
+if (response.data?.list?.length > 0) { }
+
+// ✅ 正确：使用 && 判断
+if (response.data && response.data.list && response.data.list.length > 0) { }
+
+// ❌ 错误：空值合并操作符
+const name = params.name ?? '';
+
+// ✅ 正确：使用 || 运算符
+const name = params.name || '';
+
+// ❌ 错误：类字段直接初始化
+class NavigationManager {
+  private lastPageId: string | null = null;
+}
+
+// ✅ 正确：在构造函数中初始化
+class NavigationManager {
+  private lastPageId: string | null;
+  
+  constructor() {
+    this.lastPageId = null;
+  }
+}
+```
+
+***
+
+## 禁止事项
 
 - 不允许使用 any 类型（除非必要说明）
 - 不允许直接操作 DOM（小程序不推荐）
 - 不允许在页面中写网络请求逻辑
 - 不允许提交未使用的代码
 - 不允许修改项目配置文件（除非明确说明）
-- **不允许使用可选链操作符 `?.`**（微信小程序真机调试不支持，应使用 `obj && obj.prop` 替代）
-- **不允许使用空值合并操作符 `??`**（微信小程序真机调试不支持，应使用 `value || defaultValue` 替代）
-- **不允许在类中直接初始化字段**（如 `private foo = null`，应在构造函数中初始化）
+- 不允许使用可选链操作符 `?.`
+- 不允许使用空值合并操作符 `??`
+- 不允许在类中直接初始化字段
 
 ***
 
@@ -83,4 +129,3 @@
 - 保持目录结构清晰，避免混乱
 
 ***
-
