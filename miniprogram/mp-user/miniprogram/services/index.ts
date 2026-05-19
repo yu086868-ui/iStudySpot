@@ -6,3 +6,5 @@ export { reservationApi } from './reservation';
 export { checkInApi } from './checkin';
 export { announcementApi } from './announcement';
 export { ruleApi } from './rule';
+export { default as store } from '../utils/store';
+export { StoreEvent } from '../utils/store';

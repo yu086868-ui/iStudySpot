@@ -1,30 +1,64 @@
 import type { ApiResponse, Reservation, CreateReservationParams, ReservationListParams, PaginatedResponse, ReservationRules } from '../typings/api';
 import request from '../utils/request';
+import store from '../utils/store';
 import mockManager from '../utils/mock';
 
 export const reservationApi = {
   async createReservation(params: CreateReservationParams): Promise<ApiResponse<Reservation>> {
     if (mockManager.isEnabled()) {
-      return await mockManager.request<Reservation>({
+      const response = await mockManager.request<Reservation>({
         url: '/reservations',
         method: 'POST',
         data: params
       });
+      if (response.code === 200 && response.data) {
+        store.addReservation(response.data);
+      }
+      return response;
     }
 
-    return await request.post<Reservation>('/reservations', params);
+    const response = await request.post<Reservation>('/reservations', params);
+    if (response.code === 200 && response.data) {
+      store.addReservation(response.data);
+    }
+    return response;
   },
 
-  async getMyReservations(params?: ReservationListParams): Promise<ApiResponse<PaginatedResponse<Reservation>>> {
+  async getMyReservations(params?: ReservationListParams, forceRefresh = false): Promise<ApiResponse<PaginatedResponse<Reservation>>> {
+    if (!forceRefresh && !params) {
+      const cachedReservations = store.getMyReservations();
+      if (cachedReservations.length > 0) {
+        return {
+          code: 200,
+          message: 'success',
+          data: {
+            list: cachedReservations,
+            total: cachedReservations.length,
+            page: 1,
+            pageSize: cachedReservations.length
+          },
+          timestamp: Date.now()
+        };
+      }
+    }
+
     if (mockManager.isEnabled()) {
-      return await mockManager.request<PaginatedResponse<Reservation>>({
+      const response = await mockManager.request<PaginatedResponse<Reservation>>({
         url: '/reservations/my',
         method: 'GET',
         data: params
       });
+      if (response.code === 200 && response.data?.list) {
+        store.setMyReservations(response.data.list);
+      }
+      return response;
     }
 
-    return await request.get<PaginatedResponse<Reservation>>('/reservations/my', params);
+    const response = await request.get<PaginatedResponse<Reservation>>('/reservations/my', params);
+    if (response.code === 200 && response.data?.list) {
+      store.setMyReservations(response.data.list);
+    }
+    return response;
   },
 
   async getReservationDetail(id: string): Promise<ApiResponse<Reservation>> {
@@ -40,23 +74,51 @@ export const reservationApi = {
 
   async cancelReservation(id: string): Promise<ApiResponse<null>> {
     if (mockManager.isEnabled()) {
-      return await mockManager.request<null>({
+      const response = await mockManager.request<null>({
         url: `/reservations/${id}/cancel`,
         method: 'POST'
       });
+      if (response.code === 200) {
+        store.removeReservation(id);
+      }
+      return response;
     }
 
-    return await request.post<null>(`/reservations/${id}/cancel`);
+    const response = await request.post<null>(`/reservations/${id}/cancel`);
+    if (response.code === 200) {
+      store.removeReservation(id);
+    }
+    return response;
   },
 
-  async getReservationRules(): Promise<ApiResponse<ReservationRules>> {
+  async getReservationRules(forceRefresh = false): Promise<ApiResponse<ReservationRules>> {
+    if (!forceRefresh) {
+      const cachedRules = store.getReservationRules();
+      if (cachedRules) {
+        return {
+          code: 200,
+          message: 'success',
+          data: cachedRules,
+          timestamp: Date.now()
+        };
+      }
+    }
+
     if (mockManager.isEnabled()) {
-      return await mockManager.request<ReservationRules>({
+      const response = await mockManager.request<ReservationRules>({
         url: '/reservations/rules',
         method: 'GET'
       });
+      if (response.code === 200 && response.data) {
+        store.setReservationRules(response.data);
+      }
+      return response;
     }
 
-    return await request.get<ReservationRules>('/reservations/rules');
+    const response = await request.get<ReservationRules>('/reservations/rules');
+    if (response.code === 200 && response.data) {
+      store.setReservationRules(response.data);
+    }
+    return response;
   }
 };
