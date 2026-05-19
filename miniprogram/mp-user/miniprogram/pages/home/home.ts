@@ -41,6 +41,30 @@ function isTimeNearby(startTime: string, thresholdMinutes: number = 30): boolean
   return diffMinutes > 0 && diffMinutes <= thresholdMinutes
 }
 
+function isFutureReservation(reservation: { startTime: string; endTime: string }): boolean {
+  const now = new Date()
+  const endTime = new Date(reservation.endTime)
+  return now < endTime
+}
+
+function getNearestReservation(reservations: Reservation[]): Reservation | null {
+  const now = new Date()
+  const futureReservations = reservations.filter(r => {
+    const endTime = new Date(r.endTime)
+    return endTime > now
+  })
+  
+  if (futureReservations.length === 0) return null
+  
+  futureReservations.sort((a, b) => {
+    const startA = new Date(a.startTime).getTime()
+    const startB = new Date(b.startTime).getTime()
+    return startA - startB
+  })
+  
+  return futureReservations[0]
+}
+
 Page({
   data: {
     userInfo: null as any,
@@ -141,13 +165,10 @@ Page({
       const cachedReservations = store.getMyReservations()
       const confirmedReservations = cachedReservations.filter(r => r.status === 'confirmed')
       
-      if (confirmedReservations.length > 0) {
-        const checkinableReservation = confirmedReservations.find(r => isReservationCheckinable(r))
-        
-        if (checkinableReservation) {
-          await this.setReservedState(checkinableReservation)
-          return
-        }
+      const nearestCachedReservation = getNearestReservation(confirmedReservations)
+      if (nearestCachedReservation) {
+        await this.setReservedState(nearestCachedReservation)
+        return
       }
 
       if (!shouldRefreshFromServer) {
@@ -168,10 +189,10 @@ Page({
       const reservationRes = await reservationApi.getMyReservations({ status: 'confirmed' }, true)
       
       if (reservationRes.code === 200 && reservationRes.data?.list?.length > 0) {
-        const checkinableReservation = reservationRes.data.list.find(r => isReservationCheckinable(r))
+        const nearestReservation = getNearestReservation(reservationRes.data.list)
         
-        if (checkinableReservation) {
-          await this.setReservedState(checkinableReservation)
+        if (nearestReservation) {
+          await this.setReservedState(nearestReservation)
           return
         }
       }
@@ -235,7 +256,13 @@ Page({
   async setReservedState(reservation: Reservation) {
     const startTime = new Date(reservation.startTime)
     const endTime = new Date(reservation.endTime)
-    const timeStr = `${startTime.getHours()}:${String(startTime.getMinutes()).padStart(2, '0')}-${endTime.getHours()}:${String(endTime.getMinutes()).padStart(2, '0')}`
+    
+    const month = startTime.getMonth() + 1
+    const day = startTime.getDate()
+    const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+    const weekDay = weekDays[startTime.getDay()]
+    
+    const timeStr = `${month}月${day}日 ${weekDay} ${startTime.getHours()}:${String(startTime.getMinutes()).padStart(2, '0')}-${endTime.getHours()}:${String(endTime.getMinutes()).padStart(2, '0')}`
 
     let roomName = '未知自习室'
     let seatNumber = '未知座位'
@@ -299,12 +326,12 @@ Page({
     if (userState === 'reserved' && currentReservation) {
       wx.showModal({
         title: '已有预约',
-        content: `您已预约 ${currentReservation.roomName} ${currentReservation.displayTime}，座位 ${currentReservation.seatNumber}。是否重新预约？`,
-        confirmText: '重新预约',
-        cancelText: '取消',
-        success: (res) => {
+        content: `您已预约 ${currentReservation.roomName} ${currentReservation.displayTime}，座位 ${currentReservation.seatNumber}。是否取消当前预约并重新选座？`,
+        confirmText: '取消预约',
+        cancelText: '返回',
+        success: async (res) => {
           if (res.confirm) {
-            navigationManager.navigateTo('reservation')
+            await this.cancelCurrentReservation()
           }
         }
       })
@@ -312,6 +339,40 @@ Page({
     }
 
     navigationManager.navigateTo('reservation')
+  },
+
+  async cancelCurrentReservation() {
+    const { currentReservation } = this.data
+    if (!currentReservation) return
+
+    wx.showLoading({ title: '取消中...' })
+    try {
+      const res = await reservationApi.cancelReservation(currentReservation.id)
+      wx.hideLoading()
+
+      if (res.code === 200) {
+        wx.showToast({
+          title: '预约已取消',
+          icon: 'success'
+        })
+        this.setNoneState()
+        setTimeout(() => {
+          navigationManager.navigateTo('reservation')
+        }, 1500)
+      } else {
+        wx.showToast({
+          title: res.message || '取消失败',
+          icon: 'none'
+        })
+      }
+    } catch (error) {
+      wx.hideLoading()
+      console.error('取消预约失败', error)
+      wx.showToast({
+        title: '取消失败，请重试',
+        icon: 'none'
+      })
+    }
   },
 
   handleCheckInButton() {
@@ -323,7 +384,21 @@ Page({
     }
 
     if (userState === 'reserved' && currentReservation) {
-      this.performCheckIn(currentReservation.id, currentReservation.seatId)
+      if (isReservationCheckinable(currentReservation)) {
+        this.performCheckIn(currentReservation.id, currentReservation.seatId)
+      } else {
+        const startTime = new Date(currentReservation.startTime)
+        const checkinTime = new Date(startTime.getTime() - CHECKIN_BUFFER_MINUTES * 60 * 1000)
+        const checkinHour = checkinTime.getHours()
+        const checkinMinute = checkinTime.getMinutes()
+        
+        wx.showModal({
+          title: '签到时间未到',
+          content: `您的预约时间为 ${currentReservation.displayTime}，请在 ${checkinHour}:${String(checkinMinute).padStart(2, '0')} 之后签到。`,
+          showCancel: false,
+          confirmText: '我知道了'
+        })
+      }
       return
     }
 
