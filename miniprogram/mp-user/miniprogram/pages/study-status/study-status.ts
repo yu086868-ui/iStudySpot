@@ -1,61 +1,115 @@
 import { checkInApi } from '../../services/checkin'
+import store, { StoreEvent } from '../../utils/store'
 
 Page({
   data: {
     studyTime: '0:00:00',
     isStudying: true,
-    timer: null as number | null,
+    timer: null as ReturnType<typeof setInterval> | null,
     startTime: Date.now(),
     motto: '我们的一生皆是征途',
-    checkInRecordId: '' as string
+    checkInRecordId: '' as string,
+    roomName: '' as string,
+    seatNumber: '' as string
   },
+
+  unsubscribeCheckIn: null as (() => void) | null,
 
   onLoad() {
     console.log('[学习状态] 页面加载')
     this.loadCurrentCheckIn()
+    this.subscribeStoreEvents()
   },
 
   onUnload() {
     console.log('[学习状态] 页面卸载')
     this.stopTimer()
+    if (this.unsubscribeCheckIn) {
+      this.unsubscribeCheckIn()
+    }
+  },
+
+  subscribeStoreEvents() {
+    this.unsubscribeCheckIn = store.on(StoreEvent.CHECKIN_CHANGED, (data) => {
+      console.log('[学习状态] 收到签到状态变化事件', data)
+      const checkInData = data as { isCheckedIn: boolean; checkInRecord: any }
+      if (!checkInData.isCheckedIn) {
+        console.log('[学习状态] 签到已结束，停止计时器')
+        this.stopTimer()
+      }
+    })
   },
 
   async loadCurrentCheckIn() {
     console.log('[学习状态] 获取当前签到状态')
+    
+    const cachedCheckIn = store.getCurrentCheckIn()
+    if (cachedCheckIn.isCheckedIn && cachedCheckIn.checkInRecord) {
+      console.log('[学习状态] 使用缓存的签到记录', cachedCheckIn.checkInRecord)
+      await this.initWithCheckInRecord(cachedCheckIn.checkInRecord)
+      return
+    }
+
     try {
-      const res = await checkInApi.getCurrentCheckInStatus()
+      const res = await checkInApi.getCurrentCheckInStatus(true)
       console.log('[学习状态] 签到状态结果', res)
       
       if (res.code === 200 && res.data?.isCheckedIn && res.data?.checkInRecord) {
         const record = res.data.checkInRecord
         console.log('[学习状态] 找到活跃签到记录', record)
-        this.setData({
-          checkInRecordId: record.id,
-          startTime: new Date(record.checkInTime).getTime()
-        })
-        this.startTimer()
+        await this.initWithCheckInRecord(record)
       } else {
         console.log('[学习状态] 没有活跃签到记录')
-        wx.showModal({
-          title: '提示',
-          content: '您当前没有进行中的学习会话',
-          confirmText: '返回首页',
-          cancelText: '留在本页',
-          success: (res) => {
-            if (res.confirm) {
-              wx.switchTab({
-                url: '/pages/home/home'
-              })
-            } else {
-              this.startTimer()
-            }
-          }
-        })
+        this.showNoActiveSession()
       }
     } catch (error) {
       console.error('[学习状态] 获取签到状态失败', error)
-      this.startTimer()
+      this.showNoActiveSession()
     }
+  },
+
+  async initWithCheckInRecord(record: any) {
+    this.setData({
+      checkInRecordId: record.id,
+      startTime: new Date(record.checkInTime).getTime()
+    })
+
+    if (record.studyRoomId) {
+      const cachedRoom = store.getStudyRoomDetail(record.studyRoomId)
+      if (cachedRoom) {
+        this.setData({ roomName: cachedRoom.name || '未知自习室' })
+      }
+    }
+
+    if (record.seatId) {
+      const seats = store.getSeats(record.studyRoomId)
+      if (seats) {
+        const seat = seats.find(s => s.id === record.seatId)
+        if (seat) {
+          this.setData({ seatNumber: seat.seatNumber })
+        }
+      }
+    }
+
+    this.startTimer()
+  },
+
+  showNoActiveSession() {
+    wx.showModal({
+      title: '提示',
+      content: '您当前没有进行中的学习会话',
+      confirmText: '返回首页',
+      cancelText: '留在本页',
+      success: (res) => {
+        if (res.confirm) {
+          wx.switchTab({
+            url: '/pages/home/home'
+          })
+        } else {
+          this.startTimer()
+        }
+      }
+    })
   },
 
   startTimer() {
@@ -88,7 +142,10 @@ Page({
   async endStudySession() {
     console.log('[签退] 触发结束学习')
     
-    if (!this.data.checkInRecordId) {
+    const currentCheckIn = store.getCurrentCheckIn()
+    const checkInRecordId = this.data.checkInRecordId || currentCheckIn.checkInRecord?.id
+    
+    if (!checkInRecordId) {
       console.error('[签退] 未找到签到记录ID')
       wx.showToast({
         title: '未找到签到记录',
@@ -97,7 +154,7 @@ Page({
       return
     }
 
-    console.log('[签退] 签到记录ID:', this.data.checkInRecordId)
+    console.log('[签退] 签到记录ID:', checkInRecordId)
 
     wx.showModal({
       title: '结束学习',
@@ -111,8 +168,8 @@ Page({
           this.setData({ isStudying: false })
 
           try {
-            console.log('[签退] 调用签退API', { checkInRecordId: this.data.checkInRecordId })
-            const result = await checkInApi.checkOut({ checkInRecordId: this.data.checkInRecordId })
+            console.log('[签退] 调用签退API', { checkInRecordId })
+            const result = await checkInApi.checkOut({ checkInRecordId })
             console.log('[签退] 签退成功', result)
           } catch (error) {
             console.error('[签退] 签退失败', error)

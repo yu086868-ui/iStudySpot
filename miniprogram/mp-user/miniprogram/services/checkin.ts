@@ -1,10 +1,14 @@
-import type { ApiResponse, CheckInRecord, CheckInParams, CheckOutParams, CheckInRecordListParams, PaginatedResponse } from '../typings/api';
+import type { ApiResponse, CheckInRecord, CheckInParams, CheckOutParams, CheckInRecordListParams, PaginatedResponse, Reservation } from '../typings/api';
 import request from '../utils/request';
 import store from '../utils/store';
 import mockManager from '../utils/mock';
 
 export const checkInApi = {
   async checkIn(params: CheckInParams): Promise<ApiResponse<{ checkInRecordId: string; checkInTime: string; reservationId: string; seatId: string }>> {
+    const currentUser = store.getUser();
+    const reservations = store.getMyReservations();
+    const reservation = reservations.find(r => r.id === params.reservationId);
+
     if (mockManager.isEnabled()) {
       const response = await mockManager.request<{ checkInRecordId: string; checkInTime: string; reservationId: string; seatId: string }>({
         url: '/checkin',
@@ -12,66 +16,115 @@ export const checkInApi = {
         data: params
       });
       if (response.code === 200 && response.data) {
+        const checkInRecord: CheckInRecord = {
+          id: response.data.checkInRecordId,
+          userId: currentUser?.id ?? '',
+          reservationId: response.data.reservationId,
+          studyRoomId: reservation?.studyRoomId ?? '',
+          seatId: response.data.seatId,
+          checkInTime: response.data.checkInTime,
+          checkOutTime: null,
+          duration: 0,
+          status: 'active'
+        };
+
         store.setCurrentCheckIn({
           isCheckedIn: true,
-          checkInRecord: {
-            id: response.data.checkInRecordId,
-            userId: '',
-            reservationId: response.data.reservationId,
-            studyRoomId: '',
-            seatId: response.data.seatId,
-            checkInTime: response.data.checkInTime,
-            checkOutTime: null,
-            duration: 0,
-            status: 'active'
-          }
+          checkInRecord
         });
+
+        if (reservation) {
+          store.updateReservation({
+            ...reservation,
+            status: 'checked_in',
+            checkInTime: response.data.checkInTime,
+            updatedAt: new Date().toISOString()
+          });
+        }
       }
       return response;
     }
 
     const response = await request.post<{ checkInRecordId: string; checkInTime: string; reservationId: string; seatId: string }>('/checkin', params);
     if (response.code === 200 && response.data) {
+      const checkInRecord: CheckInRecord = {
+        id: response.data.checkInRecordId,
+        userId: currentUser?.id ?? '',
+        reservationId: response.data.reservationId,
+        studyRoomId: reservation?.studyRoomId ?? '',
+        seatId: response.data.seatId,
+        checkInTime: response.data.checkInTime,
+        checkOutTime: null,
+        duration: 0,
+        status: 'active'
+      };
+
       store.setCurrentCheckIn({
         isCheckedIn: true,
-        checkInRecord: {
-          id: response.data.checkInRecordId,
-          userId: '',
-          reservationId: response.data.reservationId,
-          studyRoomId: '',
-          seatId: response.data.seatId,
-          checkInTime: response.data.checkInTime,
-          checkOutTime: null,
-          duration: 0,
-          status: 'active'
-        }
+        checkInRecord
       });
+
+      if (reservation) {
+        store.updateReservation({
+          ...reservation,
+          status: 'checked_in',
+          checkInTime: response.data.checkInTime,
+          updatedAt: new Date().toISOString()
+        });
+      }
     }
     return response;
   },
 
   async checkOut(params: CheckOutParams): Promise<ApiResponse<{ checkOutTime: string; duration: number }>> {
+    const currentCheckIn = store.getCurrentCheckIn();
+    const reservations = store.getMyReservations();
+
     if (mockManager.isEnabled()) {
       const response = await mockManager.request<{ checkOutTime: string; duration: number }>({
         url: '/checkout',
         method: 'POST',
         data: params
       });
-      if (response.code === 200) {
+      if (response.code === 200 && response.data) {
         store.setCurrentCheckIn({
           isCheckedIn: false,
           checkInRecord: null
         });
+
+        if (currentCheckIn.checkInRecord) {
+          const reservation = reservations.find(r => r.id === currentCheckIn.checkInRecord?.reservationId);
+          if (reservation) {
+            store.updateReservation({
+              ...reservation,
+              status: 'completed',
+              checkOutTime: response.data.checkOutTime,
+              updatedAt: new Date().toISOString()
+            });
+          }
+        }
       }
       return response;
     }
 
     const response = await request.post<{ checkOutTime: string; duration: number }>('/checkout', params);
-    if (response.code === 200) {
+    if (response.code === 200 && response.data) {
       store.setCurrentCheckIn({
         isCheckedIn: false,
         checkInRecord: null
       });
+
+      if (currentCheckIn.checkInRecord) {
+        const reservation = reservations.find(r => r.id === currentCheckIn.checkInRecord?.reservationId);
+        if (reservation) {
+          store.updateReservation({
+            ...reservation,
+            status: 'completed',
+            checkOutTime: response.data.checkOutTime,
+            updatedAt: new Date().toISOString()
+          });
+        }
+      }
     }
     return response;
   },
@@ -116,7 +169,7 @@ export const checkInApi = {
   async getCurrentCheckInStatus(forceRefresh = false): Promise<ApiResponse<{ isCheckedIn: boolean; checkInRecord: CheckInRecord | null }>> {
     if (!forceRefresh) {
       const cachedStatus = store.getCurrentCheckIn();
-      if (cachedStatus.isCheckedIn || cachedStatus.checkInRecord) {
+      if (cachedStatus.isCheckedIn && cachedStatus.checkInRecord) {
         return {
           code: 200,
           message: 'success',

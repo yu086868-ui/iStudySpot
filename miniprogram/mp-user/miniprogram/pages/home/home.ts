@@ -3,6 +3,8 @@ import { userApi } from '../../services/user'
 import { studyRoomApi } from '../../services/studyroom'
 import { seatApi } from '../../services/seat'
 import { checkInApi } from '../../services/checkin'
+import store, { StoreEvent } from '../../utils/store'
+import type { Reservation, CheckInRecord } from '../../typings/api'
 
 type UserState = 'none' | 'reserved' | 'studying' | 'checked_out'
 
@@ -45,10 +47,14 @@ Page({
     stateDisplayText: ''
   },
 
+  unsubscribeCheckIn: null as (() => void) | null,
+  unsubscribeReservations: null as (() => void) | null,
+
   onLoad() {
     this.loadUserInfo()
     this.loadStudyRooms()
     this.updateUserState()
+    this.subscribeStoreEvents()
   },
 
   onShow() {
@@ -60,7 +66,33 @@ Page({
     this.updateUserState()
   },
 
+  onUnload() {
+    if (this.unsubscribeCheckIn) {
+      this.unsubscribeCheckIn()
+    }
+    if (this.unsubscribeReservations) {
+      this.unsubscribeReservations()
+    }
+  },
+
+  subscribeStoreEvents() {
+    this.unsubscribeCheckIn = store.on(StoreEvent.CHECKIN_CHANGED, () => {
+      console.log('[首页] 收到签到状态变化事件')
+      this.updateUserState()
+    })
+
+    this.unsubscribeReservations = store.on(StoreEvent.RESERVATIONS_CHANGED, () => {
+      console.log('[首页] 收到预约状态变化事件')
+      this.updateUserState()
+    })
+  },
+
   async loadUserInfo() {
+    const cachedUser = store.getUser()
+    if (cachedUser) {
+      this.setData({ userInfo: cachedUser })
+    }
+
     try {
       const res = await userApi.getCurrentUser()
       if (res.code === 200) {
@@ -72,6 +104,11 @@ Page({
   },
 
   async loadStudyRooms() {
+    const cachedRooms = store.getStudyRooms()
+    if (cachedRooms.length > 0) {
+      this.setData({ studyRooms: cachedRooms })
+    }
+
     try {
       const res = await studyRoomApi.getStudyRooms()
       if (res.code === 200) {
@@ -84,7 +121,29 @@ Page({
 
   async updateUserState() {
     try {
-      const checkInRes = await checkInApi.getCurrentCheckInStatus()
+      const cachedCheckIn = store.getCurrentCheckIn()
+      
+      if (cachedCheckIn.isCheckedIn && cachedCheckIn.checkInRecord) {
+        const record = cachedCheckIn.checkInRecord
+        if (record.status === 'active') {
+          await this.setStudyingState(record)
+          return
+        }
+      }
+
+      const cachedReservations = store.getMyReservations()
+      const confirmedReservations = cachedReservations.filter(r => r.status === 'confirmed')
+      
+      if (confirmedReservations.length > 0) {
+        const checkinableReservation = confirmedReservations.find(r => isReservationCheckinable(r))
+        
+        if (checkinableReservation) {
+          await this.setReservedState(checkinableReservation)
+          return
+        }
+      }
+
+      const checkInRes = await checkInApi.getCurrentCheckInStatus(true)
       
       if (checkInRes.code === 200 && checkInRes.data?.isCheckedIn && checkInRes.data?.checkInRecord) {
         const record = checkInRes.data.checkInRecord
@@ -112,14 +171,19 @@ Page({
     }
   },
 
-  async setStudyingState(checkInRecord: any) {
+  async setStudyingState(checkInRecord: CheckInRecord) {
     let roomName = '未知自习室'
     let seatNumber = '未知座位'
 
     if (checkInRecord.studyRoomId) {
-      const roomRes = await studyRoomApi.getStudyRoomDetail(checkInRecord.studyRoomId)
-      if (roomRes.code === 200 && roomRes.data) {
-        roomName = roomRes.data.name || '未知自习室'
+      const cachedRoom = store.getStudyRoomDetail(checkInRecord.studyRoomId)
+      if (cachedRoom) {
+        roomName = cachedRoom.name || '未知自习室'
+      } else {
+        const roomRes = await studyRoomApi.getStudyRoomDetail(checkInRecord.studyRoomId)
+        if (roomRes.code === 200 && roomRes.data) {
+          roomName = roomRes.data.name || '未知自习室'
+        }
       }
     }
 
@@ -132,7 +196,7 @@ Page({
 
     const checkInTime = new Date(checkInRecord.checkInTime)
     const now = new Date()
-    const duration = Math.floor((now.getTime() - checkInTime.getTime()) / (1000 * 60 * 60))
+    const duration = Math.floor((now.getTime() - checkInTime.getTime()) / (1000 * 60))
     const hours = Math.floor(duration / 60)
     const minutes = duration % 60
     const displayTime = `${hours}小时${minutes}分钟`
@@ -154,7 +218,7 @@ Page({
     })
   },
 
-  async setReservedState(reservation: any) {
+  async setReservedState(reservation: Reservation) {
     const startTime = new Date(reservation.startTime)
     const endTime = new Date(reservation.endTime)
     const timeStr = `${startTime.getHours()}:${String(startTime.getMinutes()).padStart(2, '0')}-${endTime.getHours()}:${String(endTime.getMinutes()).padStart(2, '0')}`
@@ -163,9 +227,14 @@ Page({
     let seatNumber = '未知座位'
 
     if (reservation.studyRoomId) {
-      const roomRes = await studyRoomApi.getStudyRoomDetail(reservation.studyRoomId)
-      if (roomRes.code === 200 && roomRes.data) {
-        roomName = roomRes.data.name || '未知自习室'
+      const cachedRoom = store.getStudyRoomDetail(reservation.studyRoomId)
+      if (cachedRoom) {
+        roomName = cachedRoom.name || '未知自习室'
+      } else {
+        const roomRes = await studyRoomApi.getStudyRoomDetail(reservation.studyRoomId)
+        if (roomRes.code === 200 && roomRes.data) {
+          roomName = roomRes.data.name || '未知自习室'
+        }
       }
     }
 

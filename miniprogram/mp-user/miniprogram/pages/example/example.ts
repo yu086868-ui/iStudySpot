@@ -1,4 +1,11 @@
-import { authApi, userApi, studyRoomApi, seatApi, reservationApi, checkInApi, announcementApi, ruleApi } from '../../services';
+import { authApi } from '../../services/auth'
+import { userApi } from '../../services/user'
+import { studyRoomApi } from '../../services/studyroom'
+import { seatApi } from '../../services/seat'
+import { reservationApi } from '../../services/reservation'
+import { checkInApi } from '../../services/checkin'
+import { announcementApi } from '../../services/announcement'
+import { ruleApi } from '../../services/rule'
 
 Page({
   data: {
