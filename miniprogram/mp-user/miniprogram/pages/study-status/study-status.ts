@@ -1,4 +1,5 @@
 import { checkInApi, store, StoreEvent } from '../../services/index'
+import { navigationManager } from '../../utils/navigation'
 
 Page({
   data: {
@@ -98,15 +99,9 @@ Page({
       title: '提示',
       content: '您当前没有进行中的学习会话',
       confirmText: '返回首页',
-      cancelText: '留在本页',
-      success: (res) => {
-        if (res.confirm) {
-          wx.switchTab({
-            url: '/pages/home/home'
-          })
-        } else {
-          this.startTimer()
-        }
+      showCancel: false,
+      success: () => {
+        navigationManager.navigateFromStudyToHome()
       }
     })
   },
@@ -181,9 +176,7 @@ Page({
           })
 
           setTimeout(() => {
-            wx.switchTab({
-              url: '/pages/home/home'
-            })
+            navigationManager.navigateFromStudyToHome()
           }, 2000)
         } else {
           console.log('[签退] 用户取消结束学习')

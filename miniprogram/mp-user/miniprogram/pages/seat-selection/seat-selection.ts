@@ -1,6 +1,7 @@
 import { seatApi } from '../../services/seat'
 import { reservationApi } from '../../services/reservation'
 import { checkInApi } from '../../services/checkin'
+import { navigationManager } from '../../utils/navigation'
 import type { Seat, ReservationRules } from '../../typings/api'
 import { SeatLayoutUtil } from '../../utils/seat-layout'
 
@@ -410,11 +411,9 @@ Page({
             cancelText: '稍后再说',
             success: async (modalRes) => {
               if (modalRes.confirm) {
-                await this.performCheckIn(res.data.id, this.data.selectedSeat!.id)
+                await this.performCheckInAndNavigate(res.data.id, this.data.selectedSeat!.id)
               } else {
-                wx.switchTab({
-                  url: '/pages/home/home'
-                })
+                navigationManager.navigateFromReservationToHome()
               }
             }
           })
@@ -425,9 +424,7 @@ Page({
             showCancel: false,
             confirmText: '返回首页',
             success: () => {
-              wx.switchTab({
-                url: '/pages/home/home'
-              })
+              navigationManager.navigateFromReservationToHome()
             }
           })
         }
@@ -447,7 +444,7 @@ Page({
     }
   },
 
-  async performCheckIn(reservationId: string, seatId: string) {
+  async performCheckInAndNavigate(reservationId: string, seatId: string) {
     wx.showLoading({ title: '签到中...' })
     try {
       const res = await checkInApi.checkIn({
@@ -462,9 +459,7 @@ Page({
           icon: 'success'
         })
         setTimeout(() => {
-          wx.navigateTo({
-            url: '/pages/study-status/study-status'
-          })
+          navigationManager.navigateFromReservationToStudy()
         }, 1500)
       } else {
         wx.showToast({

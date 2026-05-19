@@ -1,4 +1,5 @@
 import { reservationApi, userApi, studyRoomApi, seatApi, checkInApi, store, StoreEvent } from '../../services/index'
+import { navigationManager } from '../../utils/navigation'
 import type { Reservation, CheckInRecord } from '../../typings/api'
 
 type UserState = 'none' | 'reserved' | 'studying' | 'checked_out'
@@ -31,6 +32,15 @@ function isReservationCheckinable(reservation: { startTime: string; endTime: str
   return now >= checkinWindowStart && now <= endTime
 }
 
+function isTimeNearby(startTime: string, thresholdMinutes: number = 30): boolean {
+  const now = new Date()
+  const start = new Date(startTime)
+  const diffMs = start.getTime() - now.getTime()
+  const diffMinutes = diffMs / (1000 * 60)
+  
+  return diffMinutes > 0 && diffMinutes <= thresholdMinutes
+}
+
 Page({
   data: {
     userInfo: null as any,
@@ -39,7 +49,9 @@ Page({
     weeklyStudyHours: 18,
     studyRooms: [] as any[],
     seats: [] as any[],
-    stateDisplayText: ''
+    stateDisplayText: '',
+    reserveButtonText: '选座预约',
+    checkInButtonText: '签到 / 学习'
   },
 
   unsubscribeCheckIn: null as (() => void) | null,
@@ -73,12 +85,12 @@ Page({
   subscribeStoreEvents() {
     this.unsubscribeCheckIn = store.on(StoreEvent.CHECKIN_CHANGED, () => {
       console.log('[首页] 收到签到状态变化事件')
-      this.updateUserState()
+      this.updateUserState(false)
     })
 
     this.unsubscribeReservations = store.on(StoreEvent.RESERVATIONS_CHANGED, () => {
       console.log('[首页] 收到预约状态变化事件')
-      this.updateUserState()
+      this.updateUserState(false)
     })
   },
 
@@ -114,7 +126,7 @@ Page({
     }
   },
 
-  async updateUserState() {
+  async updateUserState(shouldRefreshFromServer: boolean = true) {
     try {
       const cachedCheckIn = store.getCurrentCheckIn()
       
@@ -138,6 +150,11 @@ Page({
         }
       }
 
+      if (!shouldRefreshFromServer) {
+        this.setNoneState()
+        return
+      }
+
       const checkInRes = await checkInApi.getCurrentCheckInStatus(true)
       
       if (checkInRes.code === 200 && checkInRes.data?.isCheckedIn && checkInRes.data?.checkInRecord) {
@@ -148,7 +165,7 @@ Page({
         }
       }
 
-      const reservationRes = await reservationApi.getMyReservations({ status: 'confirmed' })
+      const reservationRes = await reservationApi.getMyReservations({ status: 'confirmed' }, true)
       
       if (reservationRes.code === 200 && reservationRes.data?.list?.length > 0) {
         const checkinableReservation = reservationRes.data.list.find(r => isReservationCheckinable(r))
@@ -209,7 +226,9 @@ Page({
         displayTime,
         status: 'studying'
       },
-      stateDisplayText: '学习中'
+      stateDisplayText: '学习中',
+      reserveButtonText: '进入学习',
+      checkInButtonText: '进入学习'
     })
   },
 
@@ -253,7 +272,9 @@ Page({
         displayTime: timeStr,
         status: 'reserved'
       },
-      stateDisplayText: '已预约'
+      stateDisplayText: '已预约',
+      reserveButtonText: '重新预约',
+      checkInButtonText: '签到 / 学习'
     })
   },
 
@@ -261,103 +282,126 @@ Page({
     this.setData({
       userState: 'none',
       currentReservation: null,
-      stateDisplayText: '未预约'
+      stateDisplayText: '未预约',
+      reserveButtonText: '选座预约',
+      checkInButtonText: '签到 / 学习'
     })
   },
 
-  reserveSeat() {
+  handleReserveButton() {
     const { userState, currentReservation } = this.data
 
     if (userState === 'studying') {
-      wx.showToast({
-        title: '您正在学习中，请先结束当前学习',
-        icon: 'none'
-      })
+      navigationManager.navigateTo('study')
       return
     }
 
     if (userState === 'reserved' && currentReservation) {
       wx.showModal({
         title: '已有预约',
-        content: `您已预约 ${currentReservation.roomName} ${currentReservation.displayTime}，座位 ${currentReservation.seatNumber}。是否取消当前预约并重新选座？`,
-        confirmText: '取消预约',
-        cancelText: '返回',
-        success: async (res) => {
+        content: `您已预约 ${currentReservation.roomName} ${currentReservation.displayTime}，座位 ${currentReservation.seatNumber}。是否重新预约？`,
+        confirmText: '重新预约',
+        cancelText: '取消',
+        success: (res) => {
           if (res.confirm) {
-            await this.cancelCurrentReservation()
+            navigationManager.navigateTo('reservation')
           }
         }
       })
       return
     }
 
-    wx.navigateTo({
-      url: '/pages/seat-selection/seat-selection'
+    navigationManager.navigateTo('reservation')
+  },
+
+  handleCheckInButton() {
+    const { userState, currentReservation } = this.data
+
+    if (userState === 'studying') {
+      navigationManager.navigateTo('study')
+      return
+    }
+
+    if (userState === 'reserved' && currentReservation) {
+      this.performCheckIn(currentReservation.id, currentReservation.seatId)
+      return
+    }
+
+    this.handleNoneStateCheckIn()
+  },
+
+  async handleNoneStateCheckIn() {
+    try {
+      const reservationRes = await reservationApi.getMyReservations({ status: 'confirmed' }, true)
+      
+      if (reservationRes.code === 200 && reservationRes.data?.list?.length > 0) {
+        const nearbyReservation = reservationRes.data.list.find(r => 
+          isTimeNearby(r.startTime, 30)
+        )
+        
+        if (nearbyReservation) {
+          wx.showModal({
+            title: '检测到学习时间临近',
+            content: '是否直接预约并进入学习？',
+            confirmText: '立即开始',
+            cancelText: '取消',
+            success: async (res) => {
+              if (res.confirm) {
+                await this.quickReserveAndCheckIn(nearbyReservation)
+              }
+            }
+          })
+          return
+        }
+      }
+    } catch (error) {
+      console.error('检查临近预约失败', error)
+    }
+
+    wx.showModal({
+      title: '暂无预约',
+      content: '您当前没有预约，是否立即选座开始学习？',
+      confirmText: '立即选座',
+      cancelText: '取消',
+      success: (res) => {
+        if (res.confirm) {
+          navigationManager.navigateTo('reservation', {
+            params: { immediate: 'true' }
+          })
+        }
+      }
     })
   },
 
-  async cancelCurrentReservation() {
-    const { currentReservation } = this.data
-    if (!currentReservation) return
-
-    wx.showLoading({ title: '取消中...' })
+  async quickReserveAndCheckIn(reservation: Reservation) {
+    wx.showLoading({ title: '处理中...' })
     try {
-      const res = await reservationApi.cancelReservation(currentReservation.id)
+      const checkInRes = await checkInApi.checkIn({
+        reservationId: reservation.id,
+        seatId: reservation.seatId
+      })
       wx.hideLoading()
 
-      if (res.code === 200) {
+      if (checkInRes.code === 200) {
         wx.showToast({
-          title: '预约已取消',
+          title: '签到成功',
           icon: 'success'
         })
-        this.setNoneState()
         setTimeout(() => {
-          wx.navigateTo({
-            url: '/pages/seat-selection/seat-selection'
-          })
+          navigationManager.navigateTo('study')
         }, 1500)
       } else {
         wx.showToast({
-          title: res.message || '取消失败',
+          title: checkInRes.message || '签到失败',
           icon: 'none'
         })
       }
     } catch (error) {
       wx.hideLoading()
-      console.error('取消预约失败', error)
+      console.error('快速签到失败', error)
       wx.showToast({
-        title: '取消失败，请重试',
+        title: '签到失败，请重试',
         icon: 'none'
-      })
-    }
-  },
-
-  async onlineCheckIn() {
-    const { userState, currentReservation } = this.data
-
-    if (userState === 'studying') {
-      wx.showToast({
-        title: '您已在学习中',
-        icon: 'none'
-      })
-      return
-    }
-
-    if (userState === 'reserved' && currentReservation) {
-      await this.performCheckIn(currentReservation.id, currentReservation.seatId)
-    } else {
-      wx.showModal({
-        title: '暂无预约',
-        content: '您当前没有预约，是否立即选座开始学习？',
-        confirmText: '立即选座',
-        cancelText: '取消',
-        success: (res) => {
-          if (res.confirm) {
-            wx.navigateTo({
-              url: '/pages/seat-selection/seat-selection?immediate=true'
-            })
-          }
-        }
       })
     }
   },
@@ -462,8 +506,12 @@ Page({
           cancelText: '取消',
           success: (res) => {
             if (res.confirm) {
-              wx.navigateTo({
-                url: `/pages/seat-selection/seat-selection?studyRoomId=${params.studyRoomId}&seatId=${params.seatId}&immediate=true`
+              navigationManager.navigateTo('reservation', {
+                params: {
+                  studyRoomId: params.studyRoomId,
+                  seatId: params.seatId,
+                  immediate: 'true'
+                }
               })
             }
           }
@@ -496,9 +544,7 @@ Page({
           icon: 'success'
         })
         setTimeout(() => {
-          wx.navigateTo({
-            url: '/pages/study-status/study-status'
-          })
+          navigationManager.navigateTo('study')
         }, 1500)
       } else {
         console.error('[签到] 签到失败', res.message)

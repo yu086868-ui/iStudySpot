@@ -25,17 +25,21 @@ export const reservationApi = {
   },
 
   async getMyReservations(params?: ReservationListParams, forceRefresh = false): Promise<ApiResponse<PaginatedResponse<Reservation>>> {
-    if (!forceRefresh && !params) {
+    if (!forceRefresh) {
       const cachedReservations = store.getMyReservations();
       if (cachedReservations.length > 0) {
+        let filteredList = cachedReservations;
+        if (params?.status) {
+          filteredList = cachedReservations.filter(r => r.status === params.status);
+        }
         return {
           code: 200,
           message: 'success',
           data: {
-            list: cachedReservations,
-            total: cachedReservations.length,
+            list: filteredList,
+            total: filteredList.length,
             page: 1,
-            pageSize: cachedReservations.length
+            pageSize: filteredList.length
           },
           timestamp: Date.now()
         };
