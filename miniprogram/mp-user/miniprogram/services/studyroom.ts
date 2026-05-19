@@ -29,14 +29,14 @@ export const studyRoomApi = {
         method: 'GET',
         data: params
       });
-      if (response.code === 200 && response.data?.list) {
+      if (response.code === 200 && response.data && response.data.list) {
         store.setStudyRooms(response.data.list);
       }
       return response;
     }
 
     const response = await request.get<PaginatedResponse<StudyRoom>>('/studyrooms', params);
-    if (response.code === 200 && response.data?.list) {
+    if (response.code === 200 && response.data && response.data.list) {
       store.setStudyRooms(response.data.list);
     }
     return response;

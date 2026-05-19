@@ -54,7 +54,7 @@ Page({
       const res = await checkInApi.getCurrentCheckInStatus(true)
       console.log('[学习状态] 签到状态结果', res)
       
-      if (res.code === 200 && res.data?.isCheckedIn && res.data?.checkInRecord) {
+      if (res.code === 200 && res.data && res.data.isCheckedIn && res.data.checkInRecord) {
         const record = res.data.checkInRecord
         console.log('[学习状态] 找到活跃签到记录', record)
         await this.initWithCheckInRecord(record)
@@ -137,7 +137,7 @@ Page({
     console.log('[签退] 触发结束学习')
     
     const currentCheckIn = store.getCurrentCheckIn()
-    const checkInRecordId = this.data.checkInRecordId || currentCheckIn.checkInRecord?.id
+    const checkInRecordId = this.data.checkInRecordId || (currentCheckIn.checkInRecord && currentCheckIn.checkInRecord.id)
     
     if (!checkInRecordId) {
       console.error('[签退] 未找到签到记录ID')

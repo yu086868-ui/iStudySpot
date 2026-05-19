@@ -107,7 +107,10 @@ class Store {
     this.events.get(event)!.add(callback);
 
     return () => {
-      this.events.get(event)?.delete(callback);
+      const callbacks = this.events.get(event);
+      if (callbacks) {
+        callbacks.delete(callback);
+      }
     };
   }
 
@@ -151,7 +154,7 @@ class Store {
   }
 
   getStudyRoomDetail(roomId: string): StudyRoomDetail | null {
-    if (this.state.currentStudyRoom?.id === roomId) {
+    if (this.state.currentStudyRoom && this.state.currentStudyRoom.id === roomId) {
       return this.state.currentStudyRoom;
     }
     return cache.getStudyRoomDetail(roomId);
@@ -163,7 +166,7 @@ class Store {
   }
 
   getSeats(studyRoomId: string): Seat[] | null {
-    if (this.state.seats.length > 0 && this.state.seats[0]?.studyRoomId === studyRoomId) {
+    if (this.state.seats.length > 0 && this.state.seats[0] && this.state.seats[0].studyRoomId === studyRoomId) {
       return this.state.seats;
     }
     return cache.getSeats(studyRoomId);

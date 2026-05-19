@@ -28,14 +28,14 @@ export const announcementApi = {
         method: 'GET',
         data: params
       });
-      if (response.code === 200 && response.data?.list) {
+      if (response.code === 200 && response.data && response.data.list) {
         store.setAnnouncements(response.data.list);
       }
       return response;
     }
 
     const response = await request.get<PaginatedResponse<Announcement>>('/announcements', params);
-    if (response.code === 200 && response.data?.list) {
+    if (response.code === 200 && response.data && response.data.list) {
       store.setAnnouncements(response.data.list);
     }
     return response;

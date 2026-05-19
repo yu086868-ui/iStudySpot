@@ -17,7 +17,11 @@ const PAGE_PATHS: Record<NavigationTarget, string> = {
 const TAB_PAGES = ['home', 'rules', 'profile']
 
 class NavigationManager {
-  private lastReservationPageId: string | null = null
+  private lastReservationPageId: string | null
+
+  constructor() {
+    this.lastReservationPageId = null
+  }
 
   navigateTo(target: NavigationTarget, options: NavigationOptions = {}): void {
     const path = this.buildPath(target, options.params)

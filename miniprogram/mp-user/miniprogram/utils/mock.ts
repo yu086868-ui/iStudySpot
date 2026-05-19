@@ -40,7 +40,7 @@ class MockManager {
 
     if (url === '/auth/login' && method === 'POST') {
       const params = (data || {}) as { username?: string; password?: string };
-      const users = mockData?.users ?? [];
+      const users = (mockData && mockData.users) ? mockData.users : [];
       const user = users.find(u => u.username === params.username);
 
       if (user) {
@@ -71,7 +71,7 @@ class MockManager {
 
     if (url === '/auth/register' && method === 'POST') {
       const params = (data || {}) as { username?: string; password?: string; nickname?: string; phone?: string; studentId?: string };
-      const users = mockData?.users ?? [];
+      const users = (mockData && mockData.users) ? mockData.users : [];
       const existingUser = users.find(u => u.username === params.username);
 
       if (existingUser) {
@@ -84,20 +84,20 @@ class MockManager {
       }
 
       const newUser = {
-        id: `user_${(users?.length ?? 0) + 1}`,
-        username: params.username ?? '',
-        nickname: params.nickname ?? '',
+        id: `user_${(users && users.length) ? users.length + 1 : 1}`,
+        username: params.username || '',
+        nickname: params.nickname || '',
         avatar: 'https://example.com/default-avatar.jpg',
-        phone: params.phone ?? '',
+        phone: params.phone || '',
         email: '',
-        studentId: params.studentId ?? '',
+        studentId: params.studentId || '',
         creditScore: 100,
         status: 'active' as const,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
 
-      if (mockData?.users) {
+      if (mockData && mockData.users) {
         mockData.users.push(newUser);
       }
 
@@ -131,8 +131,8 @@ class MockManager {
     }
 
     if (url === '/users/me' && method === 'GET') {
-      const users = mockData?.users ?? [];
-      const currentUser = users[0] ?? null;
+      const users = (mockData && mockData.users) ? mockData.users : [];
+      const currentUser = users[0] || null;
 
       if (!currentUser) {
         return {
@@ -153,8 +153,8 @@ class MockManager {
 
     if (url === '/users/me' && method === 'PUT') {
       const params = (data || {}) as { nickname?: string; avatar?: string; phone?: string; email?: string };
-      const users = mockData?.users ?? [];
-      const user = users[0] ?? null;
+      const users = (mockData && mockData.users) ? mockData.users : [];
+      const user = users[0] || null;
 
       if (!user) {
         return {
@@ -189,7 +189,7 @@ class MockManager {
 
     if (url === '/studyrooms' && method === 'GET') {
       const params = (data || {}) as { status?: string; floor?: number; keyword?: string; page?: number; pageSize?: number };
-      let filteredRooms = [...(mockData?.studyRooms ?? [])];
+      let filteredRooms = [...((mockData && mockData.studyRooms) ? mockData.studyRooms : [])];
 
       if (params.status) {
         filteredRooms = filteredRooms.filter(room => room.status === params.status);
@@ -227,7 +227,7 @@ class MockManager {
       const parts = url.split('/');
       const studyRoomId = parts[2];
       const params = (data || {}) as { status?: string; type?: string; row?: number; col?: number };
-      const allSeats = mockData?.seats ?? [];
+      const allSeats = (mockData && mockData.seats) ? mockData.seats : [];
       
       let seats = allSeats.filter(s => s.studyRoomId === studyRoomId);
 
@@ -257,11 +257,11 @@ class MockManager {
 
     if (url.startsWith('/studyrooms/') && method === 'GET') {
       const roomId = url.split('/')[2];
-      const studyRooms = mockData?.studyRooms ?? [];
+      const studyRooms = (mockData && mockData.studyRooms) ? mockData.studyRooms : [];
       const room = studyRooms.find(r => r.id === roomId);
 
       if (room) {
-        const rules = mockData?.rules ?? [];
+        const rules = (mockData && mockData.rules) ? mockData.rules : [];
         return {
           code: 200,
           message: 'success',
@@ -285,7 +285,7 @@ class MockManager {
 
     if (url.startsWith('/seats/') && method === 'GET') {
       const seatId = url.split('/')[2];
-      const seats = mockData?.seats ?? [];
+      const seats = (mockData && mockData.seats) ? mockData.seats : [];
       const seat = seats.find(s => s.id === seatId);
 
       if (seat) {
@@ -307,10 +307,10 @@ class MockManager {
 
     if (url === '/reservations' && method === 'POST') {
       const params = (data || {}) as { studyRoomId?: string; seatId?: string; startTime?: string; endTime?: string };
-      const users = mockData?.users ?? [];
-      const currentUser = users[0] ?? null;
-      const reservations = mockData?.reservations ?? [];
-      const seats = mockData?.seats ?? [];
+      const users = (mockData && mockData.users) ? mockData.users : [];
+      const currentUser = users[0] || null;
+      const reservations = (mockData && mockData.reservations) ? mockData.reservations : [];
+      const seats = (mockData && mockData.seats) ? mockData.seats : [];
 
       if (!currentUser) {
         return {
@@ -348,10 +348,10 @@ class MockManager {
       const newReservation = {
         id: `res_${reservations.length + 1}`,
         userId: currentUser.id,
-        studyRoomId: params.studyRoomId ?? '',
-        seatId: params.seatId ?? '',
-        startTime: params.startTime ?? '',
-        endTime: params.endTime ?? '',
+        studyRoomId: params.studyRoomId || '',
+        seatId: params.seatId || '',
+        startTime: params.startTime || '',
+        endTime: params.endTime || '',
         status: 'confirmed' as const,
         checkInTime: null,
         checkOutTime: null,
@@ -359,7 +359,7 @@ class MockManager {
         updatedAt: new Date().toISOString()
       };
 
-      if (mockData?.reservations) {
+      if (mockData && mockData.reservations) {
         mockData.reservations.push(newReservation);
       }
 
@@ -377,9 +377,9 @@ class MockManager {
 
     if (url === '/reservations/my' && method === 'GET') {
       const params = (data || {}) as { status?: string; startDate?: string; endDate?: string; page?: number; pageSize?: number };
-      const users = mockData?.users ?? [];
-      const currentUser = users[0] ?? null;
-      const reservations = mockData?.reservations ?? [];
+      const users = (mockData && mockData.users) ? mockData.users : [];
+      const currentUser = users[0] || null;
+      const reservations = (mockData && mockData.reservations) ? mockData.reservations : [];
 
       let filteredReservations = currentUser
         ? reservations.filter(r => r.userId === currentUser.id)
@@ -417,8 +417,8 @@ class MockManager {
 
     if (url.startsWith('/reservations/') && url.endsWith('/cancel') && method === 'POST') {
       const reservationId = url.split('/')[2];
-      const reservations = mockData?.reservations ?? [];
-      const seats = mockData?.seats ?? [];
+      const reservations = (mockData && mockData.reservations) ? mockData.reservations : [];
+      const seats = (mockData && mockData.seats) ? mockData.seats : [];
       const reservation = reservations.find(r => r.id === reservationId);
 
       if (reservation) {
@@ -476,11 +476,11 @@ class MockManager {
       const params = (data || {}) as { reservationId?: string; seatId?: string };
       console.log('[MOCK 签到] 收到签到请求', params);
       
-      const users = mockData?.users ?? [];
-      const currentUser = users[0] ?? null;
-      const reservations = mockData?.reservations ?? [];
-      const checkInRecords = mockData?.checkInRecords ?? [];
-      const seats = mockData?.seats ?? [];
+      const users = (mockData && mockData.users) ? mockData.users : [];
+      const currentUser = users[0] || null;
+      const reservations = (mockData && mockData.reservations) ? mockData.reservations : [];
+      const checkInRecords = (mockData && mockData.checkInRecords) ? mockData.checkInRecords : [];
+      const seats = (mockData && mockData.seats) ? mockData.seats : [];
 
       if (!currentUser) {
         console.error('[MOCK 签到] 用户不存在');
@@ -526,16 +526,16 @@ class MockManager {
       const newCheckInRecord = {
         id: `checkin_${checkInRecords.length + 1}`,
         userId: currentUser.id,
-        reservationId: params.reservationId ?? '',
-        studyRoomId: reservation?.studyRoomId ?? '',
-        seatId: params.seatId ?? '',
+        reservationId: params.reservationId || '',
+        studyRoomId: reservation && reservation.studyRoomId ? reservation.studyRoomId : '',
+        seatId: params.seatId || '',
         checkInTime: new Date().toISOString(),
         checkOutTime: null,
         duration: 0,
         status: 'active' as const
       };
 
-      if (mockData?.checkInRecords) {
+      if (mockData && mockData.checkInRecords) {
         mockData.checkInRecords.push(newCheckInRecord);
       }
 
@@ -547,8 +547,8 @@ class MockManager {
         data: {
           checkInRecordId: newCheckInRecord.id,
           checkInTime: newCheckInRecord.checkInTime,
-          reservationId: params.reservationId ?? '',
-          seatId: params.seatId ?? ''
+          reservationId: params.reservationId || '',
+          seatId: params.seatId || ''
         } as T,
         timestamp
       };
@@ -558,9 +558,9 @@ class MockManager {
       const params = (data || {}) as { checkInRecordId?: string };
       console.log('[MOCK 签退] 收到签退请求', params);
       
-      const checkInRecords = mockData?.checkInRecords ?? [];
-      const reservations = mockData?.reservations ?? [];
-      const seats = mockData?.seats ?? [];
+      const checkInRecords = (mockData && mockData.checkInRecords) ? mockData.checkInRecords : [];
+      const reservations = (mockData && mockData.reservations) ? mockData.reservations : [];
+      const seats = (mockData && mockData.seats) ? mockData.seats : [];
       const record = checkInRecords.find(r => r.id === params.checkInRecordId);
 
       if (record) {
@@ -620,9 +620,9 @@ class MockManager {
 
     if (url === '/checkin/records' && method === 'GET') {
       const params = (data || {}) as { startDate?: string; endDate?: string; page?: number; pageSize?: number };
-      const users = mockData?.users ?? [];
-      const currentUser = users[0] ?? null;
-      const checkInRecords = mockData?.checkInRecords ?? [];
+      const users = (mockData && mockData.users) ? mockData.users : [];
+      const currentUser = users[0] || null;
+      const checkInRecords = (mockData && mockData.checkInRecords) ? mockData.checkInRecords : [];
 
       let filteredRecords = currentUser
         ? checkInRecords.filter(r => r.userId === currentUser.id)
@@ -655,9 +655,9 @@ class MockManager {
     }
 
     if (url === '/checkin/current' && method === 'GET') {
-      const users = mockData?.users ?? [];
-      const currentUser = users[0] ?? null;
-      const checkInRecords = mockData?.checkInRecords ?? [];
+      const users = (mockData && mockData.users) ? mockData.users : [];
+      const currentUser = users[0] || null;
+      const checkInRecords = (mockData && mockData.checkInRecords) ? mockData.checkInRecords : [];
       const activeRecord = currentUser
         ? checkInRecords.find(r => r.userId === currentUser.id && r.status === 'active')
         : undefined;
@@ -667,7 +667,7 @@ class MockManager {
         message: 'success',
         data: {
           isCheckedIn: !!activeRecord,
-          checkInRecord: activeRecord ?? null
+          checkInRecord: activeRecord || null
         } as T,
         timestamp
       };
@@ -675,7 +675,7 @@ class MockManager {
 
     if (url === '/announcements' && method === 'GET') {
       const params = (data || {}) as { type?: string; priority?: string; page?: number; pageSize?: number };
-      let filteredAnnouncements = [...(mockData?.announcements ?? [])];
+      let filteredAnnouncements = [...((mockData && mockData.announcements) ? mockData.announcements : [])];
 
       if (params.type) {
         filteredAnnouncements = filteredAnnouncements.filter(a => a.type === params.type);
@@ -705,7 +705,7 @@ class MockManager {
 
     if (url.startsWith('/announcements/') && method === 'GET') {
       const announcementId = url.split('/')[2];
-      const announcements = mockData?.announcements ?? [];
+      const announcements = (mockData && mockData.announcements) ? mockData.announcements : [];
       const announcement = announcements.find(a => a.id === announcementId);
 
       if (announcement) {
@@ -727,7 +727,7 @@ class MockManager {
 
     if (url === '/rules' && method === 'GET') {
       const params = (data || {}) as { studyRoomId?: string; category?: string };
-      let filteredRules = [...(mockData?.rules ?? [])];
+      let filteredRules = [...((mockData && mockData.rules) ? mockData.rules : [])];
 
       if (params.studyRoomId) {
         filteredRules = filteredRules.filter(r => r.studyRoomId === params.studyRoomId || r.studyRoomId === null);
@@ -747,7 +747,7 @@ class MockManager {
 
     if (url.startsWith('/rules/') && method === 'GET') {
       const ruleId = url.split('/')[2];
-      const rules = mockData?.rules ?? [];
+      const rules = (mockData && mockData.rules) ? mockData.rules : [];
       const rule = rules.find(r => r.id === ruleId);
 
       if (rule) {

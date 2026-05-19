@@ -29,7 +29,7 @@ export const reservationApi = {
       const cachedReservations = store.getMyReservations();
       if (cachedReservations.length > 0) {
         let filteredList = cachedReservations;
-        if (params?.status) {
+        if (params && params.status) {
           filteredList = cachedReservations.filter(r => r.status === params.status);
         }
         return {
@@ -52,14 +52,14 @@ export const reservationApi = {
         method: 'GET',
         data: params
       });
-      if (response.code === 200 && response.data?.list) {
+      if (response.code === 200 && response.data && response.data.list) {
         store.setMyReservations(response.data.list);
       }
       return response;
     }
 
     const response = await request.get<PaginatedResponse<Reservation>>('/reservations/my', params);
-    if (response.code === 200 && response.data?.list) {
+    if (response.code === 200 && response.data && response.data.list) {
       store.setMyReservations(response.data.list);
     }
     return response;

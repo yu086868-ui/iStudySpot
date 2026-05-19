@@ -286,7 +286,7 @@ Page({
       return
     }
     
-    if (this.data.selectedSeat?.id === seat.id) {
+    if (this.data.selectedSeat && this.data.selectedSeat.id === seat.id) {
       this.setData({ 
         selectedSeat: null,
         selectedSeatFacilitiesText: ''
@@ -310,7 +310,7 @@ Page({
   getSeatClass(seat: Seat): string {
     const classes: string[] = ['seat']
     
-    if (this.data.selectedSeat?.id === seat.id) {
+    if (this.data.selectedSeat && this.data.selectedSeat.id === seat.id) {
       classes.push('seat-selected')
       return classes.join(' ')
     }

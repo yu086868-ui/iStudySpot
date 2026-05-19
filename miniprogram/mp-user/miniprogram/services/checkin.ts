@@ -18,9 +18,9 @@ export const checkInApi = {
       if (response.code === 200 && response.data) {
         const checkInRecord: CheckInRecord = {
           id: response.data.checkInRecordId,
-          userId: currentUser?.id ?? '',
+          userId: currentUser && currentUser.id ? currentUser.id : '',
           reservationId: response.data.reservationId,
-          studyRoomId: reservation?.studyRoomId ?? '',
+          studyRoomId: reservation && reservation.studyRoomId ? reservation.studyRoomId : '',
           seatId: response.data.seatId,
           checkInTime: response.data.checkInTime,
           checkOutTime: null,
@@ -49,9 +49,9 @@ export const checkInApi = {
     if (response.code === 200 && response.data) {
       const checkInRecord: CheckInRecord = {
         id: response.data.checkInRecordId,
-        userId: currentUser?.id ?? '',
+        userId: currentUser && currentUser.id ? currentUser.id : '',
         reservationId: response.data.reservationId,
-        studyRoomId: reservation?.studyRoomId ?? '',
+        studyRoomId: reservation && reservation.studyRoomId ? reservation.studyRoomId : '',
         seatId: response.data.seatId,
         checkInTime: response.data.checkInTime,
         checkOutTime: null,
@@ -93,7 +93,7 @@ export const checkInApi = {
         });
 
         if (currentCheckIn.checkInRecord) {
-          const reservation = reservations.find(r => r.id === currentCheckIn.checkInRecord?.reservationId);
+          const reservation = reservations.find(r => r.id === currentCheckIn.checkInRecord.reservationId);
           if (reservation) {
             store.updateReservation({
               ...reservation,
@@ -115,7 +115,7 @@ export const checkInApi = {
       });
 
       if (currentCheckIn.checkInRecord) {
-        const reservation = reservations.find(r => r.id === currentCheckIn.checkInRecord?.reservationId);
+        const reservation = reservations.find(r => r.id === currentCheckIn.checkInRecord.reservationId);
         if (reservation) {
           store.updateReservation({
             ...reservation,
@@ -153,14 +153,14 @@ export const checkInApi = {
         method: 'GET',
         data: params
       });
-      if (response.code === 200 && response.data?.list) {
+      if (response.code === 200 && response.data && response.data.list) {
         store.setCheckInRecords(response.data.list);
       }
       return response;
     }
 
     const response = await request.get<PaginatedResponse<CheckInRecord>>('/checkin/records', params);
-    if (response.code === 200 && response.data?.list) {
+    if (response.code === 200 && response.data && response.data.list) {
       store.setCheckInRecords(response.data.list);
     }
     return response;

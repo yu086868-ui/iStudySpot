@@ -178,7 +178,7 @@ Page({
 
       const checkInRes = await checkInApi.getCurrentCheckInStatus(true)
       
-      if (checkInRes.code === 200 && checkInRes.data?.isCheckedIn && checkInRes.data?.checkInRecord) {
+      if (checkInRes.code === 200 && checkInRes.data && checkInRes.data.isCheckedIn && checkInRes.data.checkInRecord) {
         const record = checkInRes.data.checkInRecord
         if (record.status === 'active') {
           await this.setStudyingState(record)
@@ -188,7 +188,7 @@ Page({
 
       const reservationRes = await reservationApi.getMyReservations({ status: 'confirmed' }, true)
       
-      if (reservationRes.code === 200 && reservationRes.data?.list?.length > 0) {
+      if (reservationRes.code === 200 && reservationRes.data && reservationRes.data.list && reservationRes.data.list.length > 0) {
         const nearestReservation = getNearestReservation(reservationRes.data.list)
         
         if (nearestReservation) {
@@ -409,7 +409,7 @@ Page({
     try {
       const reservationRes = await reservationApi.getMyReservations({ status: 'confirmed' }, true)
       
-      if (reservationRes.code === 200 && reservationRes.data?.list?.length > 0) {
+      if (reservationRes.code === 200 && reservationRes.data && reservationRes.data.list && reservationRes.data.list.length > 0) {
         const nearbyReservation = reservationRes.data.list.find(r => 
           isTimeNearby(r.startTime, 30)
         )
