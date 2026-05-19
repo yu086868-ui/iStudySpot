@@ -180,13 +180,13 @@ codeql database analyze codeql-db --format=csv --output=results.csv
 ┌─────────────────────────────────────────────────────────────┐
 │                  Android Security Analysis                   │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
-│  │   MobSF     │  │    QARK     │  │  Mariana    │         │
-│  │ APK安全分析  │  │ 组件风险检测 │  │  Trench     │         │
+│  │   MobSF     │  │  mobsfscan  │  │ Android Lint│         │
+│  │ APK安全分析  │  │ 源码安全分析 │  │ 安全检查    │         │
 │  └─────────────┘  └─────────────┘  └─────────────┘         │
-│  ┌─────────────┐  ┌─────────────┐                          │
-│  │ Android Lint│  │ Dependency  │                          │
-│  │ 安全检查    │  │   Check     │                          │
-│  └─────────────┘  └─────────────┘                          │
+│  ┌─────────────┐                                          │
+│  │ Dependency  │                                          │
+│  │   Check     │                                          │
+│  └─────────────┘                                          │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
@@ -208,7 +208,7 @@ codeql database analyze codeql-db --format=csv --output=results.csv
 
 | Artifact名称 | 内容 |
 |-------------|------|
-| `security-reports` | MobSF、QARK、Mariana Trench报告 |
+| `security-reports` | MobSF、mobsfscan、Lint报告 |
 | `dependency-check-report` | OWASP依赖检查报告 |
 | `test-results` | 测试结果 |
 

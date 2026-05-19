@@ -1,8 +1,6 @@
 package com.example.scylier.istudyspot.infra.network
 
-import android.content.Context
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
+import com.example.scylier.istudyspot.BuildConfig
 import com.example.scylier.istudyspot.models.ApiResponse
 import com.example.scylier.istudyspot.models.BaseResponse
 import kotlinx.coroutines.Dispatchers
@@ -11,17 +9,13 @@ import retrofit2.Response
 import java.io.IOException
 import java.net.SocketTimeoutException
 
-class ApiManager(private val token: String? = null, private val context: Context? = null) {
-    private val apiService = ApiClient.createService(ApiService::class.java, token)
-    private val useMockData = true
+class ApiManager {
+    private val apiService = ApiClient.apiService
+    private val useMockData = BuildConfig.USE_MOCK
 
     suspend fun <T> executeRequest(request: suspend () -> Response<BaseResponse<T>>): ApiResponse<T> {
         return withContext(Dispatchers.IO) {
             try {
-                if (context != null && !isNetworkAvailable(context)) {
-                    return@withContext ApiResponse.Error(408, "网络连接不可用，请检查网络设置")
-                }
-
                 val response = request()
                 if (response.isSuccessful) {
                     val body = response.body()
@@ -48,18 +42,6 @@ class ApiManager(private val token: String? = null, private val context: Context
         }
     }
 
-    private fun isNetworkAvailable(context: Context): Boolean {
-        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val network = connectivityManager.activeNetwork
-        val capabilities = connectivityManager.getNetworkCapabilities(network)
-        return capabilities != null && (
-            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
-            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ||
-            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)
-        )
-    }
-
-    // 认证相关 API
     suspend fun login(username: String, password: String) = executeRequest {
         if (useMockData) {
             return@executeRequest Response.success(
@@ -130,7 +112,6 @@ class ApiManager(private val token: String? = null, private val context: Context
         apiService.logout()
     }
 
-    // 自习室相关 API
     suspend fun getStudyRooms(page: Int = 1, pageSize: Int = 20, status: String? = null, keyword: String? = null) = executeRequest {
         if (useMockData) {
             return@executeRequest Response.success(
@@ -185,7 +166,6 @@ class ApiManager(private val token: String? = null, private val context: Context
         apiService.getStudyRoomDetail(id)
     }
 
-    // 座位相关 API
     suspend fun getStudyRoomSeats(id: String, status: String? = null, type: String? = null) = executeRequest {
         if (useMockData) {
             val seats = mutableListOf<com.example.scylier.istudyspot.models.studyroom.SeatInfo>()
@@ -196,7 +176,7 @@ class ApiManager(private val token: String? = null, private val context: Context
                             id = "${id}_${row}_${col}",
                             row = row,
                             col = col,
-                            status = if ((row + col) % 3 == 0) "booked" else if ((row + col) % 4 == 0) "occupied" else "available",
+                            status = if ((row + col) % 3 == 0) "booked" else if ((row + col) % 4 == 0) "in_use" else "available",
                             type = if (col == 1) "vip" else "normal",
                             pricePerHour = if (col == 1) 15.0 else 10.0
                         )
@@ -241,7 +221,6 @@ class ApiManager(private val token: String? = null, private val context: Context
         apiService.getSeatDetail(id)
     }
 
-    // 预约/订单相关 API
     suspend fun createOrder(studyRoomId: String, seatId: String, startTime: String, endTime: String, bookingType: String) = executeRequest {
         if (useMockData) {
             return@executeRequest Response.success(
@@ -378,7 +357,6 @@ class ApiManager(private val token: String? = null, private val context: Context
         apiService.getReservationRules()
     }
 
-    // 签到/签退相关 API
     suspend fun checkin(reservationId: String, seatId: String) = executeRequest {
         if (useMockData) {
             return@executeRequest Response.success(
@@ -441,7 +419,6 @@ class ApiManager(private val token: String? = null, private val context: Context
         apiService.getCurrentCheckin()
     }
 
-    // 用户相关 API
     suspend fun getUserInfo() = executeRequest {
         if (useMockData) {
             return@executeRequest Response.success(
@@ -495,7 +472,6 @@ class ApiManager(private val token: String? = null, private val context: Context
         apiService.changePassword(com.example.scylier.istudyspot.models.user.ChangePasswordRequest(oldPassword, newPassword))
     }
 
-    // 支付相关 API
     suspend fun createPayment(orderId: String, amount: Double, paymentMethod: String) = executeRequest {
         if (useMockData) {
             return@executeRequest Response.success(
@@ -537,7 +513,6 @@ class ApiManager(private val token: String? = null, private val context: Context
         apiService.getPaymentStatus(id)
     }
 
-    // 统计相关 API
     suspend fun getStudyRoomStatistics(id: String, startDate: String, endDate: String) = executeRequest {
         if (useMockData) {
             val dailyData = listOf(
@@ -573,7 +548,6 @@ class ApiManager(private val token: String? = null, private val context: Context
         apiService.getStudyRoomStatistics(id, startDate, endDate)
     }
 
-    // 公告相关 API
     suspend fun getAnnouncements(type: String? = null, priority: String? = null, page: Int = 1, pageSize: Int = 20) = executeRequest {
         if (useMockData) {
             return@executeRequest Response.success(
@@ -600,7 +574,6 @@ class ApiManager(private val token: String? = null, private val context: Context
         apiService.getAnnouncementDetail(id)
     }
 
-    // 规则相关 API
     suspend fun getRules(studyRoomId: String? = null, category: String? = null) = executeRequest {
         if (useMockData) {
             return@executeRequest Response.success(
@@ -627,7 +600,6 @@ class ApiManager(private val token: String? = null, private val context: Context
         apiService.getRuleDetail(id)
     }
 
-    // AI聊天相关 API
     suspend fun getAiCharacters() = executeRequest {
         if (useMockData) {
             return@executeRequest Response.success(
@@ -659,7 +631,6 @@ class ApiManager(private val token: String? = null, private val context: Context
         apiService.sendAiMessage(com.example.scylier.istudyspot.models.ai.AiChatRequest(message, sessionId, characterId))
     }
 
-    // 智能客服相关 API
     suspend fun getCustomerServiceWelcome() = executeRequest {
         if (useMockData) {
             return@executeRequest Response.success(

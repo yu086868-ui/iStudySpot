@@ -58,4 +58,18 @@ sealed class NavRoutes {
 
     @Serializable
     data object AiChat : NavRoutes()
+
+    @Serializable
+    data class CharacterSelect(
+        val characterId: String? = null,
+        val characterName: String? = null,
+        val characterPersona: String? = null,
+        val characterAvatarColor: Long? = null
+    ) : NavRoutes()
+
+    @Serializable
+    data object Achievement : NavRoutes()
+
+    @Serializable
+    data object Points : NavRoutes()
 }

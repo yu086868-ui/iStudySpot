@@ -36,6 +36,11 @@ android {
                 "BASE_URL",
                 "\"http://10.0.2.2:8080/\""
             )
+            buildConfigField(
+                "Boolean",
+                "USE_MOCK",
+                "true"
+            )
         }
 
         getByName("release") {
@@ -50,6 +55,11 @@ android {
                 "String",
                 "BASE_URL",
                 "\"https://api.yourdomain.com/\""
+            )
+            buildConfigField(
+                "Boolean",
+                "USE_MOCK",
+                "false"
             )
         }
     }

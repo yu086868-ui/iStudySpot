@@ -11,7 +11,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.scylier.istudyspot.models.ai.AiMessage
 import com.example.scylier.istudyspot.models.ai.MessageType
@@ -34,14 +35,20 @@ fun AiChatScreen(
     messages: List<AiMessage>,
     isLoading: Boolean,
     onSendMessage: (String) -> Unit,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    characterName: String? = null,
+    characterId: String? = null,
+    characterPersona: String? = null,
+    characterAvatarColor: Color? = null,
+    onSuggestionClick: (String) -> Unit = {}
 ) {
     var inputText by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
     val keyboardController = LocalSoftwareKeyboardController.current
     val scope = rememberCoroutineScope()
 
-    // 当新消息到来时滚动到底部
+    val displayName = characterName ?: "AI咨询助手"
+
     LaunchedEffect(messages.size) {
         if (messages.isNotEmpty()) {
             listState.animateScrollToItem(messages.size - 1)
@@ -55,20 +62,36 @@ fun AiChatScreen(
                     Row(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.SmartToy,
-                            contentDescription = "AI",
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(24.dp)
-                        )
+                        if (characterAvatarColor != null) {
+                            Box(
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .clip(CircleShape)
+                                    .background(characterAvatarColor),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = displayName.first().toString(),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.White
+                                )
+                            }
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.SmartToy,
+                                contentDescription = "AI",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("AI咨询助手")
+                        Text(displayName)
                     }
                 },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
-                            imageVector = Icons.Default.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "返回"
                         )
                     }
@@ -146,8 +169,12 @@ fun AiChatScreen(
                 .background(MaterialTheme.colorScheme.background)
         ) {
             if (messages.isEmpty()) {
-                // 空状态提示
-                EmptyChatState()
+                EmptyChatState(
+                    characterName = characterName,
+                    characterPersona = characterPersona,
+                    characterAvatarColor = characterAvatarColor,
+                    onSuggestionClick = onSuggestionClick
+                )
             } else {
                 LazyColumn(
                     state = listState,
@@ -158,7 +185,10 @@ fun AiChatScreen(
                     contentPadding = PaddingValues(vertical = 16.dp)
                 ) {
                     items(messages) { message ->
-                        MessageItem(message = message)
+                        MessageItem(
+                            message = message,
+                            aiAvatarColor = characterAvatarColor
+                        )
                     }
                 }
             }
@@ -167,7 +197,10 @@ fun AiChatScreen(
 }
 
 @Composable
-private fun MessageItem(message: AiMessage) {
+private fun MessageItem(
+    message: AiMessage,
+    aiAvatarColor: Color? = null
+) {
     val isUser = message.type == MessageType.USER
     val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
     val timeString = timeFormat.format(Date(message.timestamp))
@@ -177,20 +210,29 @@ private fun MessageItem(message: AiMessage) {
         horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start
     ) {
         if (!isUser) {
-            // AI头像
             Box(
                 modifier = Modifier
                     .size(36.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer),
+                    .background(
+                        aiAvatarColor ?: MaterialTheme.colorScheme.primaryContainer
+                    ),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.SmartToy,
-                    contentDescription = "AI",
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.size(20.dp)
-                )
+                if (aiAvatarColor != null) {
+                    Text(
+                        text = "AI",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.SmartToy,
+                        contentDescription = "AI",
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
             }
             Spacer(modifier = Modifier.width(8.dp))
         }
@@ -208,7 +250,8 @@ private fun MessageItem(message: AiMessage) {
                 color = if (isUser) {
                     MaterialTheme.colorScheme.primary
                 } else {
-                    MaterialTheme.colorScheme.surfaceVariant
+                    aiAvatarColor?.copy(alpha = 0.12f)
+                        ?: MaterialTheme.colorScheme.surfaceVariant
                 },
                 tonalElevation = if (isUser) 0.dp else 2.dp
             ) {
@@ -218,7 +261,7 @@ private fun MessageItem(message: AiMessage) {
                     color = if (isUser) {
                         MaterialTheme.colorScheme.onPrimary
                     } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
+                        aiAvatarColor ?: MaterialTheme.colorScheme.onSurfaceVariant
                     },
                     style = MaterialTheme.typography.bodyLarge
                 )
@@ -233,7 +276,6 @@ private fun MessageItem(message: AiMessage) {
 
         if (isUser) {
             Spacer(modifier = Modifier.width(8.dp))
-            // 用户头像
             Box(
                 modifier = Modifier
                     .size(36.dp)
@@ -252,7 +294,12 @@ private fun MessageItem(message: AiMessage) {
 }
 
 @Composable
-private fun EmptyChatState() {
+private fun EmptyChatState(
+    characterName: String? = null,
+    characterPersona: String? = null,
+    characterAvatarColor: Color? = null,
+    onSuggestionClick: (String) -> Unit = {}
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -260,32 +307,51 @@ private fun EmptyChatState() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Icon(
-            imageVector = Icons.Default.SmartToy,
-            contentDescription = null,
-            modifier = Modifier.size(80.dp),
-            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
-        )
+        if (characterAvatarColor != null) {
+            Box(
+                modifier = Modifier
+                    .size(80.dp)
+                    .clip(CircleShape)
+                    .background(characterAvatarColor),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = (characterName ?: "AI").first().toString(),
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = Color.White
+                )
+            }
+        } else {
+            Icon(
+                imageVector = Icons.Default.SmartToy,
+                contentDescription = null,
+                modifier = Modifier.size(80.dp),
+                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+            )
+        }
         Spacer(modifier = Modifier.height(24.dp))
         Text(
-            text = "AI咨询助手",
+            text = characterName ?: "AI咨询助手",
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.onBackground
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "我可以帮您解答关于自习室的各种问题，\n如预约流程、座位选择、规则说明等。",
+            text = characterPersona
+                ?: "我可以帮您解答关于自习室的各种问题，\n如预约流程、座位选择、规则说明等。",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(32.dp))
-        SuggestionChips()
+        SuggestionChips(onSuggestionClick = onSuggestionClick)
     }
 }
 
 @Composable
-private fun SuggestionChips() {
+private fun SuggestionChips(
+    onSuggestionClick: (String) -> Unit = {}
+) {
     val suggestions = listOf(
         "如何预约座位？",
         "自习室开放时间？",
@@ -298,7 +364,7 @@ private fun SuggestionChips() {
     ) {
         suggestions.forEach { suggestion ->
             SuggestionChip(
-                onClick = { },
+                onClick = { onSuggestionClick(suggestion) },
                 label = { Text(suggestion) },
                 colors = SuggestionChipDefaults.suggestionChipColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant
