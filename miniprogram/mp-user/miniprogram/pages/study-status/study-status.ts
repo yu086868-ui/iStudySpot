@@ -1,5 +1,4 @@
-import { checkInApi } from '../../services/checkin'
-import store, { StoreEvent } from '../../utils/store'
+import { checkInApi, store, StoreEvent } from '../../services/index'
 
 Page({
   data: {
