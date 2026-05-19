@@ -1,52 +1,57 @@
 package com.example.scylier.istudyspot.viewmodel
 
-import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.scylier.istudyspot.infra.network.ApiClient
-import com.example.scylier.istudyspot.infra.network.ApiService
+import com.example.scylier.istudyspot.BuildConfig
 import com.example.scylier.istudyspot.models.ApiResponse
-import com.example.scylier.istudyspot.models.ai.AiChatRequest
+import com.example.scylier.istudyspot.models.ai.AiCharacter
 import com.example.scylier.istudyspot.models.ai.AiChatResponse
 import com.example.scylier.istudyspot.models.ai.AiMessage
 import com.example.scylier.istudyspot.models.ai.MessageType
+import com.example.scylier.istudyspot.repository.MainRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.util.UUID
 
-class AiChatViewModel : ViewModel() {
+class AiChatViewModel(
+    private val repository: MainRepository = MainRepository(),
+    private val useMock: Boolean = BuildConfig.USE_MOCK
+) : ViewModel() {
 
-    private val _messages = mutableStateListOf<AiMessage>()
-    val messages: List<AiMessage> get() = _messages
+    private val _messages = MutableStateFlow<List<AiMessage>>(emptyList())
+    val messages: StateFlow<List<AiMessage>> = _messages
 
     private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> get() = _isLoading
+    val isLoading: StateFlow<Boolean> = _isLoading
+
+    private val _characters = MutableStateFlow<List<AiCharacter>>(defaultCharacters)
+    val characters: StateFlow<List<AiCharacter>> = _characters
+
+    private val _selectedCharacter = MutableStateFlow<AiCharacter?>(null)
+    val selectedCharacter: StateFlow<AiCharacter?> = _selectedCharacter
 
     private var sessionId: String? = null
-    private val apiService = ApiClient.createService(ApiService::class.java)
 
-    // Mock模式开关 - 设置为true使用mock数据
-    private val useMock = true
+    fun selectCharacter(character: AiCharacter) {
+        _selectedCharacter.value = character
+    }
 
     fun sendMessage(content: String) {
-        // 添加用户消息
         val userMessage = AiMessage(
             id = UUID.randomUUID().toString(),
             content = content,
             type = MessageType.USER
         )
-        _messages.add(userMessage)
-
+        _messages.value = _messages.value + userMessage
         _isLoading.value = true
 
         viewModelScope.launch {
             try {
                 val response = if (useMock) {
-                    // 使用Mock数据
                     getMockResponse(content)
                 } else {
-                    // 使用真实API
                     callApi(content)
                 }
 
@@ -58,7 +63,7 @@ class AiChatViewModel : ViewModel() {
                             content = response.data.reply,
                             type = MessageType.AI
                         )
-                        _messages.add(aiMessage)
+                        _messages.value = _messages.value + aiMessage
                     }
                     is ApiResponse.Error -> {
                         val errorMessage = AiMessage(
@@ -66,7 +71,7 @@ class AiChatViewModel : ViewModel() {
                             content = "抱歉，我暂时无法回答您的问题，请稍后再试。",
                             type = MessageType.AI
                         )
-                        _messages.add(errorMessage)
+                        _messages.value = _messages.value + errorMessage
                     }
                 }
             } catch (e: Exception) {
@@ -75,7 +80,7 @@ class AiChatViewModel : ViewModel() {
                     content = "网络连接异常，请检查网络后重试。",
                     type = MessageType.AI
                 )
-                _messages.add(errorMessage)
+                _messages.value = _messages.value + errorMessage
             } finally {
                 _isLoading.value = false
             }
@@ -84,28 +89,13 @@ class AiChatViewModel : ViewModel() {
 
     private suspend fun callApi(content: String): ApiResponse<AiChatResponse> {
         return try {
-            val request = AiChatRequest(
-                message = content,
-                sessionId = sessionId
-            )
-            val response = apiService.sendAiMessage(request)
-            if (response.isSuccessful && response.body() != null) {
-                val body = response.body()!!
-                if (body.code == 200 && body.data != null) {
-                    ApiResponse.Success(body.code, body.message, body.data)
-                } else {
-                    ApiResponse.Error(body.code, body.message)
-                }
-            } else {
-                ApiResponse.Error(response.code(), response.message())
-            }
+            repository.sendAiMessage(content, sessionId, _selectedCharacter.value?.id)
         } catch (e: Exception) {
             ApiResponse.Error(-1, e.message ?: "未知错误")
         }
     }
 
     private suspend fun getMockResponse(content: String): ApiResponse<AiChatResponse> {
-        // 模拟网络延迟
         kotlinx.coroutines.delay(800)
 
         val reply = when {
@@ -140,86 +130,74 @@ class AiChatViewModel : ViewModel() {
             content.contains("时间") || content.contains("开放") -> {
                 """自习室开放时间：
 
-📅 周一至周日：07:00 - 23:00
+周一至周日：07:00 - 23:00
 
-⏰ 各时段说明：
+各时段说明：
 - 早场：07:00 - 12:00
 - 下午场：12:00 - 18:00
 - 晚场：18:00 - 23:00
 
-💡 温馨提示：
+温馨提示：
 - 节假日正常开放
 - 考试周期间会延长开放时间至24:00
 - 建议提前预约，尤其是晚场时段较为紧张"""
             }
-            content.contains("取消") || content.contains("退订") -> {
-                """取消预约规则：
+            content.contains("取消") -> {
+                """取消预约的规则如下：
 
-✅ 免费取消：
-- 预约开始前30分钟以上取消，全额退款
+1. 在预约开始前30分钟可以免费取消
+2. 预约开始前30分钟内取消将记录一次违规
+3. 未签到也将记录一次违规
+4. 累计3次违规将被禁止预约7天
 
-⚠️ 限制取消：
-- 预约开始前15-30分钟取消，收取20%手续费
-- 预约开始前15分钟内，不可取消
-
-❌ 爽约处理：
-- 未按时签到视为爽约
-- 爽约3次将暂停预约权限7天
-- 爽约5次将暂停预约权限30天
-
-退款将在1-3个工作日内原路返回。"""
+取消方式：
+- 进入"我的预约"页面
+- 找到对应订单，点击"取消预约"按钮
+- 确认取消即可"""
             }
             content.contains("价格") || content.contains("费用") || content.contains("多少钱") -> {
-                """座位价格说明：
+                """座位价格信息：
 
-💺 普通座位：
-- 2元/小时
-- 包时段优惠：早场8元，下午场10元，晚场8元
+普通座位：10元/小时
+VIP座位：15元/小时
 
-🛋️ 舒适座位（带插座）：
-- 3元/小时
-- 包时段优惠：早场12元，下午场15元，晚场12元
+优惠信息：
+- 充值满100送20
+- 学生认证用户享9折优惠
+- 长期包月更优惠
 
-📚 研讨室（4-6人）：
-- 15元/小时
-- 需提前1天预约
-
-💳 支付方式：
+支付方式：
 - 微信支付
 - 支付宝
-- 校园卡"""
+- 余额支付"""
             }
-            content.contains("规则") || content.contains("规定") -> {
+            content.contains("规则") -> {
                 """自习室使用规则：
 
-📱 预约规则：
-- 每人每天最多预约2个时段
-- 单次预约最长8小时
-- 需提前15分钟签到
+1. 预约规则：每人每天最多预约1个座位
+2. 签到规则：预约后30分钟内需签到
+3. 暂离规则：暂离不超过30分钟，每天最多3次
+4. 违规处理：累计3次违规禁止预约7天
+5. 文明使用：保持安静，不得占座不用
 
-🔇 行为规范：
-- 保持安静，禁止大声喧哗
-- 手机请调至静音或震动
-- 禁止在座位上用餐
-- 离座超过30分钟视为放弃座位
-
-⚠️ 违规处理：
-- 首次违规：警告
-- 二次违规：暂停预约3天
-- 三次违规：暂停预约7天
-- 严重违规：永久封禁"""
+详细规则请在"更多"页面查看。"""
             }
             else -> {
-                """感谢您的提问！我是iStudySpot的AI咨询助手，可以帮您解答以下问题：
+                val character = _selectedCharacter.value
+                if (character != null) {
+                    "${character.persona}，请问有什么可以帮您的？"
+                } else {
+                    """感谢您的提问！我是iStudySpot的AI咨询助手，可以帮您解答以下问题：
 
-• 如何预约座位
-• 签到/签退流程
-• 自习室开放时间
-• 取消预约规则
-• 座位价格和支付
-• 自习室使用规则
+- 如何预约座位
+- 签到/签退流程
+- 自习室开放时间
+- 取消预约规则
+- 座位价格和支付
+- 自习室使用规则
 
 请告诉我您想了解哪方面的信息？"""
+                }
             }
         }
 
@@ -234,7 +212,33 @@ class AiChatViewModel : ViewModel() {
     }
 
     fun clearMessages() {
-        _messages.clear()
+        _messages.value = emptyList()
         sessionId = null
+    }
+
+    companion object {
+        val defaultCharacters = listOf(
+            AiCharacter(
+                id = "xuemaomao",
+                name = "学霸猫",
+                persona = "我是学霸猫，擅长学习规划和方法论",
+                speakingStyle = "轻松活泼",
+                avatarColor = Color(0xFF8B5CF6)
+            ),
+            AiCharacter(
+                id = "wenrouxuejie",
+                name = "温柔学姐",
+                persona = "我是温柔学姐，耐心解答你的每一个问题",
+                speakingStyle = "温柔细致",
+                avatarColor = Color(0xFFEC4899)
+            ),
+            AiCharacter(
+                id = "yanlidaooshi",
+                name = "严厉导师",
+                persona = "我是严厉导师，帮你养成高效学习习惯",
+                speakingStyle = "简洁有力",
+                avatarColor = Color(0xFF3B82F6)
+            )
+        )
     }
 }

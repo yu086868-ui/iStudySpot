@@ -15,9 +15,108 @@ defaults:
     working-directory: frontend/Android
 
 jobs:
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Run Gitleaks Secret Scan
+      uses: gitleaks/gitleaks-action@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+
+    - name: Run Trivy Secret Scan
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: 'frontend/Android'
+        format: 'table'
+        exit-code: '1'
+        ignore-unfixed: true
+        severity: 'CRITICAL,HIGH'
+
+    - name: Run Semgrep Security Scan
+      uses: returntocorp/semgrep-action@v1
+      with:
+        config: >-
+          p/security-audit
+          p/secrets
+          p/owasp-mobile-top10
+          .semgrep.yml
+        paths: frontend/Android
+
+  android-security:
+    name: Android Security Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    - name: Build Debug APK
+      run: ./gradlew assembleDebug
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Run MobSF Security Scan
+      uses: fundacaocerti/mobsf-action@v1.7.2
+      with:
+        scan_type: apk
+        file_name: frontend/Android/app/build/outputs/apk/debug/app-debug.apk
+        output_file: mobsf-report
+      continue-on-error: true
+
+    - name: Run mobsfscan Source Code Analysis
+      run: |
+        pip install mobsfscan
+        mobsfscan frontend/Android/app/src/main/java --json --output security-reports/mobsfscan.json || true
+      continue-on-error: true
+
+    - name: Run Android Lint Security Check
+      run: ./gradlew lintDebug
+      continue-on-error: true
+
+    - name: Upload Security Reports
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: security-reports
+        path: |
+          frontend/Android/app/build/reports/
+          frontend/Android/security-reports/
+
+    - name: Dependency Security Check
+      run: ./gradlew dependencyCheckAnalyze
+      continue-on-error: true
+
+    - name: Upload Dependency Check Report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: dependency-check-report
+        path: frontend/Android/app/build/reports/dependency-check-report.html
+
   test:
     name: Run Tests
     runs-on: ubuntu-latest
+    needs: [security-scan]
 
     steps:
     - uses: actions/checkout@v4
@@ -58,7 +157,7 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    needs: test
+    needs: [test, android-security]
 
     steps:
     - uses: actions/checkout@v4
@@ -81,3 +180,40 @@ jobs:
       with:
         name: app-debug
         path: frontend/Android/app/build/outputs/apk/debug/app-debug.apk
+
+  codeql-analysis:
+    name: CodeQL Security Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: java-kotlin
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+      working-directory: frontend/Android
+
+    - name: Build for CodeQL
+      run: ./gradlew assembleDebug --no-daemon
+      working-directory: frontend/Android
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:java-kotlin"

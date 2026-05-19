@@ -52,7 +52,7 @@ class AiChatApiMockTest {
 
         val request = AiChatRequest(
             message = "如何预约座位？",
-            sessionId = null
+            session_id = null
         )
         val response = apiService.sendAiMessage(request)
 
@@ -83,7 +83,7 @@ class AiChatApiMockTest {
 
         val request = AiChatRequest(
             message = "如何签到？",
-            sessionId = "session-456"
+            session_id = "session-456"
         )
         val response = apiService.sendAiMessage(request)
 
@@ -107,7 +107,7 @@ class AiChatApiMockTest {
 
         val request = AiChatRequest(
             message = "测试消息",
-            sessionId = null
+            session_id = null
         )
         val response = apiService.sendAiMessage(request)
 
@@ -129,7 +129,7 @@ class AiChatApiMockTest {
 
         val request = AiChatRequest(
             message = "测试消息",
-            sessionId = null
+            session_id = null
         )
         val response = apiService.sendAiMessage(request)
 

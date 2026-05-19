@@ -12,7 +12,9 @@ class LoginRequest(
 class RegisterRequest(
     val username: String,
     val password: String,
-    val nickname: String
+    val nickname: String,
+    val phone: String? = null,
+    val studentId: String? = null
 )
 
 // 用户信息
