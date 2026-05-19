@@ -20,8 +20,7 @@ data class StudyRecordUiState(
     val isLoading: Boolean = true
 )
 
-class StudyRecordViewModel : ViewModel() {
-    private val repository = MainRepository()
+class StudyRecordViewModel(private val repository: MainRepository = MainRepository()) : ViewModel() {
 
     private val _state = MutableStateFlow(StudyRecordUiState())
     val state: StateFlow<StudyRecordUiState> = _state
@@ -74,7 +73,7 @@ class StudyRecordViewModel : ViewModel() {
                     is ApiResponse.Error -> {}
                 }
 
-                if (totalHours > 0 || totalBookings > 0) {
+                if (totalHours > 0 && weekHours > 0) {
                     _state.value = StudyRecordUiState(
                         weekStudyHours = weekHours,
                         monthStudyHours = monthHours,

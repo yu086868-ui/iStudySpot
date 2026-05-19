@@ -131,7 +131,7 @@ class ProfileViewModel : ViewModel() {
         }
     }
 
-    private fun calculateLevel(hours: Int): Int {
+    fun calculateLevel(hours: Int): Int {
         return when {
             hours < 10 -> 1
             hours < 50 -> 2
@@ -144,7 +144,7 @@ class ProfileViewModel : ViewModel() {
         }
     }
 
-    private fun calculateLevelProgress(hours: Int, level: Int): Float {
+    fun calculateLevelProgress(hours: Int, level: Int): Float {
         val thresholds = listOf(0, 10, 50, 100, 200, 500, 1000, 2000)
         if (level >= thresholds.size) return 1f
         val currentThreshold = thresholds[level - 1]
@@ -152,7 +152,7 @@ class ProfileViewModel : ViewModel() {
         return ((hours - currentThreshold).toFloat() / (nextThreshold - currentThreshold)).coerceIn(0f, 1f)
     }
 
-    private fun getLevelTitle(level: Int): String {
+    fun getLevelTitle(level: Int): String {
         return when (level) {
             1 -> "新手"
             2 -> "入门"

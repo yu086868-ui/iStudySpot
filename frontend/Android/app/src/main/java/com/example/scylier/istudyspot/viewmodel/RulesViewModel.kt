@@ -15,8 +15,7 @@ data class RulesUiState(
     val isLoading: Boolean = true
 )
 
-class RulesViewModel : ViewModel() {
-    private val repository = MainRepository()
+class RulesViewModel(private val repository: MainRepository = MainRepository()) : ViewModel() {
 
     private val _state = MutableStateFlow(RulesUiState())
     val state: StateFlow<RulesUiState> = _state

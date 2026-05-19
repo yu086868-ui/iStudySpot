@@ -1,5 +1,6 @@
 package com.example.scylier.istudyspot
 
+import com.example.scylier.istudyspot.infra.network.ApiClient
 import com.example.scylier.istudyspot.infra.network.ApiManager
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
@@ -286,9 +287,11 @@ class ApiManagerTest {
 
     @Test
     fun testApiManager_withToken() = runBlocking {
-        val apiManagerWithToken = ApiManager(token = "test_token")
+        ApiClient.currentToken = "test_token"
+        val apiManagerWithToken = ApiManager()
         val response = apiManagerWithToken.getStudyRooms()
 
         assertTrue(response is com.example.scylier.istudyspot.models.ApiResponse.Success)
+        ApiClient.currentToken = null
     }
 }

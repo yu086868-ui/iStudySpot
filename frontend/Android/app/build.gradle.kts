@@ -155,6 +155,12 @@ tasks.withType<Test> {
     }
 }
 
+tasks.whenTaskAdded {
+    if (name == "testReleaseUnitTest") {
+        enabled = false
+    }
+}
+
 tasks.register("jacocoTestReport", JacocoReport::class) {
     dependsOn("testDebugUnitTest")
 

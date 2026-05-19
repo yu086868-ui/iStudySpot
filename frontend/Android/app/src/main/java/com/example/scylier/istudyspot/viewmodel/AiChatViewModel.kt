@@ -4,10 +4,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.scylier.istudyspot.BuildConfig
-import com.example.scylier.istudyspot.infra.network.ApiClient
 import com.example.scylier.istudyspot.models.ApiResponse
 import com.example.scylier.istudyspot.models.ai.AiCharacter
-import com.example.scylier.istudyspot.models.ai.AiChatRequest
 import com.example.scylier.istudyspot.models.ai.AiChatResponse
 import com.example.scylier.istudyspot.models.ai.AiMessage
 import com.example.scylier.istudyspot.models.ai.MessageType
@@ -17,9 +15,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.util.UUID
 
-class AiChatViewModel : ViewModel() {
-    private val repository = MainRepository()
-    private val useMock = BuildConfig.USE_MOCK
+class AiChatViewModel(
+    private val repository: MainRepository = MainRepository(),
+    private val useMock: Boolean = BuildConfig.USE_MOCK
+) : ViewModel() {
 
     private val _messages = MutableStateFlow<List<AiMessage>>(emptyList())
     val messages: StateFlow<List<AiMessage>> = _messages
@@ -90,22 +89,7 @@ class AiChatViewModel : ViewModel() {
 
     private suspend fun callApi(content: String): ApiResponse<AiChatResponse> {
         return try {
-            val request = AiChatRequest(
-                message = content,
-                session_id = sessionId,
-                character_id = _selectedCharacter.value?.id
-            )
-            val response = ApiClient.apiService.sendAiMessage(request)
-            if (response.isSuccessful && response.body() != null) {
-                val body = response.body()!!
-                if (body.code == 200 && body.data != null) {
-                    ApiResponse.Success(body.code, body.message, body.data)
-                } else {
-                    ApiResponse.Error(body.code, body.message)
-                }
-            } else {
-                ApiResponse.Error(response.code(), response.message())
-            }
+            repository.sendAiMessage(content, sessionId, _selectedCharacter.value?.id)
         } catch (e: Exception) {
             ApiResponse.Error(-1, e.message ?: "未知错误")
         }
@@ -157,6 +141,46 @@ class AiChatViewModel : ViewModel() {
 - 节假日正常开放
 - 考试周期间会延长开放时间至24:00
 - 建议提前预约，尤其是晚场时段较为紧张"""
+            }
+            content.contains("取消") -> {
+                """取消预约的规则如下：
+
+1. 在预约开始前30分钟可以免费取消
+2. 预约开始前30分钟内取消将记录一次违规
+3. 未签到也将记录一次违规
+4. 累计3次违规将被禁止预约7天
+
+取消方式：
+- 进入"我的预约"页面
+- 找到对应订单，点击"取消预约"按钮
+- 确认取消即可"""
+            }
+            content.contains("价格") || content.contains("费用") || content.contains("多少钱") -> {
+                """座位价格信息：
+
+普通座位：10元/小时
+VIP座位：15元/小时
+
+优惠信息：
+- 充值满100送20
+- 学生认证用户享9折优惠
+- 长期包月更优惠
+
+支付方式：
+- 微信支付
+- 支付宝
+- 余额支付"""
+            }
+            content.contains("规则") -> {
+                """自习室使用规则：
+
+1. 预约规则：每人每天最多预约1个座位
+2. 签到规则：预约后30分钟内需签到
+3. 暂离规则：暂离不超过30分钟，每天最多3次
+4. 违规处理：累计3次违规禁止预约7天
+5. 文明使用：保持安静，不得占座不用
+
+详细规则请在"更多"页面查看。"""
             }
             else -> {
                 val character = _selectedCharacter.value

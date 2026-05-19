@@ -22,7 +22,7 @@ class AiChatViewModelComprehensiveTest {
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        viewModel = AiChatViewModel()
+        viewModel = AiChatViewModel(useMock = true)
     }
 
     @After
@@ -32,7 +32,7 @@ class AiChatViewModelComprehensiveTest {
 
     @Test
     fun testViewModel_initialState_emptyMessages() {
-        assertEquals(0, viewModel.messages.size)
+        assertEquals(0, viewModel.messages.value.size)
     }
 
     @Test
@@ -45,9 +45,9 @@ class AiChatViewModelComprehensiveTest {
         viewModel.sendMessage("如何预约座位？")
         testDispatcher.scheduler.advanceUntilIdle()
 
-        assertEquals(2, viewModel.messages.size)
-        assertEquals(MessageType.USER, viewModel.messages[0].type)
-        assertEquals("如何预约座位？", viewModel.messages[0].content)
+        assertEquals(2, viewModel.messages.value.size)
+        assertEquals(MessageType.USER, viewModel.messages.value[0].type)
+        assertEquals("如何预约座位？", viewModel.messages.value[0].content)
     }
 
     @Test
@@ -55,9 +55,9 @@ class AiChatViewModelComprehensiveTest {
         viewModel.sendMessage("如何预约座位？")
         testDispatcher.scheduler.advanceUntilIdle()
 
-        assertEquals(2, viewModel.messages.size)
-        assertEquals(MessageType.AI, viewModel.messages[1].type)
-        assertTrue(viewModel.messages[1].content.isNotEmpty())
+        assertEquals(2, viewModel.messages.value.size)
+        assertEquals(MessageType.AI, viewModel.messages.value[1].type)
+        assertTrue(viewModel.messages.value[1].content.isNotEmpty())
     }
 
     @Test
@@ -65,7 +65,7 @@ class AiChatViewModelComprehensiveTest {
         viewModel.sendMessage("我想预约座位")
         testDispatcher.scheduler.advanceUntilIdle()
 
-        val aiMessage = viewModel.messages.last()
+        val aiMessage = viewModel.messages.value.last()
         assertTrue(aiMessage.content.contains("预约"))
     }
 
@@ -74,7 +74,7 @@ class AiChatViewModelComprehensiveTest {
         viewModel.sendMessage("如何签到？")
         testDispatcher.scheduler.advanceUntilIdle()
 
-        val aiMessage = viewModel.messages.last()
+        val aiMessage = viewModel.messages.value.last()
         assertTrue(aiMessage.content.contains("签到"))
     }
 
@@ -83,7 +83,7 @@ class AiChatViewModelComprehensiveTest {
         viewModel.sendMessage("开放时间是什么？")
         testDispatcher.scheduler.advanceUntilIdle()
 
-        val aiMessage = viewModel.messages.last()
+        val aiMessage = viewModel.messages.value.last()
         assertTrue(aiMessage.content.contains("开放时间") || aiMessage.content.contains("07:00"))
     }
 
@@ -92,7 +92,7 @@ class AiChatViewModelComprehensiveTest {
         viewModel.sendMessage("如何取消预约？")
         testDispatcher.scheduler.advanceUntilIdle()
 
-        val aiMessage = viewModel.messages.last()
+        val aiMessage = viewModel.messages.value.last()
         assertTrue(aiMessage.content.contains("取消"))
     }
 
@@ -101,7 +101,7 @@ class AiChatViewModelComprehensiveTest {
         viewModel.sendMessage("座位多少钱？")
         testDispatcher.scheduler.advanceUntilIdle()
 
-        val aiMessage = viewModel.messages.last()
+        val aiMessage = viewModel.messages.value.last()
         assertTrue(aiMessage.content.contains("价格") || aiMessage.content.contains("元"))
     }
 
@@ -110,7 +110,7 @@ class AiChatViewModelComprehensiveTest {
         viewModel.sendMessage("有什么规则？")
         testDispatcher.scheduler.advanceUntilIdle()
 
-        val aiMessage = viewModel.messages.last()
+        val aiMessage = viewModel.messages.value.last()
         assertTrue(aiMessage.content.contains("规则"))
     }
 
@@ -119,7 +119,7 @@ class AiChatViewModelComprehensiveTest {
         viewModel.sendMessage("今天天气怎么样？")
         testDispatcher.scheduler.advanceUntilIdle()
 
-        val aiMessage = viewModel.messages.last()
+        val aiMessage = viewModel.messages.value.last()
         assertTrue(aiMessage.content.isNotEmpty())
     }
 
@@ -131,11 +131,11 @@ class AiChatViewModelComprehensiveTest {
         viewModel.sendMessage("问题2")
         testDispatcher.scheduler.advanceUntilIdle()
 
-        assertEquals(4, viewModel.messages.size)
-        assertEquals("问题1", viewModel.messages[0].content)
-        assertEquals(MessageType.USER, viewModel.messages[0].type)
-        assertEquals("问题2", viewModel.messages[2].content)
-        assertEquals(MessageType.USER, viewModel.messages[2].type)
+        assertEquals(4, viewModel.messages.value.size)
+        assertEquals("问题1", viewModel.messages.value[0].content)
+        assertEquals(MessageType.USER, viewModel.messages.value[0].type)
+        assertEquals("问题2", viewModel.messages.value[2].content)
+        assertEquals(MessageType.USER, viewModel.messages.value[2].type)
     }
 
     @Test
@@ -145,7 +145,7 @@ class AiChatViewModelComprehensiveTest {
 
         viewModel.clearMessages()
 
-        assertEquals(0, viewModel.messages.size)
+        assertEquals(0, viewModel.messages.value.size)
     }
 
     @Test
@@ -161,8 +161,8 @@ class AiChatViewModelComprehensiveTest {
         viewModel.sendMessage("测试消息")
         testDispatcher.scheduler.advanceUntilIdle()
 
-        val userMessage = viewModel.messages[0]
-        val aiMessage = viewModel.messages[1]
+        val userMessage = viewModel.messages.value[0]
+        val aiMessage = viewModel.messages.value[1]
 
         assertNotEquals(userMessage.id, aiMessage.id)
         assertTrue(userMessage.id.isNotEmpty())
@@ -176,7 +176,7 @@ class AiChatViewModelComprehensiveTest {
         testDispatcher.scheduler.advanceUntilIdle()
         val afterTime = System.currentTimeMillis()
 
-        val userMessage = viewModel.messages[0]
+        val userMessage = viewModel.messages.value[0]
         assertTrue(userMessage.timestamp >= beforeTime)
         assertTrue(userMessage.timestamp <= afterTime + 1000)
     }
@@ -189,8 +189,8 @@ class AiChatViewModelComprehensiveTest {
         viewModel.sendMessage("消息2")
         testDispatcher.scheduler.advanceUntilIdle()
 
-        val timestamp1 = viewModel.messages[0].timestamp
-        val timestamp2 = viewModel.messages[2].timestamp
+        val timestamp1 = viewModel.messages.value[0].timestamp
+        val timestamp2 = viewModel.messages.value[2].timestamp
 
         assertTrue(timestamp2 >= timestamp1)
     }
@@ -200,7 +200,7 @@ class AiChatViewModelComprehensiveTest {
         viewModel.sendMessage("")
         testDispatcher.scheduler.advanceUntilIdle()
 
-        assertEquals(2, viewModel.messages.size)
+        assertEquals(2, viewModel.messages.value.size)
     }
 
     @Test
@@ -209,8 +209,8 @@ class AiChatViewModelComprehensiveTest {
         viewModel.sendMessage(longMessage)
         testDispatcher.scheduler.advanceUntilIdle()
 
-        assertEquals(2, viewModel.messages.size)
-        assertEquals(longMessage, viewModel.messages[0].content)
+        assertEquals(2, viewModel.messages.value.size)
+        assertEquals(longMessage, viewModel.messages.value[0].content)
     }
 
     @Test
@@ -219,8 +219,8 @@ class AiChatViewModelComprehensiveTest {
         viewModel.sendMessage(specialMessage)
         testDispatcher.scheduler.advanceUntilIdle()
 
-        assertEquals(2, viewModel.messages.size)
-        assertEquals(specialMessage, viewModel.messages[0].content)
+        assertEquals(2, viewModel.messages.value.size)
+        assertEquals(specialMessage, viewModel.messages.value[0].content)
     }
 
     @Test
@@ -229,8 +229,8 @@ class AiChatViewModelComprehensiveTest {
         viewModel.sendMessage(multilineMessage)
         testDispatcher.scheduler.advanceUntilIdle()
 
-        assertEquals(2, viewModel.messages.size)
-        assertEquals(multilineMessage, viewModel.messages[0].content)
+        assertEquals(2, viewModel.messages.value.size)
+        assertEquals(multilineMessage, viewModel.messages.value[0].content)
     }
 
     @Test
@@ -238,7 +238,7 @@ class AiChatViewModelComprehensiveTest {
         viewModel.sendMessage("预约座位")
         testDispatcher.scheduler.advanceUntilIdle()
 
-        val aiMessage = viewModel.messages.last()
+        val aiMessage = viewModel.messages.value.last()
         val relevantKeywords = listOf("预约", "座位", "流程", "步骤")
         val containsRelevantKeyword = relevantKeywords.any { aiMessage.content.contains(it) }
         assertTrue(containsRelevantKeyword)
@@ -251,6 +251,6 @@ class AiChatViewModelComprehensiveTest {
             testDispatcher.scheduler.advanceUntilIdle()
         }
 
-        assertEquals(10, viewModel.messages.size)
+        assertEquals(10, viewModel.messages.value.size)
     }
 }

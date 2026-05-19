@@ -21,8 +21,7 @@ data class GuideUiState(
     val isLoading: Boolean = true
 )
 
-class GuideViewModel : ViewModel() {
-    private val repository = MainRepository()
+class GuideViewModel(private val repository: MainRepository = MainRepository()) : ViewModel() {
 
     private val _state = MutableStateFlow(GuideUiState())
     val state: StateFlow<GuideUiState> = _state
@@ -54,18 +53,22 @@ class GuideViewModel : ViewModel() {
                         if (rooms.isNotEmpty()) {
                             val firstRoom = rooms.first()
                             val facilities = mutableListOf<Facility>()
-                            if (firstRoom.name.contains("静音") || firstRoom.name.contains("安静")) {
-                                facilities.add(Facility("静音区", "绝对安静的学习区域，禁止交谈，适合深度学习和阅读"))
-                            }
+                            facilities.add(Facility("静音区", "绝对安静的学习区域，禁止交谈，适合深度学习和阅读"))
                             facilities.add(Facility("讨论区", "允许低声讨论的区域，适合小组学习和交流"))
                             facilities.add(Facility("休息区", "提供沙发和茶水，可以休息放松"))
+                            facilities.add(Facility("打印区", "提供自助打印、复印服务"))
+                            facilities.add(Facility("储物柜", "提供临时储物柜存放个人物品"))
+                            facilities.add(Facility("饮水机", "免费提供冷热饮用水"))
                             facilities.add(Facility("WiFi覆盖", "全馆高速WiFi覆盖，支持在线学习"))
                             facilities.add(Facility("空调系统", "中央空调，四季恒温舒适"))
 
+                            val location = firstRoom.address.ifBlank { "XX市XX区XX路XX号XX大厦X层" }
+                            val hours = firstRoom.openingHours.ifBlank { "周一至周日 08:00 - 23:00（节假日照常营业）" }
+
                             _state.value = GuideUiState(
                                 facilities = facilities,
-                                location = firstRoom.address,
-                                openingHours = firstRoom.openingHours,
+                                location = location,
+                                openingHours = hours,
                                 contact = "电话：400-XXX-XXXX\n邮箱：contact@istudyspot.com",
                                 isLoading = false
                             )

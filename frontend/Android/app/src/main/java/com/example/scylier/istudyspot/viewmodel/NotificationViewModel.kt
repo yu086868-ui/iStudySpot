@@ -29,8 +29,7 @@ data class NotificationUiState(
     val isLoading: Boolean = true
 )
 
-class NotificationViewModel : ViewModel() {
-    private val repository = MainRepository()
+class NotificationViewModel(private val repository: MainRepository = MainRepository()) : ViewModel() {
 
     private val _state = MutableStateFlow(NotificationUiState())
     val state: StateFlow<NotificationUiState> = _state
