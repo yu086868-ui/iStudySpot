@@ -5,18 +5,15 @@
     "minified": true,
     "uglifyFileName": false,
     "enhance": true,
-    "packNpmRelationList": [
-      {
-        "packageJsonPath": "./package.json",
-        "miniprogramNpmDistDir": "./"
-      }
-    ],
+    "packNpmRelationList": [],
     "babelSetting": {
       "ignore": [],
       "disablePlugins": [],
       "outputPath": ""
     },
-    "useCompilerPlugins": false,
+    "useCompilerPlugins": [
+      "typescript"
+    ],
     "minifyWXML": true
   },
   "compileType": "miniprogram",

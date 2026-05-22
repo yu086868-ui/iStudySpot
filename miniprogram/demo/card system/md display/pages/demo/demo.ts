@@ -1,3 +1,5 @@
+import { splitAndRender } from '../../utils/markdown'
+
 // 模拟 AI 返回的 Markdown 内容
 const MOCK_MD = `# 夜航日志
 
@@ -25,11 +27,9 @@ print("hello")
 
 **加粗文本** 和 *斜体文本* 混合展示。`
 
-const { splitAndRender } = require('../../utils/markdown')
-
 Page({
   data: {
-    blocks: []
+    blocks: [] as string[]
   },
 
   onLoad() {
