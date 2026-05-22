@@ -1,0 +1,32 @@
+.demo-page {
+  min-height: 100vh;
+  background: #f5f7fa;
+  padding: 32rpx;
+  box-sizing: border-box;
+}
+
+.page-header {
+  margin-bottom: 32rpx;
+  padding: 32rpx;
+  background: #ffffff;
+  border-radius: 16rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
+}
+
+.page-title {
+  display: block;
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 8rpx;
+}
+
+.page-desc {
+  display: block;
+  font-size: 26rpx;
+  color: #8b9cb6;
+}
+
+.cards-container {
+  margin-top: 16rpx;
+}

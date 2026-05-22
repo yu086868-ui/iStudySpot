@@ -1,0 +1,18 @@
+.markdown-card {
+  margin: 24rpx 0;
+  padding: 32rpx;
+  background: #ffffff;
+  border-radius: 16rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.card-index {
+  display: inline-block;
+  margin-bottom: 16rpx;
+  padding: 4rpx 16rpx;
+  background: #f0f4f8;
+  border-radius: 8rpx;
+  font-size: 22rpx;
+  color: #8b9cb6;
+}

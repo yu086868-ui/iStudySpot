@@ -1,0 +1,4 @@
+<view class="markdown-card">
+  <view class="card-index" wx:if="{{index > 0}}">{{index}}</view>
+  <mp-html content="{{content}}" />
+</view>

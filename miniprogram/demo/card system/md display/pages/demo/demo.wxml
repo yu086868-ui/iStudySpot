@@ -1,0 +1,15 @@
+<view class="demo-page">
+  <view class="page-header">
+    <text class="page-title">Markdown Display Demo</text>
+    <text class="page-desc">AI 返回 Markdown → 分块解析 → 漂亮显示</text>
+  </view>
+
+  <view class="cards-container">
+    <markdown-card
+      wx:for="{{blocks}}"
+      wx:key="index"
+      content="{{item}}"
+      index="{{index + 1}}"
+    />
+  </view>
+</view>
