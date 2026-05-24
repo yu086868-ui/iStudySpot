@@ -1,15 +1,33 @@
 <view class="demo-page">
   <view class="page-header">
-    <text class="page-title">Markdown Display Demo</text>
-    <text class="page-desc">AI 返回 Markdown → 分块解析 → 漂亮显示</text>
+    <text class="page-title">Markdown Display</text>
+    <text class="page-desc">AI Markdown → 分块解析 → 协议校验 → 卡片显示</text>
+    <view class="arch-tags">
+      <text class="tag tag-engine">Layer1 Engine</text>
+      <text class="tag tag-contract">Layer2 Contract</text>
+    </view>
+  </view>
+
+  <view class="tab-bar">
+    <view class="tab {{activeTab === 'compliant' ? 'tab-active' : ''}}" bindtap="onTabCompliant">
+      <text>协议合规</text>
+    </view>
+    <view class="tab {{activeTab === 'violation' ? 'tab-active' : ''}}" bindtap="onTabViolation">
+      <text>协议违规</text>
+    </view>
   </view>
 
   <view class="cards-container">
     <markdown-card
       wx:for="{{blocks}}"
       wx:key="index"
-      content="{{item}}"
-      index="{{index + 1}}"
+      content="{{item.html}}"
+      index="{{item.index}}"
+      warnings="{{item.warnings}}"
     />
+  </view>
+
+  <view class="page-footer">
+    <text class="footer-text">Engine: markdown-it + mp-html | Contract: 分割/标题/长度校验</text>
   </view>
 </view>

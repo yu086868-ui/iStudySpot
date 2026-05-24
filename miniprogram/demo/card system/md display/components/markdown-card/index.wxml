@@ -1,4 +1,12 @@
 <view class="markdown-card">
-  <view class="card-index" wx:if="{{index > 0}}">{{index}}</view>
+  <view class="card-header">
+    <view class="card-index" wx:if="{{index > 0}}">{{index}}</view>
+    <view class="card-warnings" wx:if="{{warnings.length > 0}}">
+      <view class="warning-item" wx:for="{{warnings}}" wx:key="type">
+        <text class="warning-icon">!</text>
+        <text class="warning-text">{{item.message}}</text>
+      </view>
+    </view>
+  </view>
   <mp-html content="{{content}}" />
 </view>

@@ -7,6 +7,10 @@ Component({
     index: {
       type: Number,
       value: 0
+    },
+    warnings: {
+      type: Array,
+      value: []
     }
   }
 })

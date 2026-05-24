@@ -1,8 +1,9 @@
 /* a 标签默认效果 */
 ._a {
   padding: 1.5px 0 1.5px 0;
-  color: #366092;
+  color: #4a7af5;
   word-break: break-all;
+  text-decoration: none;
 }
 
 /* a 标签点击态效果 */
@@ -15,19 +16,28 @@
 ._img {
   max-width: 100%;
   -webkit-touch-callout: none;
+  border-radius: 8rpx;
 }
 
 ._b,
 ._strong {
   font-weight: bold;
+  color: #1a1a2e;
 }
 
 ._code {
-  font-family: monospace;
+  font-family: 'Menlo', 'Consolas', 'Monaco', monospace;
+  font-size: 0.9em;
+  background: #f0f4f8;
+  color: #e83e8c;
+  padding: 2rpx 8rpx;
+  border-radius: 6rpx;
+  word-break: break-word;
 }
 
 ._del {
   text-decoration: line-through;
+  color: #8b9cb6;
 }
 
 ._em,
@@ -36,23 +46,38 @@
 }
 
 ._h1 {
-  font-size: 2em;
+  font-size: 1.8em;
+  color: #1a1a2e;
+  margin-bottom: 0.4em;
+  padding-bottom: 0.3em;
+  border-bottom: 2rpx solid #eef1f6;
 }
 
 ._h2 {
-  font-size: 1.5em;
+  font-size: 1.4em;
+  color: #2d3748;
+  margin-bottom: 0.3em;
 }
 
 ._h3 {
   font-size: 1.17em;
+  color: #4a5568;
+  margin-bottom: 0.2em;
+}
+
+._h4 {
+  font-size: 1em;
+  color: #4a5568;
 }
 
 ._h5 {
   font-size: 0.83em;
+  color: #718096;
 }
 
 ._h6 {
   font-size: 0.67em;
+  color: #718096;
 }
 
 ._h1,
@@ -63,6 +88,7 @@
 ._h6 {
   display: block;
   font-weight: bold;
+  margin-top: 0.6em;
 }
 
 ._ins {
@@ -71,6 +97,8 @@
 
 ._li {
   display: list-item;
+  line-height: 1.8;
+  margin-bottom: 4rpx;
 }
 
 ._ol {
@@ -81,7 +109,7 @@
 ._ul {
   display: block;
   padding-left: 40px;
-  margin: 1em 0;
+  margin: 0.6em 0;
 }
 
 ._q::before {
@@ -116,11 +144,14 @@
 ._th {
   display: table-cell;
   vertical-align: middle;
+  padding: 8rpx 12rpx;
+  border: 1rpx solid #e2e8f0;
 }
 
 ._th {
   font-weight: bold;
   text-align: center;
+  background: #f7fafc;
 }
 
 ._ul {
@@ -156,4 +187,65 @@
 ._div,
 ._p {
   display: block;
+}
+
+/* 引用块样式 */
+._blockquote {
+  margin: 0.8em 0;
+  padding: 16rpx 24rpx;
+  border-left: 6rpx solid #4a7af5;
+  background: #f0f4f8;
+  color: #4a5568;
+  border-radius: 0 8rpx 8rpx 0;
+  font-size: 0.95em;
+}
+
+._blockquote ._p {
+  margin: 0.2em 0;
+}
+
+/* 段落间距 */
+._p {
+  margin: 0.5em 0;
+  line-height: 1.8;
+  color: #2d3748;
+}
+
+/* pre 标签 - 代码块容器 */
+._pre {
+  display: block;
+  margin: 0.8em 0;
+  padding: 24rpx;
+  background: #1e1e2e;
+  border-radius: 12rpx;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+._pre ._code {
+  background: transparent;
+  color: #cdd6f4;
+  padding: 0;
+  font-size: 0.85em;
+  line-height: 1.6;
+  white-space: pre;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+/* hr 分割线 */
+._hr {
+  display: block;
+  border: none;
+  border-top: 2rpx solid #e2e8f0;
+  margin: 1em 0;
+}
+
+/* 表格 */
+._table {
+  display: table;
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.8em 0;
+  font-size: 0.9em;
 }
