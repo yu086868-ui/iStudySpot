@@ -13,6 +13,7 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 enum class ThemeMode {
@@ -31,6 +32,64 @@ object ThemeState {
     }
 }
 
+data class ExtendedColors(
+    val success: Color,
+    val onSuccess: Color,
+    val successContainer: Color,
+    val onSuccessContainer: Color,
+    val warning: Color,
+    val onWarning: Color,
+    val warningContainer: Color,
+    val onWarningContainer: Color,
+    val info: Color,
+    val onInfo: Color,
+    val infoContainer: Color,
+    val onInfoContainer: Color,
+    val gradientStart: Color,
+    val gradientEnd: Color,
+    val onGradient: Color,
+    val onGradientVariant: Color
+)
+
+val LightExtendedColors = ExtendedColors(
+    success = Success,
+    onSuccess = Color.White,
+    successContainer = SuccessContainer,
+    onSuccessContainer = OnSuccessContainer,
+    warning = Warning,
+    onWarning = Color.White,
+    warningContainer = WarningContainer,
+    onWarningContainer = OnWarningContainer,
+    info = Info,
+    onInfo = Color.White,
+    infoContainer = InfoContainer,
+    onInfoContainer = OnInfoContainer,
+    gradientStart = GradientStart,
+    gradientEnd = GradientEnd,
+    onGradient = Color.White,
+    onGradientVariant = Color.White.copy(alpha = 0.85f)
+)
+
+val DarkExtendedColors = ExtendedColors(
+    success = DarkSuccess,
+    onSuccess = Color(0xFF052E16),
+    successContainer = DarkSuccessContainer,
+    onSuccessContainer = DarkOnSuccessContainer,
+    warning = DarkWarning,
+    onWarning = Color(0xFF451A03),
+    warningContainer = DarkWarningContainer,
+    onWarningContainer = DarkOnWarningContainer,
+    info = DarkInfo,
+    onInfo = Color(0xFF0C1E3A),
+    infoContainer = DarkInfoContainer,
+    onInfoContainer = DarkOnInfoContainer,
+    gradientStart = DarkGradientStart,
+    gradientEnd = DarkGradientEnd,
+    onGradient = Color.White,
+    onGradientVariant = Color.White.copy(alpha = 0.85f)
+)
+
+val LocalExtendedColors = compositionLocalOf { LightExtendedColors }
 val LocalThemeMode = compositionLocalOf { ThemeMode.SYSTEM }
 val LocalThemeToggle = compositionLocalOf<() -> Unit> { {} }
 
@@ -46,11 +105,11 @@ fun ThemeProvider(content: @Composable () -> Unit) {
 
 private val LightColorScheme = lightColorScheme(
     primary = Primary,
-    onPrimary = androidx.compose.ui.graphics.Color.White,
+    onPrimary = Color.White,
     primaryContainer = PrimaryContainer,
     onPrimaryContainer = OnPrimaryContainer,
     secondary = Secondary,
-    onSecondary = androidx.compose.ui.graphics.Color.White,
+    onSecondary = Color.White,
     secondaryContainer = SecondaryContainer,
     onSecondaryContainer = OnSecondaryContainer,
     tertiary = Tertiary,
@@ -71,11 +130,11 @@ private val LightColorScheme = lightColorScheme(
 
 private val DarkColorScheme = darkColorScheme(
     primary = DarkPrimary,
-    onPrimary = OnPrimaryContainer,
+    onPrimary = DarkOnPrimaryContainer,
     primaryContainer = DarkPrimaryContainer,
     onPrimaryContainer = DarkOnPrimaryContainer,
     secondary = DarkSecondary,
-    onSecondary = DarkSecondaryContainer,
+    onSecondary = Color.White,
     secondaryContainer = DarkSecondaryContainer,
     onSecondaryContainer = DarkOnSecondaryContainer,
     tertiary = DarkTertiary,
@@ -113,9 +172,13 @@ fun IStudySpotTheme(
         else -> LightColorScheme
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = IStudySpotTypography,
-        content = content
-    )
+    val extendedColors = if (darkTheme) DarkExtendedColors else LightExtendedColors
+
+    CompositionLocalProvider(LocalExtendedColors provides extendedColors) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = IStudySpotTypography,
+            content = content
+        )
+    }
 }

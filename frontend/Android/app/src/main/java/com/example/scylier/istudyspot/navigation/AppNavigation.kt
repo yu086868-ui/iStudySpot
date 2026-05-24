@@ -1,12 +1,20 @@
 package com.example.scylier.istudyspot.navigation
 
-import android.widget.Toast
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -46,6 +54,7 @@ import com.example.scylier.istudyspot.viewmodel.ProfileViewModel
 import com.example.scylier.istudyspot.viewmodel.RulesViewModel
 import com.example.scylier.istudyspot.viewmodel.StudyRecordViewModel
 import com.example.scylier.istudyspot.viewmodel.StudyRoomViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun AppNavigation(
@@ -55,372 +64,457 @@ fun AppNavigation(
 ) {
     val context = LocalContext.current
     val configManager = remember { ConfigManager.getInstance(context) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     val token = configManager.getToken()
     if (token != null) {
         ApiClient.currentToken = token
     }
 
-    NavHost(
-        navController = navController,
-        startDestination = startDestination,
-        modifier = modifier
-    ) {
-        composable<NavRoutes.Home> {
-            val homeViewModel: HomeViewModel = viewModel()
-            val homeState by homeViewModel.state.collectAsState()
+    Scaffold(
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) { data ->
+                Snackbar(snackbarData = data)
+            }
+        }
+    ) { innerPadding ->
+        NavHost(
+            navController = navController,
+            startDestination = startDestination,
+            modifier = modifier.padding(innerPadding),
+            enterTransition = { fadeIn(animationSpec = tween(300)) },
+            exitTransition = { fadeOut(animationSpec = tween(300)) }
+        ) {
+            composable<NavRoutes.Home> {
+                val homeViewModel: HomeViewModel = viewModel()
+                val homeState by homeViewModel.state.collectAsState()
 
-            LaunchedEffect(Unit) { homeViewModel.loadHomeData() }
+                LaunchedEffect(Unit) { homeViewModel.loadHomeData() }
 
-            HomeScreen(
-                uiState = homeState,
-                onAction = { actionId ->
-                    when (actionId) {
-                        "booking" -> navController.navigate(NavRoutes.StudyRoom)
-                        "checkin" -> {
-                            navController.navigate(NavRoutes.OrderList)
-                            Toast.makeText(context, "请在订单详情中签到", Toast.LENGTH_SHORT).show()
+                HomeScreen(
+                    uiState = homeState,
+                    onAction = { actionId ->
+                        when (actionId) {
+                            "booking" -> navController.navigate(NavRoutes.StudyRoom)
+                            "checkin" -> {
+                                navController.navigate(NavRoutes.OrderList)
+                                scope.launch {
+                                    snackbarHostState.showSnackbar("请在订单详情中签到")
+                                }
+                            }
+                            "guide" -> navController.navigate(NavRoutes.Guide)
+                            "my_booking" -> navController.navigate(NavRoutes.OrderList)
+                            "study_record" -> navController.navigate(NavRoutes.StudyRecord)
+                            "ai_chat" -> navController.navigate(NavRoutes.CharacterSelect())
+                            "notification" -> navController.navigate(NavRoutes.Notification)
+                            "settings" -> navController.navigate(NavRoutes.More)
                         }
-                        "guide" -> navController.navigate(NavRoutes.Guide)
-                        "my_booking" -> navController.navigate(NavRoutes.OrderList)
-                        "study_record" -> navController.navigate(NavRoutes.StudyRecord)
-                        "ai_chat" -> navController.navigate(NavRoutes.CharacterSelect())
-                        "notification" -> navController.navigate(NavRoutes.Notification)
-                        "settings" -> navController.navigate(NavRoutes.More)
+                    }
+                )
+            }
+
+            composable<NavRoutes.StudyRoom>(
+                enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+                exitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+                popEnterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) },
+                popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) }
+            ) {
+                val viewModel: StudyRoomViewModel = viewModel()
+                val studyRoomState by viewModel.studyRoomState.collectAsState()
+
+                LaunchedEffect(Unit) { viewModel.loadStudyRooms() }
+
+                if (studyRoomState.error != null) {
+                    LaunchedEffect(studyRoomState.error) {
+                        snackbarHostState.showSnackbar(studyRoomState.error!!)
                     }
                 }
-            )
-        }
 
-        composable<NavRoutes.StudyRoom> {
-            val viewModel: StudyRoomViewModel = viewModel()
-            val studyRoomState by viewModel.studyRoomState.collectAsState()
-
-            LaunchedEffect(Unit) { viewModel.loadStudyRooms() }
-
-            if (studyRoomState.error != null) {
-                LaunchedEffect(studyRoomState.error) {
-                    Toast.makeText(context, studyRoomState.error, Toast.LENGTH_SHORT).show()
-                }
-            }
-
-            StudyRoomScreen(
-                studyRooms = studyRoomState.studyRooms,
-                isLoading = studyRoomState.isLoading,
-                onStudyRoomClick = { room ->
-                    navController.navigate(
-                        NavRoutes.Seat(
-                            studyRoomId = room.id,
-                            studyRoomName = room.name
-                        )
-                    )
-                }
-            )
-        }
-
-        composable<NavRoutes.Seat> { backStackEntry ->
-            val args = backStackEntry.toRoute<NavRoutes.Seat>()
-            val viewModel: StudyRoomViewModel = viewModel()
-            val seatMapState by viewModel.seatMapState.collectAsState()
-
-            LaunchedEffect(args.studyRoomId) { viewModel.loadSeats(args.studyRoomId) }
-
-            if (seatMapState.error != null) {
-                LaunchedEffect(seatMapState.error) {
-                    Toast.makeText(context, seatMapState.error, Toast.LENGTH_SHORT).show()
-                }
-            }
-
-            SeatMapScreen(
-                studyRoomName = args.studyRoomName,
-                seats = seatMapState.seats,
-                isLoading = seatMapState.isLoading,
-                onSeatClick = { seat ->
-                    if (seat.status == "available") {
+                StudyRoomScreen(
+                    studyRooms = studyRoomState.studyRooms,
+                    isLoading = studyRoomState.isLoading,
+                    onStudyRoomClick = { room ->
                         navController.navigate(
-                            NavRoutes.Booking(
-                                seatId = seat.id,
-                                studyRoomId = args.studyRoomId,
-                                studyRoomName = args.studyRoomName,
-                                seatPosition = "${seat.row}-${seat.col}",
-                                pricePerHour = seat.pricePerHour
+                            NavRoutes.Seat(
+                                studyRoomId = room.id,
+                                studyRoomName = room.name
                             )
                         )
-                    } else {
-                        Toast.makeText(context, "该座位不可预订", Toast.LENGTH_SHORT).show()
+                    },
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable<NavRoutes.Seat>(
+                enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+                exitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+                popEnterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) },
+                popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) }
+            ) { backStackEntry ->
+                val args = backStackEntry.toRoute<NavRoutes.Seat>()
+                val viewModel: StudyRoomViewModel = viewModel()
+                val seatMapState by viewModel.seatMapState.collectAsState()
+
+                LaunchedEffect(args.studyRoomId) { viewModel.loadSeats(args.studyRoomId) }
+
+                if (seatMapState.error != null) {
+                    LaunchedEffect(seatMapState.error) {
+                        snackbarHostState.showSnackbar(seatMapState.error!!)
                     }
                 }
-            )
-        }
 
-        composable<NavRoutes.Booking> { backStackEntry ->
-            val args = backStackEntry.toRoute<NavRoutes.Booking>()
-            val viewModel: BookingViewModel = viewModel()
-            val state by viewModel.state.collectAsState()
-
-            LaunchedEffect(state.isSuccess) {
-                if (state.isSuccess && state.orderId != null) {
-                    Toast.makeText(context, "预约成功", Toast.LENGTH_SHORT).show()
-                    val oid = state.orderId
-                    if (oid != null) {
-                        navController.navigate(NavRoutes.Order(orderId = oid)) {
-                            popUpTo(NavRoutes.Home) { inclusive = false }
+                SeatMapScreen(
+                    studyRoomName = args.studyRoomName,
+                    seats = seatMapState.seats,
+                    isLoading = seatMapState.isLoading,
+                    onSeatClick = { seat ->
+                        if (seat.status == "available") {
+                            navController.navigate(
+                                NavRoutes.Booking(
+                                    seatId = seat.id,
+                                    studyRoomId = args.studyRoomId,
+                                    studyRoomName = args.studyRoomName,
+                                    seatPosition = "${seat.row}-${seat.col}",
+                                    pricePerHour = seat.pricePerHour
+                                )
+                            )
+                        } else {
+                            scope.launch {
+                                snackbarHostState.showSnackbar("该座位不可预订")
+                            }
                         }
+                    },
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable<NavRoutes.Booking>(
+                enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+                exitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+                popEnterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) },
+                popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) }
+            ) { backStackEntry ->
+                val args = backStackEntry.toRoute<NavRoutes.Booking>()
+                val viewModel: BookingViewModel = viewModel()
+                val state by viewModel.state.collectAsState()
+
+                LaunchedEffect(state.isSuccess) {
+                    if (state.isSuccess && state.orderId != null) {
+                        snackbarHostState.showSnackbar("预约成功")
+                        val oid = state.orderId
+                        if (oid != null) {
+                            navController.navigate(NavRoutes.Order(orderId = oid)) {
+                                popUpTo(NavRoutes.Home) { inclusive = false }
+                            }
+                        }
+                        viewModel.resetState()
                     }
-                    viewModel.resetState()
                 }
-            }
 
-            LaunchedEffect(state.error) {
-                if (state.error != null) {
-                    Toast.makeText(context, state.error, Toast.LENGTH_SHORT).show()
-                    viewModel.resetState()
-                }
-            }
-
-            BookingScreen(
-                studyRoomName = args.studyRoomName,
-                seatPosition = args.seatPosition,
-                pricePerHour = args.pricePerHour,
-                onBook = { startTime, endTime, bookingType ->
-                    viewModel.createOrder(args.studyRoomId, args.seatId, startTime, endTime, bookingType)
-                }
-            )
-        }
-
-        composable<NavRoutes.Order> { backStackEntry ->
-            val args = backStackEntry.toRoute<NavRoutes.Order>()
-            val viewModel: OrderViewModel = viewModel()
-            val state by viewModel.orderDetailState.collectAsState()
-
-            LaunchedEffect(args.orderId) { viewModel.loadOrderDetail(args.orderId) }
-
-            LaunchedEffect(state.actionSuccess) {
-                if (state.actionSuccess != null) {
-                    Toast.makeText(context, state.actionSuccess, Toast.LENGTH_SHORT).show()
-                    viewModel.clearActionSuccess()
-                }
-            }
-
-            LaunchedEffect(state.error) {
-                if (state.error != null) {
-                    Toast.makeText(context, state.error, Toast.LENGTH_SHORT).show()
-                    viewModel.clearActionSuccess()
-                }
-            }
-
-            OrderDetailScreen(
-                order = state.order,
-                isLoading = state.isLoading,
-                onCheckin = { viewModel.checkin(args.orderId) },
-                onCheckout = { viewModel.checkout(args.orderId) },
-                onCancel = { viewModel.cancelOrder(args.orderId) }
-            )
-        }
-
-        composable<NavRoutes.OrderList> {
-            val viewModel: OrderViewModel = viewModel()
-            val state by viewModel.orderListState.collectAsState()
-
-            LaunchedEffect(Unit) { viewModel.loadOrders() }
-
-            if (state.error != null) {
                 LaunchedEffect(state.error) {
-                    Toast.makeText(context, state.error, Toast.LENGTH_SHORT).show()
-                }
-            }
-
-            OrderListScreen(
-                orders = state.orders,
-                isLoading = state.isLoading,
-                onOrderClick = { order ->
-                    navController.navigate(NavRoutes.Order(orderId = order.id))
-                }
-            )
-        }
-
-        composable<NavRoutes.Profile> {
-            val viewModel: ProfileViewModel = viewModel()
-            val state by viewModel.state.collectAsState()
-
-            LaunchedEffect(Unit) { viewModel.loadProfile(configManager) }
-
-            ProfileScreen(
-                uiState = state,
-                onAvatarClick = {
-                    navController.navigate(NavRoutes.Login)
-                },
-                onOrderListClick = {
-                    navController.navigate(NavRoutes.OrderList)
-                }
-            )
-        }
-
-        composable<NavRoutes.Login> {
-            val viewModel: AuthViewModel = viewModel()
-            val loginState by viewModel.loginState.collectAsState()
-
-            LaunchedEffect(loginState.isSuccess) {
-                if (loginState.isSuccess) {
-                    Toast.makeText(context, "登录成功", Toast.LENGTH_SHORT).show()
-                    navController.popBackStack()
-                    viewModel.resetLoginState()
-                }
-            }
-
-            LaunchedEffect(loginState.error) {
-                if (loginState.error != null) {
-                    Toast.makeText(context, loginState.error, Toast.LENGTH_SHORT).show()
-                    viewModel.resetLoginState()
-                }
-            }
-
-            LoginScreen(
-                onLogin = { username, password ->
-                    viewModel.login(username, password, configManager)
-                },
-                onRegisterClick = {
-                    navController.navigate(NavRoutes.Register)
-                }
-            )
-        }
-
-        composable<NavRoutes.Register> {
-            val viewModel: AuthViewModel = viewModel()
-            val registerState by viewModel.registerState.collectAsState()
-
-            LaunchedEffect(registerState.isSuccess) {
-                if (registerState.isSuccess) {
-                    Toast.makeText(context, "注册成功", Toast.LENGTH_SHORT).show()
-                    navController.popBackStack()
-                    viewModel.resetRegisterState()
-                }
-            }
-
-            LaunchedEffect(registerState.error) {
-                if (registerState.error != null) {
-                    Toast.makeText(context, registerState.error, Toast.LENGTH_SHORT).show()
-                    viewModel.resetRegisterState()
-                }
-            }
-
-            RegisterScreen(
-                onRegister = { username, password, confirmPassword, nickname ->
-                    viewModel.register(username, password, confirmPassword, nickname, configManager)
-                }
-            )
-        }
-
-        composable<NavRoutes.Rules> {
-            val rulesViewModel: RulesViewModel = viewModel()
-            val rulesState by rulesViewModel.state.collectAsState()
-
-            LaunchedEffect(Unit) { rulesViewModel.loadRules() }
-
-            RulesScreen(ruleItems = rulesState.ruleItems, groupedItems = rulesViewModel.groupedItems)
-        }
-
-        composable<NavRoutes.More> {
-            val profileViewModel: ProfileViewModel = viewModel()
-            MoreScreen(
-                onAction = { title ->
-                    when (title) {
-                        "预约记录" -> navController.navigate(NavRoutes.OrderList)
-                        "成就徽章" -> navController.navigate(NavRoutes.Achievement)
-                        "积分兑换", "积分明细" -> navController.navigate(NavRoutes.Points)
-                        "帮助中心" -> navController.navigate(NavRoutes.Rules)
-                        "学习统计" -> navController.navigate(NavRoutes.StudyRecord)
-                        "退出登录" -> {
-                            profileViewModel.logout(configManager)
-                            Toast.makeText(context, "已退出登录", Toast.LENGTH_SHORT).show()
-                        }
-                        else -> Toast.makeText(context, "${title}功能开发中", Toast.LENGTH_SHORT).show()
+                    if (state.error != null) {
+                        snackbarHostState.showSnackbar(state.error!!)
+                        viewModel.resetState()
                     }
                 }
-            )
-        }
 
-        composable<NavRoutes.Guide> {
-            val guideViewModel: GuideViewModel = viewModel()
-            val guideState by guideViewModel.state.collectAsState()
+                BookingScreen(
+                    studyRoomName = args.studyRoomName,
+                    seatPosition = args.seatPosition,
+                    pricePerHour = args.pricePerHour,
+                    onBook = { startTime, endTime, bookingType ->
+                        viewModel.createOrder(args.studyRoomId, args.seatId, startTime, endTime, bookingType)
+                    },
+                    onBack = { navController.popBackStack() }
+                )
+            }
 
-            LaunchedEffect(Unit) { guideViewModel.loadGuideInfo() }
+            composable<NavRoutes.Order>(
+                enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+                exitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+                popEnterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) },
+                popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) }
+            ) { backStackEntry ->
+                val args = backStackEntry.toRoute<NavRoutes.Order>()
+                val viewModel: OrderViewModel = viewModel()
+                val state by viewModel.orderDetailState.collectAsState()
 
-            GuideScreen(
-                facilities = guideState.facilities,
-                location = guideState.location,
-                openingHours = guideState.openingHours,
-                contact = guideState.contact
-            )
-        }
+                LaunchedEffect(args.orderId) { viewModel.loadOrderDetail(args.orderId) }
 
-        composable<NavRoutes.StudyRecord> {
-            val studyRecordViewModel: StudyRecordViewModel = viewModel()
-            val studyRecordState by studyRecordViewModel.state.collectAsState()
-
-            LaunchedEffect(Unit) { studyRecordViewModel.loadStudyRecords() }
-
-            StudyRecordScreen(viewModel = studyRecordViewModel)
-        }
-
-        composable<NavRoutes.Notification> {
-            val notificationViewModel: NotificationViewModel = viewModel()
-            val notificationState by notificationViewModel.state.collectAsState()
-
-            LaunchedEffect(Unit) { notificationViewModel.loadNotifications() }
-
-            NotificationScreen(
-                notifications = notificationState.notifications,
-                onAction = { }
-            )
-        }
-
-        composable<NavRoutes.AiChat> {
-            val viewModel: AiChatViewModel = viewModel()
-            val messages by viewModel.messages.collectAsState()
-            val isLoading by viewModel.isLoading.collectAsState()
-            val selectedCharacter by viewModel.selectedCharacter.collectAsState()
-
-            AiChatScreen(
-                messages = messages,
-                isLoading = isLoading,
-                onSendMessage = { message ->
-                    viewModel.sendMessage(message)
-                },
-                onBackClick = {
-                    navController.popBackStack()
-                },
-                characterName = selectedCharacter?.name,
-                characterId = selectedCharacter?.id,
-                characterPersona = selectedCharacter?.persona,
-                characterAvatarColor = selectedCharacter?.avatarColor,
-                onSuggestionClick = { suggestion ->
-                    viewModel.sendMessage(suggestion)
+                LaunchedEffect(state.actionSuccess) {
+                    if (state.actionSuccess != null) {
+                        snackbarHostState.showSnackbar(state.actionSuccess!!)
+                        viewModel.clearActionSuccess()
+                    }
                 }
-            )
-        }
 
-        composable<NavRoutes.CharacterSelect> { backStackEntry ->
-            val args = backStackEntry.toRoute<NavRoutes.CharacterSelect>()
-            val viewModel: AiChatViewModel = viewModel()
-            val characters by viewModel.characters.collectAsState()
-
-            CharacterSelectScreen(
-                characters = characters,
-                isLoading = false,
-                onSelectCharacter = { character ->
-                    viewModel.selectCharacter(character)
-                    navController.navigate(NavRoutes.AiChat)
+                LaunchedEffect(state.error) {
+                    if (state.error != null) {
+                        snackbarHostState.showSnackbar(state.error!!)
+                        viewModel.clearActionSuccess()
+                    }
                 }
-            )
-        }
 
-        composable<NavRoutes.Achievement> {
-            AchievementScreen()
-        }
+                OrderDetailScreen(
+                    order = state.order,
+                    isLoading = state.isLoading,
+                    onCheckin = { viewModel.checkin(args.orderId) },
+                    onCheckout = { viewModel.checkout(args.orderId) },
+                    onCancel = { viewModel.cancelOrder(args.orderId) },
+                    onBack = { navController.popBackStack() }
+                )
+            }
 
-        composable<NavRoutes.Points> {
-            PointsScreen()
+            composable<NavRoutes.OrderList>(
+                enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+                exitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+                popEnterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) },
+                popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) }
+            ) {
+                val viewModel: OrderViewModel = viewModel()
+                val state by viewModel.orderListState.collectAsState()
+
+                LaunchedEffect(Unit) { viewModel.loadOrders() }
+
+                if (state.error != null) {
+                    LaunchedEffect(state.error) {
+                        snackbarHostState.showSnackbar(state.error!!)
+                    }
+                }
+
+                OrderListScreen(
+                    orders = state.orders,
+                    isLoading = state.isLoading,
+                    onOrderClick = { order ->
+                        navController.navigate(NavRoutes.Order(orderId = order.id))
+                    },
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable<NavRoutes.Profile> {
+                val viewModel: ProfileViewModel = viewModel()
+                val state by viewModel.state.collectAsState()
+
+                LaunchedEffect(Unit) { viewModel.loadProfile(configManager) }
+
+                ProfileScreen(
+                    uiState = state,
+                    onAvatarClick = {
+                        navController.navigate(NavRoutes.Login)
+                    },
+                    onOrderListClick = {
+                        navController.navigate(NavRoutes.OrderList)
+                    },
+                    onLogout = {
+                        configManager.removeToken()
+                        navController.navigate(NavRoutes.Login) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
+                )
+            }
+
+            composable<NavRoutes.Login>(
+                enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Up, tween(300)) },
+                exitTransition = { fadeOut(tween(150)) },
+                popEnterTransition = { fadeIn(tween(150)) },
+                popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Down, tween(300)) }
+            ) {
+                val viewModel: AuthViewModel = viewModel()
+                val loginState by viewModel.loginState.collectAsState()
+
+                LaunchedEffect(loginState.isSuccess) {
+                    if (loginState.isSuccess) {
+                        snackbarHostState.showSnackbar("登录成功")
+                        navController.popBackStack()
+                        viewModel.resetLoginState()
+                    }
+                }
+
+                LoginScreen(
+                    onLogin = { username, password ->
+                        viewModel.login(username, password, configManager)
+                    },
+                    onRegisterClick = {
+                        navController.navigate(NavRoutes.Register)
+                    },
+                    isLoading = loginState.isLoading,
+                    errorMessage = loginState.error
+                )
+            }
+
+            composable<NavRoutes.Register>(
+                enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Up, tween(300)) },
+                exitTransition = { fadeOut(tween(150)) },
+                popEnterTransition = { fadeIn(tween(150)) },
+                popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Down, tween(300)) }
+            ) {
+                val viewModel: AuthViewModel = viewModel()
+                val registerState by viewModel.registerState.collectAsState()
+
+                LaunchedEffect(registerState.isSuccess) {
+                    if (registerState.isSuccess) {
+                        snackbarHostState.showSnackbar("注册成功")
+                        navController.popBackStack()
+                        viewModel.resetRegisterState()
+                    }
+                }
+
+                RegisterScreen(
+                    onRegister = { username, password, confirmPassword, nickname ->
+                        viewModel.register(username, password, confirmPassword, nickname, configManager)
+                    },
+                    isLoading = registerState.isLoading,
+                    errorMessage = registerState.error
+                )
+            }
+
+            composable<NavRoutes.Rules> {
+                val rulesViewModel: RulesViewModel = viewModel()
+                val rulesState by rulesViewModel.state.collectAsState()
+
+                LaunchedEffect(Unit) { rulesViewModel.loadRules() }
+
+                RulesScreen(ruleItems = rulesState.ruleItems, groupedItems = rulesViewModel.groupedItems, onBack = { navController.popBackStack() })
+            }
+
+            composable<NavRoutes.More> {
+                val profileViewModel: ProfileViewModel = viewModel()
+                MoreScreen(
+                    onAction = { title ->
+                        when (title) {
+                            "预约记录" -> navController.navigate(NavRoutes.OrderList)
+                            "成就徽章" -> navController.navigate(NavRoutes.Achievement)
+                            "积分兑换", "积分明细" -> navController.navigate(NavRoutes.Points)
+                            "帮助中心" -> navController.navigate(NavRoutes.Rules)
+                            "学习统计" -> navController.navigate(NavRoutes.StudyRecord)
+                            "退出登录" -> {
+                                profileViewModel.logout(configManager)
+                                scope.launch {
+                                    snackbarHostState.showSnackbar("已退出登录")
+                                }
+                            }
+                            else -> {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar("${title}功能开发中")
+                                }
+                            }
+                        }
+                    }
+                )
+            }
+
+            composable<NavRoutes.Guide>(
+                enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+                exitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+                popEnterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) },
+                popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) }
+            ) {
+                val guideViewModel: GuideViewModel = viewModel()
+                val guideState by guideViewModel.state.collectAsState()
+
+                LaunchedEffect(Unit) { guideViewModel.loadGuideInfo() }
+
+                GuideScreen(
+                    facilities = guideState.facilities,
+                    location = guideState.location,
+                    openingHours = guideState.openingHours,
+                    contact = guideState.contact,
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable<NavRoutes.StudyRecord>(
+                enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+                exitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+                popEnterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) },
+                popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) }
+            ) {
+                val studyRecordViewModel: StudyRecordViewModel = viewModel()
+                val studyRecordState by studyRecordViewModel.state.collectAsState()
+
+                LaunchedEffect(Unit) { studyRecordViewModel.loadStudyRecords() }
+
+                StudyRecordScreen(viewModel = studyRecordViewModel, onBack = { navController.popBackStack() })
+            }
+
+            composable<NavRoutes.Notification>(
+                enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+                exitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+                popEnterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) },
+                popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) }
+            ) {
+                val notificationViewModel: NotificationViewModel = viewModel()
+                val notificationState by notificationViewModel.state.collectAsState()
+
+                LaunchedEffect(Unit) { notificationViewModel.loadNotifications() }
+
+                NotificationScreen(
+                    notifications = notificationState.notifications,
+                    onAction = { },
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable<NavRoutes.AiChat> {
+                val viewModel: AiChatViewModel = viewModel()
+                val messages by viewModel.messages.collectAsState()
+                val isLoading by viewModel.isLoading.collectAsState()
+                val selectedCharacter by viewModel.selectedCharacter.collectAsState()
+
+                AiChatScreen(
+                    messages = messages,
+                    isLoading = isLoading,
+                    onSendMessage = { message ->
+                        viewModel.sendMessage(message)
+                    },
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+                    characterName = selectedCharacter?.name,
+                    characterId = selectedCharacter?.id,
+                    characterPersona = selectedCharacter?.persona,
+                    characterAvatarColor = selectedCharacter?.avatarColor,
+                    onSuggestionClick = { suggestion ->
+                        viewModel.sendMessage(suggestion)
+                    }
+                )
+            }
+
+            composable<NavRoutes.CharacterSelect> { backStackEntry ->
+                val args = backStackEntry.toRoute<NavRoutes.CharacterSelect>()
+                val viewModel: AiChatViewModel = viewModel()
+                val characters by viewModel.characters.collectAsState()
+
+                CharacterSelectScreen(
+                    characters = characters,
+                    isLoading = false,
+                    onSelectCharacter = { character ->
+                        viewModel.selectCharacter(character)
+                        navController.navigate(NavRoutes.AiChat)
+                    }
+                )
+            }
+
+            composable<NavRoutes.Achievement>(
+                enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+                exitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+                popEnterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) },
+                popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) }
+            ) {
+                AchievementScreen(onBack = { navController.popBackStack() })
+            }
+
+            composable<NavRoutes.Points>(
+                enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+                exitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+                popEnterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) },
+                popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) }
+            ) {
+                PointsScreen(onBack = { navController.popBackStack() })
+            }
         }
     }
 }

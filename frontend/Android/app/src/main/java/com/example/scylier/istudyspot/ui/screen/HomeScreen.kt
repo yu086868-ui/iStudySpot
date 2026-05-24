@@ -24,11 +24,11 @@ import androidx.compose.material.icons.filled.FormatQuote
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -40,14 +40,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import com.example.scylier.istudyspot.ui.theme.GradientEnd
-import com.example.scylier.istudyspot.ui.theme.GradientStart
-import com.example.scylier.istudyspot.ui.theme.InfoContainer
+import com.example.scylier.istudyspot.ui.theme.LocalExtendedColors
 import com.example.scylier.istudyspot.ui.theme.PrimaryContainer
-import com.example.scylier.istudyspot.ui.theme.SecondaryContainer
-import com.example.scylier.istudyspot.ui.theme.SuccessContainer
-import com.example.scylier.istudyspot.ui.theme.TertiaryContainer
-import com.example.scylier.istudyspot.ui.theme.WarningContainer
 import com.example.scylier.istudyspot.viewmodel.HomeUiState
 
 data class FunctionItemData(
@@ -59,13 +53,12 @@ data class FunctionItemData(
 
 val mainFeatures = listOf(
     FunctionItemData("booking", "预约座位", Icons.Default.BookOnline, PrimaryContainer),
-    FunctionItemData("checkin", "签到", Icons.Default.CheckCircle, SuccessContainer),
-    FunctionItemData("guide", "场馆导览", Icons.Default.Map, SecondaryContainer),
-    FunctionItemData("my_booking", "我的预约", Icons.AutoMirrored.Filled.ReceiptLong, InfoContainer),
-    FunctionItemData("study_record", "学习记录", Icons.Default.Timer, WarningContainer),
-    FunctionItemData("ai_chat", "AI咨询", Icons.Default.SmartToy, TertiaryContainer),
-    FunctionItemData("notification", "通知提醒", Icons.Default.Notifications, InfoContainer),
-    FunctionItemData("settings", "偏好设置", Icons.Default.Settings, PrimaryContainer),
+    FunctionItemData("checkin", "签到", Icons.Default.CheckCircle, PrimaryContainer),
+    FunctionItemData("guide", "场馆导览", Icons.Default.Map, PrimaryContainer),
+    FunctionItemData("my_booking", "我的预约", Icons.AutoMirrored.Filled.ReceiptLong, PrimaryContainer),
+    FunctionItemData("study_record", "学习记录", Icons.Default.Timer, PrimaryContainer),
+    FunctionItemData("ai_chat", "AI咨询", Icons.Default.SmartToy, PrimaryContainer),
+    FunctionItemData("notification", "通知提醒", Icons.Default.Notifications, PrimaryContainer),
 )
 
 @Composable
@@ -73,6 +66,18 @@ fun HomeScreen(
     uiState: HomeUiState,
     onAction: (String) -> Unit
 ) {
+    val extendedColors = LocalExtendedColors.current
+
+    if (uiState.isLoading) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+        }
+        return
+    }
+
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -81,7 +86,7 @@ fun HomeScreen(
                 .fillMaxWidth()
                 .background(
                     brush = Brush.horizontalGradient(
-                        colors = listOf(GradientStart, GradientEnd)
+                        colors = listOf(extendedColors.gradientStart, extendedColors.gradientEnd)
                     ),
                     shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)
                 )
@@ -89,31 +94,16 @@ fun HomeScreen(
         ) {
             Column {
                 Text(
-                    text = uiState.greeting,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color.White.copy(alpha = 0.9f)
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
                     text = "iStudySpot",
                     style = MaterialTheme.typography.headlineLarge,
-                    color = Color.White
+                    color = extendedColors.onGradient
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "智慧自习室管理平台",
                     style = MaterialTheme.typography.bodyLarge,
-                    color = Color.White.copy(alpha = 0.85f)
+                    color = extendedColors.onGradientVariant
                 )
-                Spacer(modifier = Modifier.height(16.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    StatCard("今日预约", uiState.todayBookings.toString(), Modifier.weight(1f))
-                    StatCard("学习时长", uiState.studyHours, Modifier.weight(1f))
-                    StatCard("连续打卡", uiState.streakDays, Modifier.weight(1f))
-                }
             }
         }
 
@@ -162,9 +152,6 @@ fun HomeScreen(
 
         LazyVerticalGrid(
             columns = GridCells.Fixed(4),
-            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 4.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             items(mainFeatures) { item ->
                 FunctionItemCard(
@@ -172,36 +159,6 @@ fun HomeScreen(
                     onClick = { onAction(item.id) }
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun StatCard(label: String, value: String, modifier: Modifier = Modifier) {
-    Card(
-        modifier = modifier,
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White.copy(alpha = 0.2f)
-        ),
-        shape = RoundedCornerShape(16.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = value,
-                style = MaterialTheme.typography.titleLarge,
-                color = Color.White
-            )
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall,
-                color = Color.White.copy(alpha = 0.8f)
-            )
         }
     }
 }

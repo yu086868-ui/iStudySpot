@@ -17,8 +17,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.EventSeat
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -32,19 +35,26 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.scylier.istudyspot.ui.components.AppTopBar
 import com.example.scylier.istudyspot.models.order.OrderItem
+import com.example.scylier.istudyspot.ui.theme.LocalExtendedColors
 
 @Composable
 fun OrderListScreen(
     orders: List<OrderItem>,
     isLoading: Boolean,
-    onOrderClick: (OrderItem) -> Unit
+    onOrderClick: (OrderItem) -> Unit,
+    onBookNowClick: (() -> Unit)? = null,
+    onBack: () -> Unit = {}
 ) {
+    val extendedColors = LocalExtendedColors.current
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 20.dp)
     ) {
+        AppTopBar(title = "我的订单", onBack = onBack)
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = "我的订单",
@@ -59,6 +69,13 @@ fun OrderListScreen(
         } else if (orders.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ReceiptLong,
+                        contentDescription = null,
+                        modifier = Modifier.size(72.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = "暂无订单",
                         style = MaterialTheme.typography.bodyLarge,
@@ -70,6 +87,18 @@ fun OrderListScreen(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     )
+                    if (onBookNowClick != null) {
+                        Spacer(modifier = Modifier.height(20.dp))
+                        Button(
+                            onClick = onBookNowClick,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text("去预约座位")
+                        }
+                    }
                 }
             }
         } else {
@@ -78,7 +107,7 @@ fun OrderListScreen(
                 contentPadding = PaddingValues(bottom = 16.dp)
             ) {
                 items(orders) { order ->
-                    OrderCard(order = order, onClick = { onOrderClick(order) })
+                    OrderCard(order = order, extendedColors = extendedColors, onClick = { onOrderClick(order) })
                 }
             }
         }
@@ -86,7 +115,11 @@ fun OrderListScreen(
 }
 
 @Composable
-private fun OrderCard(order: OrderItem, onClick: () -> Unit) {
+private fun OrderCard(
+    order: OrderItem,
+    extendedColors: com.example.scylier.istudyspot.ui.theme.ExtendedColors,
+    onClick: () -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -106,7 +139,7 @@ private fun OrderCard(order: OrderItem, onClick: () -> Unit) {
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                StatusBadge(status = order.status)
+                StatusBadge(status = order.status, extendedColors = extendedColors)
             }
             Spacer(modifier = Modifier.height(10.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -143,14 +176,17 @@ private fun OrderCard(order: OrderItem, onClick: () -> Unit) {
 }
 
 @Composable
-private fun StatusBadge(status: String) {
+private fun StatusBadge(
+    status: String,
+    extendedColors: com.example.scylier.istudyspot.ui.theme.ExtendedColors
+) {
     val (color, label) = when (status) {
-        "pending" -> Color(0xFFF59E0B) to "待支付"
-        "paid" -> Color(0xFF3B82F6) to "已支付"
-        "in_use" -> Color(0xFF22C55E) to "使用中"
-        "completed" -> Color(0xFF94A3B8) to "已完成"
-        "cancelled" -> Color(0xFFEF4444) to "已取消"
-        else -> Color(0xFF94A3B8) to status
+        "pending" -> extendedColors.warning to "待支付"
+        "paid" -> extendedColors.info to "已支付"
+        "in_use" -> extendedColors.success to "使用中"
+        "completed" -> MaterialTheme.colorScheme.onSurfaceVariant to "已完成"
+        "cancelled" -> MaterialTheme.colorScheme.error to "已取消"
+        else -> MaterialTheme.colorScheme.onSurfaceVariant to status
     }
     Box(
         modifier = Modifier

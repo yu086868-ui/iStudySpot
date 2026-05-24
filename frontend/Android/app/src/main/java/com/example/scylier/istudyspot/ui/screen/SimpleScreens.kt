@@ -1,6 +1,8 @@
 package com.example.scylier.istudyspot.ui.screen
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,6 +35,8 @@ import androidx.compose.material.icons.filled.DirectionsBus
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.DirectionsSubway
 import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.GpsFixed
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Home
@@ -51,15 +55,18 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material.icons.filled.Room
+import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -67,10 +74,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.scylier.istudyspot.models.RuleItem
+import com.example.scylier.istudyspot.models.RuleType
 import com.example.scylier.istudyspot.viewmodel.Facility
 import com.example.scylier.istudyspot.viewmodel.NotificationItem
 import com.example.scylier.istudyspot.viewmodel.NotificationType
 import com.example.scylier.istudyspot.viewmodel.StudyRecordViewModel
+import com.example.scylier.istudyspot.ui.components.AppTopBar
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -78,7 +89,8 @@ fun GuideScreen(
     facilities: List<Facility>,
     location: String,
     openingHours: String,
-    contact: String
+    contact: String,
+    onBack: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -86,6 +98,7 @@ fun GuideScreen(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp)
     ) {
+        AppTopBar(title = "场馆导览", onBack = onBack)
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = "场馆导览",
@@ -101,17 +114,26 @@ fun GuideScreen(
             color = MaterialTheme.colorScheme.onSurface
         )
         Spacer(modifier = Modifier.height(12.dp))
-        val facilities = listOf(
-            FacilityData("静音自习区", "高度集中，保持安静", Icons.Default.Book, Color(0xFF3B82F6)),
-            FacilityData("讨论学习区", "小组讨论，协作学习", Icons.Default.Notifications, Color(0xFF22C55E)),
-            FacilityData("多媒体学习区", "电脑投影，电子设备", Icons.Default.Timer, Color(0xFFF59E0B)),
-            FacilityData("休息区", "餐饮服务，放松身心", Icons.Default.Coffee, Color(0xFFEF4444))
+        val iconMap = mapOf(
+            "静音" to Icons.Default.Book,
+            "讨论" to Icons.Default.Notifications,
+            "多媒体" to Icons.Default.Timer,
+            "休息" to Icons.Default.Coffee,
+            "打印" to Icons.Default.Print,
+            "储物" to Icons.Default.Lock,
+            "饮水" to Icons.Default.WaterDrop,
+            "WiFi" to Icons.Default.Wifi,
+            "空调" to Icons.Default.AcUnit,
         )
+        val facilityCards = facilities.map { fac ->
+            val icon = iconMap.entries.firstOrNull { fac.name.contains(it.key) }?.value ?: Icons.Default.Room
+            FacilityData(fac.name, fac.description, icon, MaterialTheme.colorScheme.primary)
+        }
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            facilities.take(2).forEach { facility ->
+            facilityCards.take(2).forEach { facility ->
                 FacilityCard(
                     name = facility.name,
                     description = facility.description,
@@ -126,7 +148,7 @@ fun GuideScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            facilities.drop(2).forEach { facility ->
+            facilityCards.drop(2).take(2).forEach { facility ->
                 FacilityCard(
                     name = facility.name,
                     description = facility.description,
@@ -428,15 +450,19 @@ private fun TransportationCard() {
 
 @Composable
 fun RulesScreen(
-    ruleItems: List<com.example.scylier.istudyspot.models.RuleItem>,
-    groupedItems: Map<String, List<com.example.scylier.istudyspot.models.RuleItem>>
+    ruleItems: List<RuleItem>,
+    groupedItems: Map<String, List<RuleItem>>,
+    onBack: () -> Unit = {}
 ) {
+    val expandedFaqIds = remember { mutableStateOf(setOf<String>()) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp)
     ) {
+        AppTopBar(title = "使用规则", onBack = onBack)
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = "使用规则",
@@ -461,22 +487,101 @@ fun RulesScreen(
                     )
                     Spacer(modifier = Modifier.height(10.dp))
                     items.forEach { rule ->
-                        Row(
-                            modifier = Modifier.padding(vertical = 3.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(6.dp)
-                                    .clip(RoundedCornerShape(3.dp))
-                                    .background(MaterialTheme.colorScheme.primary)
-                            )
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Text(
-                                text = rule.content,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                        if (rule.type == RuleType.FAQ) {
+                            val isExpanded = rule.title in expandedFaqIds.value
+                            Column(
+                                modifier = Modifier.padding(vertical = 4.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(10.dp))
+                                        .clickable {
+                                            expandedFaqIds.value = if (isExpanded) {
+                                                expandedFaqIds.value - rule.title
+                                            } else {
+                                                expandedFaqIds.value + rule.title
+                                            }
+                                        }
+                                        .background(
+                                            if (isExpanded) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                                            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                                        )
+                                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(22.dp)
+                                            .clip(RoundedCornerShape(6.dp))
+                                            .background(MaterialTheme.colorScheme.primaryContainer),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = "Q",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                    Text(
+                                        text = rule.title,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    Icon(
+                                        imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                        contentDescription = if (isExpanded) "收起" else "展开",
+                                        modifier = Modifier.size(20.dp),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                AnimatedVisibility(visible = isExpanded) {
+                                    Row(
+                                        modifier = Modifier.padding(start = 12.dp, top = 8.dp, end = 12.dp, bottom = 8.dp),
+                                        verticalAlignment = Alignment.Top
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(22.dp)
+                                                .clip(RoundedCornerShape(6.dp))
+                                                .background(MaterialTheme.colorScheme.tertiaryContainer),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = "A",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.tertiary
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.width(10.dp))
+                                        Text(
+                                            text = rule.content,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                            }
+                        } else {
+                            Row(
+                                modifier = Modifier.padding(vertical = 3.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(6.dp)
+                                        .clip(RoundedCornerShape(3.dp))
+                                        .background(MaterialTheme.colorScheme.primary)
+                                )
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Text(
+                                    text = rule.content,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     }
                 }
@@ -486,7 +591,7 @@ fun RulesScreen(
 }
 
 @Composable
-fun StudyRecordScreen(viewModel: StudyRecordViewModel) {
+fun StudyRecordScreen(viewModel: StudyRecordViewModel, onBack: () -> Unit = {}) {
     val state by viewModel.state.collectAsState()
     Column(
         modifier = Modifier
@@ -494,6 +599,7 @@ fun StudyRecordScreen(viewModel: StudyRecordViewModel) {
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp)
     ) {
+        AppTopBar(title = "学习记录", onBack = onBack)
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = "学习记录",
@@ -517,7 +623,7 @@ fun StudyRecordScreen(viewModel: StudyRecordViewModel) {
                 value = state.monthStudyHours.toString(),
                 unit = "小时",
                 modifier = Modifier.weight(1f),
-                color = Color(0xFF22C55E)
+                color = MaterialTheme.colorScheme.secondary
             )
         }
         Spacer(modifier = Modifier.height(12.dp))
@@ -530,14 +636,14 @@ fun StudyRecordScreen(viewModel: StudyRecordViewModel) {
                 value = state.totalStudyHours.toString(),
                 unit = "小时",
                 modifier = Modifier.weight(1f),
-                color = Color(0xFFF59E0B)
+                color = MaterialTheme.colorScheme.tertiary
             )
             StatCardModern(
                 title = "连续打卡",
                 value = state.streakDays.toString(),
                 unit = "天",
                 modifier = Modifier.weight(1f),
-                color = Color(0xFFEF4444)
+                color = MaterialTheme.colorScheme.error
             )
         }
         Spacer(modifier = Modifier.height(24.dp))
@@ -740,13 +846,15 @@ private fun StudyHeatmap() {
 @Composable
 fun NotificationScreen(
     notifications: List<NotificationItem>,
-    onAction: (String) -> Unit
+    onAction: (String) -> Unit,
+    onBack: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 20.dp)
     ) {
+        AppTopBar(title = "通知提醒", onBack = onBack)
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = "通知提醒",
@@ -818,26 +926,32 @@ private fun NotificationCard(
     val iconTint = when (notification.type) {
         NotificationType.SYSTEM -> MaterialTheme.colorScheme.tertiary
         NotificationType.BOOKING -> MaterialTheme.colorScheme.primary
-        NotificationType.REMINDER -> Color(0xFFF59E0B)
-        NotificationType.ACTIVITY -> Color(0xFFEF4444)
+        NotificationType.REMINDER -> MaterialTheme.colorScheme.secondary
+        NotificationType.ACTIVITY -> MaterialTheme.colorScheme.error
     }
     val iconBg = when (notification.type) {
         NotificationType.SYSTEM -> MaterialTheme.colorScheme.tertiaryContainer
         NotificationType.BOOKING -> MaterialTheme.colorScheme.primaryContainer
-        NotificationType.REMINDER -> Color(0xFFF59E0B).copy(alpha = 0.12f)
-        NotificationType.ACTIVITY -> Color(0xFFEF4444).copy(alpha = 0.12f)
+        NotificationType.REMINDER -> MaterialTheme.colorScheme.secondaryContainer
+        NotificationType.ACTIVITY -> MaterialTheme.colorScheme.errorContainer
+    }
+    val typeLabel = when (notification.type) {
+        NotificationType.SYSTEM -> "系统"
+        NotificationType.BOOKING -> "预约"
+        NotificationType.REMINDER -> "提醒"
+        NotificationType.ACTIVITY -> "活动"
     }
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = if (!notification.isRead)
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f)
+                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
             else
                 MaterialTheme.colorScheme.surface
         ),
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = if (!notification.isRead) 2.dp else 1.dp)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -845,15 +959,15 @@ private fun NotificationCard(
         ) {
             Box(
                 modifier = Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(12.dp))
+                    .size(44.dp)
+                    .clip(RoundedCornerShape(14.dp))
                     .background(iconBg),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    modifier = Modifier.size(20.dp),
+                    modifier = Modifier.size(22.dp),
                     tint = iconTint
                 )
             }
@@ -864,35 +978,50 @@ private fun NotificationCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = notification.title,
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f)
+                    ) {
                         if (!notification.isRead) {
                             Box(
                                 modifier = Modifier
                                     .size(8.dp)
                                     .clip(CircleShape)
-                                    .background(Color(0xFF3B82F6))
+                                    .background(MaterialTheme.colorScheme.primary)
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                         }
                         Text(
-                            text = notification.time,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            text = notification.title,
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(iconBg)
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = typeLabel,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = iconTint
+                            )
+                        }
                     }
+                    Text(
+                        text = notification.time,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     text = notification.content,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
+                    lineHeight = 18.sp
                 )
             }
         }
@@ -900,7 +1029,7 @@ private fun NotificationCard(
 }
 
 @Composable
-fun AchievementScreen() {
+fun AchievementScreen(onBack: () -> Unit = {}) {
     data class Achievement(
         val name: String,
         val description: String,
@@ -910,14 +1039,14 @@ fun AchievementScreen() {
     )
 
     val achievements = listOf(
-        Achievement("早起鸟", "连续3天在7:00-8:00签到", Icons.Default.WbSunny, Color(0xFFF59E0B), true),
-        Achievement("夜猫子", "连续3天在21:00后仍在学习", Icons.Default.Nightlight, Color(0xFF6366F1), false),
-        Achievement("学霸", "累计学习100小时", Icons.Default.School, Color(0xFF3B82F6), true),
-        Achievement("连击王", "连续打卡7天", Icons.Default.LocalFireDepartment, Color(0xFFEF4444), true),
-        Achievement("精准达人", "从未爽约过", Icons.Default.GpsFixed, Color(0xFF22C55E), false),
-        Achievement("常客", "在同一座位学习10次", Icons.Default.Home, Color(0xFF8B5CF6), false),
-        Achievement("社交达人", "推荐3位好友注册", Icons.Default.Group, Color(0xFFEC4899), false),
-        Achievement("马拉松", "单次学习超过6小时", Icons.Default.EmojiEvents, Color(0xFFF97316), false)
+        Achievement("早起鸟", "连续3天在7:00-8:00签到", Icons.Default.WbSunny, MaterialTheme.colorScheme.tertiary, true),
+        Achievement("夜猫子", "连续3天在21:00后仍在学习", Icons.Default.Nightlight, MaterialTheme.colorScheme.primary, false),
+        Achievement("学霸", "累计学习100小时", Icons.Default.School, MaterialTheme.colorScheme.primary, true),
+        Achievement("连击王", "连续打卡7天", Icons.Default.LocalFireDepartment, MaterialTheme.colorScheme.error, true),
+        Achievement("守时达人", "连续30天按时签到", Icons.Default.GpsFixed, MaterialTheme.colorScheme.secondary, false),
+        Achievement("常客", "在同一座位学习10次", Icons.Default.Home, MaterialTheme.colorScheme.tertiary, false),
+        Achievement("社交达人", "推荐3位好友注册", Icons.Default.Group, MaterialTheme.colorScheme.secondary, false),
+        Achievement("马拉松", "单次学习超过6小时", Icons.Default.EmojiEvents, MaterialTheme.colorScheme.error, false)
     )
 
     Column(
@@ -926,6 +1055,7 @@ fun AchievementScreen() {
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp)
     ) {
+        AppTopBar(title = "成就徽章", onBack = onBack)
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = "成就徽章",
@@ -1001,7 +1131,7 @@ fun AchievementScreen() {
                             .clip(RoundedCornerShape(14.dp))
                             .background(
                                 if (achievement.isUnlocked) achievement.color.copy(alpha = 0.15f)
-                                else Color(0xFF94A3B8).copy(alpha = 0.1f)
+                                else MaterialTheme.colorScheme.surfaceVariant
                             ),
                         contentAlignment = Alignment.Center
                     ) {
@@ -1010,7 +1140,7 @@ fun AchievementScreen() {
                             contentDescription = null,
                             modifier = Modifier.size(24.dp),
                             tint = if (achievement.isUnlocked) achievement.color
-                            else Color(0xFF94A3B8)
+                            else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     Spacer(modifier = Modifier.width(16.dp))
@@ -1032,7 +1162,7 @@ fun AchievementScreen() {
                         Icon(
                             imageVector = Icons.Default.CheckCircle,
                             contentDescription = null,
-                            tint = Color(0xFF22C55E),
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -1044,13 +1174,14 @@ fun AchievementScreen() {
 }
 
 @Composable
-fun PointsScreen() {
+fun PointsScreen(onBack: () -> Unit = {}) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp)
     ) {
+        AppTopBar(title = "积分中心", onBack = onBack)
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = "积分中心",
@@ -1077,27 +1208,6 @@ fun PointsScreen() {
                     text = "1,280",
                     style = MaterialTheme.typography.displayLarge,
                     color = MaterialTheme.colorScheme.primary
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = "距下一等级还需720积分",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                LinearProgressIndicator(
-                    progress = { 1280f / 2000f },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(8.dp)
-                        .clip(RoundedCornerShape(4.dp)),
-                    color = MaterialTheme.colorScheme.primary,
-                    trackColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.2f)
                 )
             }
         }
@@ -1147,7 +1257,7 @@ fun PointsScreen() {
                     Text(
                         text = points,
                         style = MaterialTheme.typography.titleMedium,
-                        color = if (points.startsWith("+")) Color(0xFF22C55E) else Color(0xFFEF4444)
+                        color = if (points.startsWith("+")) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
                     )
                 }
             }

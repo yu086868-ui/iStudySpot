@@ -9,13 +9,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -30,29 +37,34 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import com.example.scylier.istudyspot.ui.theme.GradientEnd
-import com.example.scylier.istudyspot.ui.theme.GradientStart
+import com.example.scylier.istudyspot.ui.theme.LocalExtendedColors
 
 @Composable
 fun LoginScreen(
     onLogin: (String, String) -> Unit,
-    onRegisterClick: () -> Unit
+    onRegisterClick: () -> Unit,
+    isLoading: Boolean = false,
+    errorMessage: String? = null
 ) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
+    var usernameError by remember { mutableStateOf<String?>(null) }
+    var passwordError by remember { mutableStateOf<String?>(null) }
+    val extendedColors = LocalExtendedColors.current
 
     Box(modifier = Modifier.fillMaxSize()) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(320.dp)
+                .height(280.dp)
                 .background(
                     brush = Brush.verticalGradient(
-                        colors = listOf(GradientStart, GradientEnd)
+                        colors = listOf(extendedColors.gradientStart, extendedColors.gradientEnd)
                     ),
                     shape = RoundedCornerShape(bottomStart = 40.dp, bottomEnd = 40.dp)
                 ),
@@ -63,13 +75,13 @@ fun LoginScreen(
                     modifier = Modifier
                         .size(72.dp)
                         .clip(RoundedCornerShape(20.dp))
-                        .background(Color.White.copy(alpha = 0.2f)),
+                        .background(extendedColors.onGradient.copy(alpha = 0.2f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.School,
                         contentDescription = null,
-                        tint = Color.White,
+                        tint = extendedColors.onGradient,
                         modifier = Modifier.size(40.dp)
                     )
                 }
@@ -77,13 +89,13 @@ fun LoginScreen(
                 Text(
                     text = "iStudySpot",
                     style = MaterialTheme.typography.headlineLarge,
-                    color = Color.White
+                    color = extendedColors.onGradient
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "智慧自习室管理平台",
                     style = MaterialTheme.typography.bodyLarge,
-                    color = Color.White.copy(alpha = 0.85f)
+                    color = extendedColors.onGradientVariant
                 )
             }
         }
@@ -91,7 +103,8 @@ fun LoginScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 260.dp, start = 28.dp, end = 28.dp),
+                .verticalScroll(rememberScrollState())
+                .padding(top = 220.dp, start = 28.dp, end = 28.dp, bottom = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             CardContainer {
@@ -110,53 +123,106 @@ fun LoginScreen(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+
+                    if (errorMessage != null) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = errorMessage,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+
                     Spacer(modifier = Modifier.height(28.dp))
                     OutlinedTextField(
                         value = username,
-                        onValueChange = { username = it },
+                        onValueChange = {
+                            username = it
+                            usernameError = null
+                        },
                         label = { Text("用户名") },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
+                        isError = usernameError != null,
+                        supportingText = usernameError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
                         shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = MaterialTheme.colorScheme.primary,
                             unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent
+                            errorBorderColor = MaterialTheme.colorScheme.error,
+                            focusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
+                            unfocusedContainerColor = androidx.compose.ui.graphics.Color.Transparent
                         )
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     OutlinedTextField(
                         value = password,
-                        onValueChange = { password = it },
+                        onValueChange = {
+                            password = it
+                            passwordError = null
+                        },
                         label = { Text("密码") },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
-                        visualTransformation = PasswordVisualTransformation(),
+                        isError = passwordError != null,
+                        supportingText = passwordError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        trailingIcon = {
+                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                Icon(
+                                    imageVector = if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                    contentDescription = if (passwordVisible) "隐藏密码" else "显示密码",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        },
                         shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = MaterialTheme.colorScheme.primary,
                             unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent
+                            errorBorderColor = MaterialTheme.colorScheme.error,
+                            focusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
+                            unfocusedContainerColor = androidx.compose.ui.graphics.Color.Transparent
                         )
                     )
                     Spacer(modifier = Modifier.height(28.dp))
                     Button(
-                        onClick = { onLogin(username, password) },
+                        onClick = {
+                            var hasError = false
+                            if (username.isBlank()) {
+                                usernameError = "请输入用户名"
+                                hasError = true
+                            }
+                            if (password.isBlank()) {
+                                passwordError = "请输入密码"
+                                hasError = true
+                            }
+                            if (!hasError) {
+                                onLogin(username, password)
+                            }
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(52.dp),
                         shape = RoundedCornerShape(16.dp),
+                        enabled = !isLoading,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary
                         )
                     ) {
-                        Text(
-                            text = "登录",
-                            style = MaterialTheme.typography.labelLarge
-                        )
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text(
+                                text = "登录",
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                        }
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     OutlinedButton(
@@ -165,6 +231,7 @@ fun LoginScreen(
                             .fillMaxWidth()
                             .height(52.dp),
                         shape = RoundedCornerShape(16.dp),
+                        enabled = !isLoading,
                         colors = ButtonDefaults.outlinedButtonColors(
                             contentColor = MaterialTheme.colorScheme.primary
                         )

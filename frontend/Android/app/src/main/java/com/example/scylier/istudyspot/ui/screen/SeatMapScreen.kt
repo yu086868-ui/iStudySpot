@@ -42,6 +42,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.scylier.istudyspot.models.studyroom.SeatInfo
+import com.example.scylier.istudyspot.ui.components.AppTopBar
+import com.example.scylier.istudyspot.ui.theme.ExtendedColors
+import com.example.scylier.istudyspot.ui.theme.LocalExtendedColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,15 +52,18 @@ fun SeatMapScreen(
     studyRoomName: String,
     seats: List<SeatInfo>,
     isLoading: Boolean,
-    onSeatClick: (SeatInfo) -> Unit
+    onSeatClick: (SeatInfo) -> Unit,
+    onBack: () -> Unit = {}
 ) {
     var selectedSeat by remember { mutableStateOf<SeatInfo?>(null) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val maxCol = seats.maxOfOrNull { it.col } ?: 6
     val availableCount = seats.count { it.status == "available" }
     val occupiedCount = seats.count { it.status == "in_use" || it.status == "booked" }
+    val extendedColors = LocalExtendedColors.current
 
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
+        AppTopBar(title = studyRoomName, onBack = onBack)
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = studyRoomName,
@@ -69,10 +75,10 @@ fun SeatMapScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            SeatLegend(color = Color(0xFF22C55E), label = "空闲")
-            SeatLegend(color = Color(0xFFF59E0B), label = "已预订")
-            SeatLegend(color = Color(0xFFEF4444), label = "使用中")
-            SeatLegend(color = Color(0xFF94A3B8), label = "不可用")
+            SeatLegend(color = extendedColors.success, label = "空闲")
+            SeatLegend(color = extendedColors.warning, label = "已预订")
+            SeatLegend(color = MaterialTheme.colorScheme.error, label = "使用中")
+            SeatLegend(color = MaterialTheme.colorScheme.onSurfaceVariant, label = "不可用")
         }
         Spacer(modifier = Modifier.height(12.dp))
         Row(
@@ -87,12 +93,12 @@ fun SeatMapScreen(
             Text(
                 text = "空闲 $availableCount",
                 style = MaterialTheme.typography.labelMedium,
-                color = Color(0xFF22C55E)
+                color = extendedColors.success
             )
             Text(
                 text = "已占 $occupiedCount",
                 style = MaterialTheme.typography.labelMedium,
-                color = Color(0xFFEF4444)
+                color = MaterialTheme.colorScheme.error
             )
         }
         Spacer(modifier = Modifier.height(20.dp))
@@ -111,7 +117,12 @@ fun SeatMapScreen(
                         seat = seat,
                         isRecommended = seat.status == "available" && seat.row in 2..4,
                         maxCol = maxCol,
-                        onClick = { selectedSeat = seat }
+                        extendedColors = extendedColors,
+                        onClick = {
+                            if (seat.status == "available") {
+                                selectedSeat = seat
+                            }
+                        }
                     )
                 }
             }
@@ -127,6 +138,7 @@ fun SeatMapScreen(
             SeatDetailContent(
                 seat = seat,
                 maxCol = maxCol,
+                extendedColors = extendedColors,
                 onBookClick = {
                     onSeatClick(seat)
                     selectedSeat = null
@@ -155,20 +167,27 @@ private fun SeatLegend(color: Color, label: String) {
 }
 
 @Composable
-private fun SeatItem(seat: SeatInfo, isRecommended: Boolean, maxCol: Int, onClick: () -> Unit) {
+private fun SeatItem(
+    seat: SeatInfo,
+    isRecommended: Boolean,
+    maxCol: Int,
+    extendedColors: ExtendedColors,
+    onClick: () -> Unit
+) {
     val (backgroundColor, borderColor) = when (seat.status) {
-        "available" -> Color(0xFF22C55E).copy(alpha = 0.12f) to Color(0xFF22C55E)
-        "booked" -> Color(0xFFF59E0B).copy(alpha = 0.12f) to Color(0xFFF59E0B)
-        "in_use" -> Color(0xFFEF4444).copy(alpha = 0.12f) to Color(0xFFEF4444)
-        else -> Color(0xFF94A3B8).copy(alpha = 0.08f) to Color(0xFF94A3B8)
+        "available" -> extendedColors.success.copy(alpha = 0.12f) to extendedColors.success
+        "booked" -> extendedColors.warning.copy(alpha = 0.12f) to extendedColors.warning
+        "in_use" -> MaterialTheme.colorScheme.error.copy(alpha = 0.12f) to MaterialTheme.colorScheme.error
+        else -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.08f) to MaterialTheme.colorScheme.onSurfaceVariant
     }
     val textColor = when (seat.status) {
-        "available" -> Color(0xFF22C55E)
-        "booked" -> Color(0xFFF59E0B)
-        "in_use" -> Color(0xFFEF4444)
-        else -> Color(0xFF94A3B8)
+        "available" -> extendedColors.success
+        "booked" -> extendedColors.warning
+        "in_use" -> MaterialTheme.colorScheme.error
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
     val borderAlpha = if (seat.status == "available") 1f else 0.4f
+    val isEnabled = seat.status != "unavailable"
     Box(
         modifier = Modifier
             .size(48.dp)
@@ -179,23 +198,23 @@ private fun SeatItem(seat: SeatInfo, isRecommended: Boolean, maxCol: Int, onClic
                 color = borderColor.copy(alpha = borderAlpha),
                 shape = RoundedCornerShape(12.dp)
             )
-            .clickable(onClick = onClick),
+            .then(if (isEnabled) Modifier.clickable(onClick = onClick) else Modifier),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = "${seat.row}-${seat.col}",
             style = MaterialTheme.typography.labelSmall,
-            color = textColor
+            color = textColor.copy(alpha = if (isEnabled) 1f else 0.5f)
         )
         if (isRecommended) {
             Icon(
                 imageVector = Icons.Default.Star,
-                contentDescription = null,
+                contentDescription = "推荐",
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(3.dp)
                     .size(10.dp),
-                tint = Color(0xFFF59E0B)
+                tint = extendedColors.warning
             )
         }
     }
@@ -206,6 +225,7 @@ private fun SeatItem(seat: SeatInfo, isRecommended: Boolean, maxCol: Int, onClic
 private fun SeatDetailContent(
     seat: SeatInfo,
     maxCol: Int,
+    extendedColors: ExtendedColors,
     onBookClick: () -> Unit
 ) {
     val areaName = "${('A' + (seat.row - 1) / 2)}区"
@@ -217,10 +237,10 @@ private fun SeatDetailContent(
         else -> "不可用"
     }
     val statusColor = when (seat.status) {
-        "available" -> Color(0xFF22C55E)
-        "booked" -> Color(0xFFF59E0B)
-        "in_use" -> Color(0xFFEF4444)
-        else -> Color(0xFF94A3B8)
+        "available" -> extendedColors.success
+        "booked" -> extendedColors.warning
+        "in_use" -> MaterialTheme.colorScheme.error
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
     val isWindowSeat = seat.col == 1 || seat.col == maxCol
     val isVip = seat.type == "vip"
@@ -251,7 +271,7 @@ private fun SeatDetailContent(
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
                     .background(
-                        if (isVip) Color(0xFFF59E0B).copy(alpha = 0.12f)
+                        if (isVip) extendedColors.warning.copy(alpha = 0.12f)
                         else MaterialTheme.colorScheme.surfaceVariant
                     )
                     .padding(horizontal = 10.dp, vertical = 4.dp)
@@ -259,20 +279,20 @@ private fun SeatDetailContent(
                 Text(
                     text = if (isVip) "VIP座" else "普通座",
                     style = MaterialTheme.typography.labelSmall,
-                    color = if (isVip) Color(0xFFF59E0B) else MaterialTheme.colorScheme.onSurfaceVariant
+                    color = if (isVip) extendedColors.warning else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             if (showRecommend) {
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
-                        .background(Color(0xFF8B5CF6).copy(alpha = 0.12f))
+                        .background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.12f))
                         .padding(horizontal = 10.dp, vertical = 4.dp)
                 ) {
                     Text(
                         text = "推荐",
                         style = MaterialTheme.typography.labelSmall,
-                        color = Color(0xFF8B5CF6)
+                        color = MaterialTheme.colorScheme.tertiary
                     )
                 }
             }
@@ -341,7 +361,7 @@ private fun SeatDetailContent(
                 onClick = onBookClick,
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF22C55E)
+                    containerColor = MaterialTheme.colorScheme.primary
                 ),
                 shape = RoundedCornerShape(12.dp)
             ) {
