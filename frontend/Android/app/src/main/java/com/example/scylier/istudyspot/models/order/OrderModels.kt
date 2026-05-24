@@ -2,10 +2,11 @@ package com.example.scylier.istudyspot.models.order
 
 // 创建订单请求
 class CreateOrderRequest(
+    val studyRoomId: String,
     val seatId: String,
-    val startTime: String, // ISO 8601 格式
-    val endTime: String, // ISO 8601 格式
-    val bookingType: String // hour, day
+    val startTime: String,
+    val endTime: String,
+    val bookingType: String
 )
 
 // 订单响应

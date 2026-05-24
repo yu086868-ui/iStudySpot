@@ -1,116 +1,124 @@
 package com.example.scylier.istudyspot
 
 import com.example.scylier.istudyspot.viewmodel.StudyRecordViewModel
+import com.example.scylier.istudyspot.viewmodel.StudyRecordUiState
+import com.example.scylier.istudyspot.models.ApiResponse
+import com.example.scylier.istudyspot.repository.MainRepository
+import io.mockk.coEvery
+import io.mockk.mockk
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class StudyRecordViewModelTest {
 
     private lateinit var viewModel: StudyRecordViewModel
+    private val testDispatcher = UnconfinedTestDispatcher()
+    private val mockRepository = mockk<MainRepository>()
 
     @Before
     fun setup() {
-        viewModel = StudyRecordViewModel()
+        Dispatchers.setMain(testDispatcher)
+        coEvery { mockRepository.getCheckinRecords(any(), any(), any(), any()) } returns ApiResponse.Error(500, "Test error")
+        coEvery { mockRepository.getUserOrders(any(), any(), any(), any(), any()) } returns ApiResponse.Error(500, "Test error")
+        viewModel = StudyRecordViewModel(mockRepository)
+    }
+
+    @After
+    fun teardown() {
+        Dispatchers.resetMain()
     }
 
     @Test
-    fun testViewModel_weekStudyHours() {
-        assertEquals(24, viewModel.weekStudyHours)
+    fun testViewModel_initialState_isLoading() {
+        assertTrue(viewModel.state.value.isLoading)
     }
 
     @Test
-    fun testViewModel_monthStudyHours() {
-        assertEquals(96, viewModel.monthStudyHours)
+    fun testViewModel_initialState_defaults() {
+        val state = viewModel.state.value
+        assertEquals(0, state.weekStudyHours)
+        assertEquals(0, state.monthStudyHours)
+        assertEquals(0, state.totalStudyHours)
+        assertEquals(0, state.totalBookings)
+        assertEquals(0, state.streakDays)
+        assertEquals(0.0, state.avgStudyDuration, 0.01)
+        assertEquals("", state.favoriteSeat)
+        assertEquals("", state.peakTime)
     }
 
     @Test
-    fun testViewModel_totalStudyHours() {
-        assertEquals(328, viewModel.totalStudyHours)
+    fun testViewModel_loadStudyRecords_fallsBackToMock() = runTest {
+        viewModel.loadStudyRecords()
+        val state = viewModel.state.value
+        assertFalse(state.isLoading)
+        assertTrue(state.weekStudyHours > 0)
+        assertTrue(state.monthStudyHours > 0)
+        assertTrue(state.totalStudyHours > 0)
+        assertTrue(state.totalBookings > 0)
+        assertTrue(state.streakDays > 0)
+        assertTrue(state.avgStudyDuration > 0)
+        assertTrue(state.favoriteSeat.isNotEmpty())
+        assertTrue(state.peakTime.isNotEmpty())
     }
 
     @Test
-    fun testViewModel_totalBookings() {
-        assertEquals(45, viewModel.totalBookings)
+    fun testViewModel_mockState_monthGreaterThanWeek() = runTest {
+        viewModel.loadStudyRecords()
+        val state = viewModel.state.value
+        assertTrue(state.monthStudyHours > state.weekStudyHours)
     }
 
     @Test
-    fun testViewModel_streakDays() {
-        assertEquals(7, viewModel.streakDays)
+    fun testViewModel_mockState_totalGreaterThanMonth() = runTest {
+        viewModel.loadStudyRecords()
+        val state = viewModel.state.value
+        assertTrue(state.totalStudyHours > state.monthStudyHours)
     }
 
     @Test
-    fun testViewModel_avgStudyDuration() {
-        assertEquals(3.5, viewModel.avgStudyDuration, 0.01)
+    fun testViewModel_mockState_favoriteSeatContainsArea() = runTest {
+        viewModel.loadStudyRecords()
+        val state = viewModel.state.value
+        assertTrue(state.favoriteSeat.contains("区"))
     }
 
     @Test
-    fun testViewModel_favoriteSeat() {
-        assertEquals("A区-12号", viewModel.favoriteSeat)
+    fun testViewModel_mockState_peakTimeContainsColon() = runTest {
+        viewModel.loadStudyRecords()
+        val state = viewModel.state.value
+        assertTrue(state.peakTime.contains(":"))
     }
 
     @Test
-    fun testViewModel_peakTime() {
-        assertEquals("14:00-17:00", viewModel.peakTime)
-    }
-
-    @Test
-    fun testViewModel_weekStudyHours_positive() {
-        assertTrue(viewModel.weekStudyHours > 0)
-    }
-
-    @Test
-    fun testViewModel_monthStudyHours_positive() {
-        assertTrue(viewModel.monthStudyHours > 0)
-    }
-
-    @Test
-    fun testViewModel_totalStudyHours_positive() {
-        assertTrue(viewModel.totalStudyHours > 0)
-    }
-
-    @Test
-    fun testViewModel_totalBookings_positive() {
-        assertTrue(viewModel.totalBookings > 0)
-    }
-
-    @Test
-    fun testViewModel_streakDays_positive() {
-        assertTrue(viewModel.streakDays > 0)
-    }
-
-    @Test
-    fun testViewModel_avgStudyDuration_positive() {
-        assertTrue(viewModel.avgStudyDuration > 0)
-    }
-
-    @Test
-    fun testViewModel_favoriteSeat_notEmpty() {
-        assertTrue(viewModel.favoriteSeat.isNotEmpty())
-    }
-
-    @Test
-    fun testViewModel_peakTime_notEmpty() {
-        assertTrue(viewModel.peakTime.isNotEmpty())
-    }
-
-    @Test
-    fun testViewModel_monthStudyHours_greaterThanWeek() {
-        assertTrue(viewModel.monthStudyHours > viewModel.weekStudyHours)
-    }
-
-    @Test
-    fun testViewModel_totalStudyHours_greaterThanMonth() {
-        assertTrue(viewModel.totalStudyHours > viewModel.monthStudyHours)
-    }
-
-    @Test
-    fun testViewModel_favoriteSeat_containsArea() {
-        assertTrue(viewModel.favoriteSeat.contains("区"))
-    }
-
-    @Test
-    fun testViewModel_peakTime_containsTime() {
-        assertTrue(viewModel.peakTime.contains(":"))
+    fun testUiState_dataClass() {
+        val state = StudyRecordUiState(
+            weekStudyHours = 10,
+            monthStudyHours = 40,
+            totalStudyHours = 100,
+            totalBookings = 20,
+            streakDays = 5,
+            avgStudyDuration = 2.5,
+            favoriteSeat = "A区-1号",
+            peakTime = "14:00-17:00",
+            isLoading = false
+        )
+        assertEquals(10, state.weekStudyHours)
+        assertEquals(40, state.monthStudyHours)
+        assertEquals(100, state.totalStudyHours)
+        assertEquals(20, state.totalBookings)
+        assertEquals(5, state.streakDays)
+        assertEquals(2.5, state.avgStudyDuration, 0.01)
+        assertEquals("A区-1号", state.favoriteSeat)
+        assertEquals("14:00-17:00", state.peakTime)
+        assertFalse(state.isLoading)
     }
 }

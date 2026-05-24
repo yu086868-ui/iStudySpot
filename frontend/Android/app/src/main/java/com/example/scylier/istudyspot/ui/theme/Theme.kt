@@ -8,63 +8,102 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 
-private val Primary = Color(0xFF1565C0)
-private val PrimaryVariant = Color(0xFF0D47A1)
-private val Secondary = Color(0xFF42A5F5)
-private val SecondaryVariant = Color(0xFF90CAF9)
-private val Background = Color(0xFFF5F5F5)
-private val Surface = Color(0xFFFFFFFF)
-private val Error = Color(0xFFD32F2F)
-private val OnPrimary = Color(0xFFFFFFFF)
-private val OnSecondary = Color(0xFF000000)
-private val OnBackground = Color(0xFF212121)
-private val OnSurface = Color(0xFF212121)
+enum class ThemeMode {
+    LIGHT, DARK, SYSTEM
+}
 
-private val DarkPrimary = Color(0xFF90CAF9)
-private val DarkPrimaryVariant = Color(0xFF42A5F5)
-private val DarkSecondary = Color(0xFF1565C0)
-private val DarkBackground = Color(0xFF121212)
-private val DarkSurface = Color(0xFF1E1E1E)
-private val DarkOnPrimary = Color(0xFF000000)
-private val DarkOnBackground = Color(0xFFE0E0E0)
-private val DarkOnSurface = Color(0xFFE0E0E0)
+object ThemeState {
+    var themeMode by mutableStateOf(ThemeMode.SYSTEM)
+
+    fun toggle() {
+        themeMode = when (themeMode) {
+            ThemeMode.LIGHT -> ThemeMode.DARK
+            ThemeMode.DARK -> ThemeMode.SYSTEM
+            ThemeMode.SYSTEM -> ThemeMode.LIGHT
+        }
+    }
+}
+
+val LocalThemeMode = compositionLocalOf { ThemeMode.SYSTEM }
+val LocalThemeToggle = compositionLocalOf<() -> Unit> { {} }
+
+@Composable
+fun ThemeProvider(content: @Composable () -> Unit) {
+    CompositionLocalProvider(
+        LocalThemeMode provides ThemeState.themeMode,
+        LocalThemeToggle provides { ThemeState.toggle() }
+    ) {
+        content()
+    }
+}
 
 private val LightColorScheme = lightColorScheme(
     primary = Primary,
-    onPrimary = OnPrimary,
-    primaryContainer = SecondaryVariant,
+    onPrimary = androidx.compose.ui.graphics.Color.White,
+    primaryContainer = PrimaryContainer,
+    onPrimaryContainer = OnPrimaryContainer,
     secondary = Secondary,
-    onSecondary = OnSecondary,
-    secondaryContainer = SecondaryVariant,
-    background = Background,
-    onBackground = OnBackground,
+    onSecondary = androidx.compose.ui.graphics.Color.White,
+    secondaryContainer = SecondaryContainer,
+    onSecondaryContainer = OnSecondaryContainer,
+    tertiary = Tertiary,
+    tertiaryContainer = TertiaryContainer,
+    onTertiaryContainer = OnTertiaryContainer,
+    background = SurfaceDim,
+    onBackground = OnSurface,
     surface = Surface,
     onSurface = OnSurface,
+    surfaceVariant = SurfaceContainer,
+    onSurfaceVariant = OnSurfaceVariant,
+    outline = Outline,
+    outlineVariant = OutlineVariant,
     error = Error,
+    errorContainer = ErrorContainer,
+    onErrorContainer = OnErrorContainer,
 )
 
 private val DarkColorScheme = darkColorScheme(
     primary = DarkPrimary,
-    onPrimary = DarkOnPrimary,
-    primaryContainer = DarkPrimaryVariant,
+    onPrimary = OnPrimaryContainer,
+    primaryContainer = DarkPrimaryContainer,
+    onPrimaryContainer = DarkOnPrimaryContainer,
     secondary = DarkSecondary,
-    onSecondary = DarkOnPrimary,
-    background = DarkBackground,
-    onBackground = DarkOnBackground,
-    surface = DarkSurface,
+    onSecondary = DarkSecondaryContainer,
+    secondaryContainer = DarkSecondaryContainer,
+    onSecondaryContainer = DarkOnSecondaryContainer,
+    tertiary = DarkTertiary,
+    tertiaryContainer = DarkTertiaryContainer,
+    background = DarkSurface,
+    onBackground = DarkOnSurface,
+    surface = DarkSurfaceBright,
     onSurface = DarkOnSurface,
-    error = Error,
+    surfaceVariant = DarkSurfaceContainer,
+    onSurfaceVariant = DarkOnSurfaceVariant,
+    outline = DarkOutline,
+    outlineVariant = DarkOutlineVariant,
+    error = DarkError,
+    errorContainer = DarkErrorContainer,
 )
 
 @Composable
 fun IStudySpotTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    themeMode: ThemeMode = ThemeMode.SYSTEM,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
+    val darkTheme = when (themeMode) {
+        ThemeMode.LIGHT -> false
+        ThemeMode.DARK -> true
+        ThemeMode.SYSTEM -> isSystemInDarkTheme()
+    }
+
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
@@ -76,6 +115,7 @@ fun IStudySpotTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
+        typography = IStudySpotTypography,
         content = content
     )
 }

@@ -1,0 +1,10 @@
+# Trivy Ignore File
+# This file contains CVEs and vulnerabilities that are intentionally ignored
+
+# Example: Ignore a specific CVE
+# CVE-2023-12345
+
+# Example: Ignore a vulnerability by ID
+# VULNID-2023-001
+
+# Note: Add comments explaining why each vulnerability is ignored
