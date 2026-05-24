@@ -1,4 +1,8 @@
-# 1.引言与目标
+# iStudySpot Android 客户端架构文档
+
+> 遵循 Arc42 架构文档标准
+
+# 1. 引言与目标
 
 ## 1.1 需求概览
 
@@ -6,1059 +10,501 @@ iStudySpot 是一个面向付费自习室的在线座位预订系统，主要服
 
 系统支持用户：
 
-- 实时查看自习室 3D 座位图
+- 实时查看自习室座位图
 - 按小时或天预约座位
 - 在线支付并自动计算费用
-- 到店扫码签到并自动计时，离店结算
+- 到店签到并自动计时，离店结算
+- AI 智能咨询助手
+- 学习记录与成就系统
 
-同时为自习室管理者提供：
+## 1.2 质量目标
 
-- 座位布局配置能力
-- 动态定价策略（高峰/低峰）
-- 上座率统计分析
-- 用户黑名单管理
+| 优先级 | 质量目标 | 在客户端中的含义 | 为什么重要 |
+|--------|----------|-----------------|-----------|
+| P1 | 操作正确性 | 用户不能基于过期或错误状态完成非法操作 | 避免用户误操作，这是客户端体验的核心底线 |
+| P2 | 状态新鲜度 | 页面进入、返回、关键操作前，座位状态应尽可能接近最新服务器状态 | 减少看到的和实际不一致导致的失败或冲突 |
+| P3 | 用户体验流畅性 | 页面加载、切换、选择操作必须顺滑无明显卡顿 | 客户端核心体验，直接影响产品可用性 |
+| P4 | 交互可靠性 | 网络失败、提交失败、重复点击等情况必须有合理处理 | 保证在不稳定网络下仍可使用 |
+| P5 | 可维护性 | UI层、状态管理、数据层结构清晰，便于迭代功能 | 保证客户端长期开发效率 |
 
-## 1.2 驱动因素
+## 1.3 干系人
 
-线下自习室座位管理依赖人工或低效工具，效率较低
+| 干系人 | 说明 | 对客户端模块的期望 |
+|--------|------|-------------------|
+| 学生/用户 | 使用 App 进行选座与预约的人 | 界面信息准确、操作简单、状态反馈及时 |
+| 自习室运营方 | 管理座位与价格策略的人 | 客户端能正确展示座位状态与价格规则变化 |
+| 后端服务 | 提供数据与业务能力的系统 | 客户端按契约正确调用 API、正确处理状态变化与错误码 |
+| Android 开发团队 | 本模块的实现者 | 架构清晰、易维护、易扩展 |
 
-高峰期（如考试季）存在强烈的座位需求与竞争
+# 2. 约束
 
-用户希望能够提前锁定座位，避免到店无座的不确定性
+## 2.1 平台与环境约束
 
-运营方需要提升座位利用率与整体收益
+- 最低支持 Android 7.0（API 24）及以上
+- 目标编译 SDK 36
+- 构建系统使用 Gradle 8.13 + Kotlin 2.0.21
 
-在高并发抢座场景下，必须保证座位分配的一致性与公平性
+## 2.2 技术栈约束
 
-## 1.3 质量目标
+- 客户端使用 Kotlin 开发
+- UI 层使用 Jetpack Compose + Material 3
+- 网络层使用 Retrofit + OkHttp
+- 异步处理使用 Kotlin Coroutines + Flow
+- 序列化使用 kotlinx-serialization
 
-| 优先级 | 质量目标                           | 在客户端中的含义                            | 为什么重要                    |
-| --- | ------------------------------ | ----------------------------------- | ------------------------ |
-| P1  | 操作正确性（Interaction Correctness） | 用户不能基于过期或错误状态完成非法操作（如已被占座的座位仍可点击提交） | 避免用户“误操作成功”，这是客户端体验的核心底线 |
-| P2  | 状态新鲜度（Data Freshness）          | 页面进入、返回、关键操作前，座位状态应尽可能接近最新服务器状态     | 减少“看到的和实际不一致”导致的失败或冲突    |
-| P3  | 用户体验流畅性（Responsiveness）        | 3D座位图加载、切换、选择操作必须顺滑无明显卡顿            | 客户端核心体验，直接影响产品可用性        |
-| P4  | 交互可靠性（Robust Interaction）      | 网络失败、提交失败、重复点击等情况必须有合理处理（重试/提示/防抖）  | 保证在不稳定网络下仍可使用            |
-| P5  | 可维护性（Maintainability）          | UI层、状态管理、数据层结构清晰，便于迭代功能             | 保证客户端长期开发效率              |
+## 2.3 架构约束
 
-## 1.4 干系人
+- 采用 MVVM 架构模式
+- 单 Activity + Compose Navigation 架构
+- 状态管理采用 StateFlow + Compose State
 
-| 干系人             | 说明               | 对客户端模块的期望                        |
-| --------------- | ---------------- | -------------------------------- |
-| 学生/用户           | 使用 App 进行选座与预约的人 | 界面信息准确、操作简单、状态反馈及时（选座/支付/签到流程顺畅） |
-| 自习室运营方          | 管理座位与价格策略的人      | 客户端能正确展示座位状态与价格规则变化（不误导用户）       |
-| 后端服务            | 提供数据与业务能力的系统     | 客户端按契约正确调用 API、正确处理状态变化与错误码      |
-| Android/客户端开发团队 | 本模块的实现者          | 架构清晰（UI/状态/数据分层）、易维护、易扩展         |
-| 产品/业务方          | 定义用户流程的人         | 客户端交互符合设计流程，支持业务实验与调整            |
-| QA 测试团队         | 测试客户端行为的人        | UI 状态可预测、流程可复现、异常场景可覆盖           |
-
-# 2.约束
-
-### 2.1平台与环境约束
-
-- 最低支持 Android 10（API 29）及以上
-- 构建系统必须使用 Gradle
-
-***
-
-### 2.2技术栈约束
-
-\- 客户端必须使用 Kotlin 开发
-\- UI 层使用 Jetpack Compose
-\-&#x20;
-\- 必须使用 Hilt 进行依赖注入
-
-***
-
-### 2.3架构约束
-
-- 必须采用 MVVM 架构模式
-
-***
-
-### 2.4构建与发布约束
-
-<br />
-
-- 必须使用 R8 进行代码混淆与压缩
-
-***
-
-### 2.5编程与实现约束
-
-- 参考阿里巴巴 Java/Kotlin 规范
-
-***
-
-### 2.6合规与许可约束
-
-暂无要求
-
-# 3.上下文视图
-
-WARN:这个上下文视图不一定足够完整/优秀/可靠
+# 3. 上下文视图
 
 ```mermaid
 flowchart LR
+    classDef user fill:#E3F2FD,stroke:#1E88E5;
+    classDef frontend fill:#E8F5E9,stroke:#43A047;
+    classDef backend fill:#FFF3E0,stroke:#FB8C00;
 
-classDef user fill:#E3F2FD,stroke:#1E88E5;
-classDef admin fill:#FCE4EC,stroke:#D81B60;
-classDef frontend fill:#E8F5E9,stroke:#43A047;
-classDef backend fill:#FFF3E0,stroke:#FB8C00;
-
-subgraph 用户层
-U2[用户]
-A2[管理员]
-end
-
-subgraph 前端层
-U1[用户UI界面]
-A1[管理UI界面]
-end
-
-subgraph 后端层
-B1[后端服务]
-end
-
-U2 --> U1
-A2 --> A1
-U1 --> B1
-A1 --> B1
-
-class U2 user
-class A2 admin
-class U1,A1 frontend
-class B1 backend
+    U[用户]:::user --> App[Android App]:::frontend
+    App --> API[后端 API]:::backend
+    App --> AI[AI 服务]:::backend
 ```
 
-# 4.解决方案策略
+# 4. 解决方案策略
 
-采用 MVVM 架构模式，结合 Jetpack 组件，
-实现 UI 与业务逻辑解耦。
+采用 MVVM 架构模式，结合 Jetpack Compose 声明式 UI 框架，实现 UI 与业务逻辑解耦。
 
-待补充。
+核心策略：
 
-# 5.构建块视图
+1. **声明式 UI**：使用 Compose 声明式范式，UI = f(State)
+2. **单向数据流**：ViewModel 暴露 StateFlow，UI 订阅状态并渲染
+3. **主题系统扩展**：通过 ExtendedColors 机制在 Material 3 之上扩展语义色
+4. **统一反馈机制**：Snackbar 替代 Toast，确认对话框保护危险操作
+5. **暗色模式优先**：所有 UI 组件均支持亮色/暗色模式自动切换
+
+# 5. 构建块视图
 
 ## 5.1 系统分解
 
-客户端整体采用分层架构，在 MVVM 模式约束下划分为五个核心构建块：
-
 ```mermaid
 flowchart TB
+    subgraph 表现层
+        UI[Compose UI Screens]
+        Theme[Theme / Color System]
+        Nav[Navigation]
+    end
 
-subgraph 表现层
-UI[UI层]
-end
+    subgraph 状态层
+        VM[ViewModels]
+        State[State Models]
+    end
 
-subgraph 状态层
-State[状态管理层]
-end
+    subgraph 数据层
+        Repo[Repository]
+        API[API Client]
+        Config[ConfigManager]
+    end
 
-subgraph 业务层
-Domain[业务层]
-end
+    subgraph 基础设施层
+        Network[Retrofit / OkHttp]
+        Storage[SharedPreferences]
+    end
 
-subgraph 数据层
-Data[数据层]
-end
-
-subgraph 基础设施层
-Infra[基础设施层]
-end
-
-UI --> State
-State --> Domain
-Domain --> Data
-Data --> Infra
+    UI --> Theme
+    UI --> Nav
+    UI --> VM
+    VM --> State
+    VM --> Repo
+    Repo --> API
+    Repo --> Config
+    API --> Network
+    Config --> Storage
 ```
-
-### **UI层（View）（TODO:待重写）**
-
-- 负责界面展示与用户交互（Activity / Fragment）
-- 不包含业务逻辑
-- 所有状态来自 ViewModel
-
-### **状态管理层（ViewModel）**
-
-- 管理 UI 状态（State）
-- 将用户操作转化为 UseCase 调用
-- 不包含核心业务规则
-
-### **业务层（Domain）**
-
-- 封装核心业务逻辑（选座、预约、计费等）
-- 提供 UseCase 作为业务入口
-- 与 UI 层解耦
-
-### **数据层（Data）**
-
-- 提供统一数据访问接口（Repository）
-- 协调远程数据与本地缓存
-
-### **基础设施层（Infrastructure）**
-
-- 提供技术能力（网络、存储、扫码、渲染等）
-- 不包含业务语义
 
 ## 5.2 核心模块分解
 
-### 5.2.1 UI模块划分
+### 5.2.1 UI 模块
 
 ```
 ui/
- ├── seatmap/        # 座位选择（核心模块）
- ├── booking/        # 预约流程
- ├── payment/        # 支付流程
- ├── checkin/        # 扫码签到/离店
- └── profile/        # 用户信息
+├── screen/
+│   ├── HomeScreen.kt          # 首页
+│   ├── LoginScreen.kt         # 登录
+│   ├── RegisterScreen.kt      # 注册
+│   ├── StudyRoomScreen.kt     # 自习室列表
+│   ├── SeatMapScreen.kt       # 座位图
+│   ├── BookingScreen.kt       # 预约
+│   ├── OrderListScreen.kt     # 订单列表
+│   ├── OrderDetailScreen.kt   # 订单详情
+│   ├── ProfileScreen.kt       # 个人中心
+│   ├── MoreScreen.kt          # 更多功能
+│   ├── AiChatScreen.kt        # AI 对话
+│   ├── CharacterSelectScreen.kt # AI 角色选择
+│   ├── SimpleScreens.kt       # 规则/通知/成就/积分/学习记录
+│   └── ...
+├── theme/
+│   ├── Color.kt               # 颜色定义
+│   ├── Theme.kt               # 主题配置
+│   └── Type.kt                # 排版定义
+└── navigation/
+    ├── AppNavigation.kt       # 导航图
+    └── NavRoutes.kt           # 路由定义
 ```
-
-说明：
-
-- `seatmap` 为系统核心模块，承载高频交互与复杂状态
-- 各模块通过 Fragment 实现，符合 Single Activity 架构约束
 
 ### 5.2.2 状态管理模块
 
 ```
-state/
- ├── SeatMapViewModel
- ├── BookingViewModel
- ├── PaymentViewModel
- └── CheckInViewModel
+viewmodel/
+├── AuthViewModel.kt           # 认证状态
+├── HomeViewModel.kt           # 首页状态
+├── StudyRoomViewModel.kt      # 自习室状态
+├── BookingViewModel.kt        # 预约状态
+├── OrderViewModel.kt          # 订单状态
+├── ProfileViewModel.kt        # 个人中心状态
+├── AiChatViewModel.kt         # AI 对话状态
+├── MoreViewModel.kt           # 更多功能状态
+├── RulesViewModel.kt          # 规则状态
+├── GuideViewModel.kt          # 导览状态
+├── StudyRecordViewModel.kt    # 学习记录状态
+└── NotificationViewModel.kt   # 通知状态
 ```
 
-说明：
-
-- \- 每个功能模块对应独立 ViewModel
-  \- 状态采用单一数据源（Single Source of Truth）
-  \- 使用 StateFlow 替代 LiveData（更适合协程）
-  \- UI 仅通过 collect 状态更新界面
-
-示例状态模型：
+### 5.2.3 数据模块
 
 ```
-data class SeatMapState(
-    val seats: List<Seat>,
-    val selectedSeat: Seat?,
-    val isLoading: Boolean,
-    val error: String?
-)
+repository/
+└── MainRepository.kt          # 统一数据仓库
+
+infra/network/
+├── ApiClient.kt               # API 客户端
+└── ErrorHandler.kt            # 错误处理
+
+utils/
+└── ConfigManager.kt           # 配置管理（Token/用户信息）
 ```
 
-### 5.2.3 业务模块（UseCase）
+# 6. 运行时视图
 
-```
-domain/
- └── usecase/
-      ├── GetSeatMapUseCase
-      ├── SelectSeatUseCase
-      ├── CreateBookingUseCase
-      ├── CalculatePriceUseCase
-      ├── CheckInUseCase
-      └── CheckoutUseCase
-```
-
-### 5.2.4 数据模块（Repository）
-
-```
-data/
- ├── repository/
- │    ├── SeatRepository
- │    ├── BookingRepository
- │    └── PaymentRepository
- │
- └── datasource/
-      ├── remote/
-      └── local/
-```
-
-### 5.2.5 基础设施模块
-
-```
-infra/
- ├── network/     # 网络请求（Retrofit/Ktor）
- ├── storage/     # 本地存储（Room/DataStore）
- ├── scanner/     # 扫码能力
- └── renderer/    # 3D座位渲染
-```
-
-## 5.3 核心模块详细设计
-
-### 5.3.1 座位选择模块（SeatMap）
-
-```mermaid
-flowchart TB
-
-Fragment --> ViewModel
-ViewModel --> UseCase
-UseCase --> Repository
-Repository --> RemoteAPI
-Repository --> Cache
-ViewModel --> Renderer
-```
-
-#### 职责说明
-
-**SeatMapFragment**
-
-- 展示座位图
-- 响应用户点击操作
-
-**SeatMapViewModel**
-
-- 维护座位状态
-- 控制加载、选择、提交流程
-
-**UseCase**
-
-- 校验选座合法性
-- 处理并发冲突逻辑
-
-**SeatRepository**
-
-- 获取座位数据
-- 同步服务器状态
-
-**Renderer**
-
-- 负责 3D 座位图绘制与交互
-  #### 并发与一致性补充
-  \- 客户端不直接决定选座结果，必须依赖服务端锁定
-  \- 所有选座请求必须携带唯一请求ID（requestId），用于幂等控制
-  \- ViewModel 层保证：
-  \- 防重复点击（Debounce）
-  \- 同一座位请求串行化
-
-## 5.4 关键设计决策
-
-### 5.4.1 状态一致性策略
-
-- 所有用户操作必须基于最新状态执行
-- 选座操作需通过服务器确认后再更新 UI
-- 禁止基于过期状态直接提交操作
-
-### 5.4.2 数据新鲜度策略
-
-- 页面进入时强制刷新座位数据
-- 页面返回时根据时间戳判断是否需要刷新
-- 可扩展为轮询或实时推送更新
-
-### 5.4.3 高并发处理策略
-
-客户端与服务端协同保证一致性：
-
-客户端职责
-
-\- 点击防抖（防止重复请求）
-\- 显示“锁定中”状态
-\- 请求携带唯一 requestId（幂等标识）
-\- 请求失败后回滚 UI 状态
-
-服务端职责（约定）
-
-\- 使用分布式锁（如 Redis）控制座位并发
-\- 基于 requestId 实现幂等控制
-\- 提供锁超时自动释放机制
-
-状态流转
-
-```
-Idle → Locking → Locked → Failed（回滚）
-```
-
-### 5.4.4 性能优化策略
-
-- 3D 渲染模块独立封装
-- UI 层仅消费状态，不直接参与渲染计算
-- 避免主线程进行复杂计算
-
-## 5.5 设计约束落实
-
-本章节设计满足以下约束：
-
-- 遵循 MVVM 架构模式
-- 实现 Single Activity + Fragment 结构
-- UI / 状态 / 业务 / 数据 分层清晰
-- 支持后续功能扩展与维护
-
-## 5.6 认证与会话管理
-
-### 设计目标
-
-保证用户身份一致性与接口安全。
-
-### 方案
-
-- 使用 Token（JWT 或 Session Token）进行认证
-- Token 存储于 DataStore
-- 所有请求通过 Interceptor 自动附带 Token
-
-### 过期处理
-
-- Token 过期 → 自动刷新或跳转登录
-- 避免 UI 持有认证状态
-
-### 分层职责
-
-- Infra：Token 存储与拦截器
-- Data：认证 Repository
-- Domain：登录 UseCase
-- UI：登录界面
-
-## 5.7 管理端说明
-
-TODO:暂未设计，后续将完成
-
-# 6. 运行时视图（Runtime View）
-
-本章节描述系统在关键业务场景下的运行时行为，重点关注：
-
-- 各构建块之间的交互流程
-- 状态流转与一致性保证
-- 异常与并发情况下的处理方式
-
-***
-
-## 6.1 场景选择说明
-
-选取以下典型场景：
-
-1. 查看座位图（高频读）
-2. 选座与预约（核心竞争场景，高并发）
-3. 支付流程
-4. 到店扫码签到 / 离店结算
-
-***
-
-## 6.2 场景一：座位图加载（Seat Map Loading）
-
-### 场景描述
-
-用户进入座位选择页面，需要获取最新座位状态并渲染 3D 座位图。
-
-### 运行时流程
+## 6.1 场景一：座位图加载
 
 ```mermaid
 sequenceDiagram
+    participant UI as SeatMapScreen
+    participant VM as StudyRoomViewModel
+    participant Repo as MainRepository
+    participant API as ApiClient
 
-participant UI as SeatMapFragment
-participant VM as SeatMapViewModel
-participant UC as GetSeatMapUseCase
-participant Repo as SeatRepository
-participant Remote as Remote API
-participant Renderer as 3D Renderer
-
-UI->>VM: onViewCreated()
-VM->>UC: loadSeatMap()
-
-UC->>Repo: getSeatMap()
-Repo->>Remote: request seat data
-Remote-->>Repo: seat list
-
-Repo-->>UC: seat data
-UC-->>VM: processed data
-
-VM-->>UI: update state
-UI->>Renderer: render(seats)
+    UI->>VM: loadSeats(roomId)
+    VM->>Repo: getSeats(roomId)
+    Repo->>API: GET /seats
+    API-->>Repo: seat list
+    Repo-->>VM: ApiResponse.Success
+    VM-->>UI: seatMapState update
 ```
 
-### 关键点
-
-- **数据新鲜度（P2）**
-  - 页面进入必须强制请求远程数据
-- **UI 与数据解耦**
-  - UI 不直接操作数据，仅响应状态
-- **性能**
-  - 渲染交给 Renderer，避免阻塞主线程
-
-***
-
-## 6.3 场景二：选座与预约（核心场景）
-
-### 场景描述
-
-用户点击座位 → 提交预约 → 系统需要保证：
-
-- 不允许重复占座
-- 不允许基于过期状态提交
-
-***
-
-### 运行时流程（含并发控制）
+## 6.2 场景二：选座与预约
 
 ```mermaid
 sequenceDiagram
+    participant UI as BookingScreen
+    participant VM as BookingViewModel
+    participant Repo as MainRepository
+    participant API as ApiClient
 
-participant UI as SeatMapFragment
-participant VM as SeatMapViewModel
-participant UC as SelectSeatUseCase
-participant Repo as SeatRepository
-participant Remote as Remote API
-
-UI->>VM: onSeatClick(seatId)
-
-VM->>VM: check local state
-VM->>UC: selectSeat(seatId)
-
-UC->>Repo: tryLockSeat(seatId)
-Repo->>Remote: lock seat request
-
-alt 成功锁定
-    Remote-->>Repo: success
-    Repo-->>UC: locked
-    UC-->>VM: success
-    VM-->>UI: update selected seat
-else 已被占用
-    Remote-->>Repo: failed
-    Repo-->>UC: conflict
-    UC-->>VM: error
-    VM-->>UI: show "seat unavailable"
-end
+    UI->>VM: createOrder(...)
+    VM->>VM: state = loading
+    VM->>Repo: createOrder(...)
+    Repo->>API: POST /orders
+    API-->>Repo: order response
+    Repo-->>VM: ApiResponse.Success
+    VM-->>UI: state = success(orderId)
+    UI->>Nav: navigate to OrderDetail
 ```
 
-***
-
-### 关键点
-
-#### 1.状态正确性
-
-- UI 点击后 **不能直接认为选座成功**
-- 必须经过：
-  ```
-  Server Lock → 成功 → 更新UI
-  ```
-
-#### 2.高并发一致性
-
-- 服务端负责最终一致性（seat lock）
-- 客户端只做：
-  - 防抖（防止重复点击）
-  - 状态提示（“锁定中”）
-
-#### 3.UI 状态流转
-
-典型状态：
-
-```
-Idle → Loading → Locked / Error
-```
-
-***
-
-## 6.4 场景三：预约 + 价格计算 + 支付
-
-### 场景描述
-
-用户确认座位后进入预约流程，系统需要：
-
-- 动态计算价格（时段 + 策略）
-- 发起支付
-- 确认订单
-
-***
-
-### 运行时流程
+## 6.3 场景三：登录流程
 
 ```mermaid
 sequenceDiagram
+    participant UI as LoginScreen
+    participant VM as AuthViewModel
+    participant Repo as MainRepository
+    participant Config as ConfigManager
 
-participant UI as BookingFragment
-participant VM as BookingViewModel
-participant UC1 as CalculatePriceUseCase
-participant UC2 as CreateBookingUseCase
-participant Repo as BookingRepository
-participant Pay as PaymentService
-
-UI->>VM: confirm booking
-
-VM->>UC1: calculate price
-UC1->>Repo: get pricing rules
-Repo-->>UC1: pricing data
-UC1-->>VM: price
-
-VM->>UC2: create booking
-UC2->>Repo: create order
-Repo-->>UC2: orderId
-
-VM->>Pay: start payment
-Pay-->>VM: payment result
-
-VM-->>UI: success / failure
+    UI->>VM: login(username, password)
+    VM->>VM: validate input
+    VM->>VM: loginState = loading
+    VM->>Repo: login(username, password)
+    Repo-->>VM: ApiResponse.Success(token, user)
+    VM->>Config: saveToken, saveUserId
+    VM-->>UI: loginState = success
+    UI->>Nav: popBackStack
 ```
 
-***
-
-### 关键点
-
-- **价格计算在 Domain 层完成**
-- **支付与业务解耦（独立 PaymentService）**
-- 支持失败重试（P4）
-
-***
-
-## 6.5 场景四：扫码签到与离店结算
-
-### 场景描述
-
-用户到店扫码：
-
-- 开始计时
-- 离店自动结算费用
-
-***
-
-### 运行时流程
-
-```mermaid
-sequenceDiagram
-
-participant UI as CheckInFragment
-participant VM as CheckInViewModel
-participant Scanner as Scanner
-participant UC as CheckInUseCase
-participant Repo as BookingRepository
-participant Remote as Remote API
-
-UI->>Scanner: scan QR code
-Scanner-->>UI: code
-
-UI->>VM: submit code
-VM->>UC: checkIn(code)
-
-UC->>Repo: verify booking
-Repo->>Remote: check-in request
-Remote-->>Repo: success
-
-Repo-->>UC: check-in success
-UC-->>VM: update state
-VM-->>UI: show timer start
-```
-
-***
-
-### 离店结算
-
-```mermaid
-sequenceDiagram
-
-participant UI as CheckInFragment
-participant VM as CheckInViewModel
-participant UC as CheckoutUseCase
-participant Repo as BookingRepository
-participant Remote as Remote API
-
-UI->>VM: checkout()
-VM->>UC: executeCheckout()
-
-UC->>Repo: requestCheckout()
-Repo->>Remote: POST /checkout
-Remote-->>Repo: finalBill
-
-Repo-->>UC: bill
-UC-->>VM: CheckoutResult
-VM-->>UI: show result
-```
-
-***
-
-### 关键点
-
-- 扫码模块完全在 **Infra 层**
-- 业务逻辑仍由 UseCase 控制
-- 支持异常情况：
-  - 无效二维码
-  - 重复签到
-  - 网络失败
-
-***
-
-## 6.6 横切机制（Cross-Cutting Runtime Behavior）
-
-### 6.6.1 状态同步策略
-
-- 页面进入：强制刷新
-- 页面返回：基于时间戳判断
-- 可扩展：
-  - 轮询
-  - WebSocket 推送
-
-***
-
-### 6.6.2 错误处理机制
-
-统一流程：
-
-```
-Error → ViewModel → UI State → 用户提示
-```
-
-类型包括：
-
-- 网络错误
-- 业务错误（座位被占）
-- 支付失败
-
-***
-
-### 6.6.3 防重复提交（Debounce）
-
-在 ViewModel 层：
-
-- 禁止短时间重复点击
-- 使用 loading 状态锁 UI
-
-### 6.6.4 状态单一数据源（SSOT）
-
-- 所有 UI 状态必须来自 ViewModel
-- 禁止 UI 自行维护关键业务状态
-
-## 6.7 小结
-
-本系统运行时具有以下特征：
-
-- **严格的状态驱动 UI（State → UI）**
-- **关键操作必须经过服务端确认（保证一致性）**
-- **客户端负责体验与防护，服务端负责最终正确性**
-- **分层调用清晰：UI → ViewModel → UseCase → Repository → Infra**
-
-# 7. 部署视图（Deployment View）
-
-## 7.1 概述
-
-本系统客户端为 Android 应用，运行在用户移动设备上。
-部署结构相对简单，因此本节仅描述关键运行节点及其关系。
-
-***
-
-## 7.2 部署结构
+# 7. 部署视图
 
 ```mermaid
 flowchart LR
-
-UserDevice[用户设备<br/>Android App]
-Backend[后端服务]
-Payment[支付服务]
-
-UserDevice --> Backend
-UserDevice --> Payment
+    UserDevice[用户设备<br/>Android App] --> Backend[后端服务]
+    UserDevice --> AIService[AI 服务]
 ```
 
-***
-
-## 7.3 节点说明
-
-**用户设备（Android App）**
-
-- 运行客户端应用
-- 负责 UI 渲染、状态管理与业务交互
-- 通过网络与后端通信
-
-**后端服务**
-
-- 提供座位管理、订单、用户等核心业务能力
-- 保证数据一致性与并发控制
-
-**支付服务**
-
-- 提供第三方支付能力
-- 客户端通过后端或 SDK 间接调用
-
-***
-
-## 7.4 通信方式
-
-- 客户端与后端通过 HTTPS API 通信
+- 客户端通过 HTTPS API 与后端通信
 - 数据格式采用 JSON
-- 支付流程通过 SDK 或跳转方式完成
+- 开发环境使用 10.0.2.2:8080 连接本地后端
 
-***
+# 8. 横切关注点
 
-## 7.5 部署特性
+## 8.1 主题与颜色系统
 
-- 客户端通过 APK 分发（应用商店或侧载）
-- 不涉及客户端侧多节点部署
-- 后端部署细节不在本系统范围内
+### 设计动机
 
-# 8. 横切关注点（Cross-cutting Concepts）
+Material 3 的 ColorScheme 仅定义了 primary/secondary/tertiary/error 等核心语义色，但业务场景中大量使用 success/warning/info 等状态色。如果直接在各 Screen 中硬编码色值（如 `Color(0xFF22C55E)`），会导致：
 
-本章节描述贯穿整个客户端架构的通用设计原则与机制，这些内容不属于单一模块，但对系统稳定性、一致性与可维护性至关重要。
+- 暗色模式下颜色不可控（亮色绿在暗色背景上对比度不足）
+- 修改品牌色时需要逐文件查找替换
+- 同一语义的颜色在不同页面可能不一致
 
-***
+### 解决方案：ExtendedColors
 
-## 8.1 状态管理模型（State Management）
-
-系统采用 **单一数据源（SSOT, Single Source of Truth）** 思想：
-
-- UI 不保存业务状态
-- ViewModel 作为唯一状态持有者
-- UI 仅负责渲染状态
-
-### 状态流转原则
+在 Material 3 的 `ColorScheme` 之上，通过 `ExtendedColors` 数据类扩展语义色：
 
 ```
-User Action → ViewModel → UseCase → Repository → State Update → UI Render
+ExtendedColors
+├── success / onSuccess / successContainer / onSuccessContainer
+├── warning / onWarning / warningContainer / onWarningContainer
+├── info / onInfo / infoContainer / onInfoContainer
+├── gradientStart / gradientEnd  （渐变色）
+└── onGradient / onGradientVariant  （渐变上的文字色）
 ```
 
-### 状态设计特点
+通过 `CompositionLocal`（`LocalExtendedColors`）在 Composable 树中传递，自动根据亮色/暗色模式切换：
 
-- 状态不可直接修改（Immutable State）
-- 通过 `copy()` 方式生成新状态
-- 每个模块拥有独立 State Model
-
-示例：
-
-```
-data class SeatMapState(
-    val seats: List<Seat> = emptyList(),
-    val selectedSeatId: String? = null,
-    val loading: Boolean = false,
-    val errorMessage: String? = null
-)
+```kotlin
+val extendedColors = LocalExtendedColors.current
+// 使用：extendedColors.success, extendedColors.warning, etc.
 ```
 
-***
+### 为什么不用 Material Theme 的 customColors？
 
-## 8.2 错误处理机制（Error Handling）
+Material 3 的 `ColorScheme` 不支持自定义扩展属性。虽然可以通过 `dynamicColor` 使用 Material You 动态取色，但无法添加 success/warning 等语义色。`ExtendedColors` 是在 Material 3 之上的补充层，不替代 `ColorScheme`。
 
-系统采用统一错误表达模型：
+## 8.2 暗色模式策略
 
-### 错误分层
+### 渐变区域处理
 
-- 网络错误（IO / Timeout）
-- 业务错误（座位已被占用 / 订单失效）
-- 系统错误（解析失败 / 未知异常）
+渐变头部区域（首页、个人中心、角色选择）在暗色模式下使用更深的渐变色（`DarkGradientStart`/`DarkGradientEnd`），文字颜色通过 `onGradient`/`onGradientVariant` 自动适配，确保在任何主题下都有足够对比度。
 
-### 处理策略
+### 语义色暗色变体
 
-- Repository 统一捕获异常并转换为 Result
-- ViewModel 统一转换为 UI State
-- UI 不直接处理异常逻辑
+所有语义色都有对应的暗色变体：
 
-### 标准模式
+| 亮色 | 暗色 | 说明 |
+|------|------|------|
+| Success (#22C55E) | DarkSuccess (#86EFAC) | 提高暗色背景上的亮度 |
+| Warning (#F59E0B) | DarkWarning (#FCD34D) | 提高暗色背景上的亮度 |
+| Info (#3B82F6) | DarkInfo (#93C5FD) | 提高暗色背景上的亮度 |
 
-```
-sealed class Result<out T> {
-    data class Success<T>(val data: T) : Result<T>()
-    data class Failure(val error: AppError) : Result<Nothing>()
-}
-```
+Container 色在暗色模式下反转（深色背景 + 浅色文字），确保对比度符合 WCAG AA 标准。
 
-UI 展示策略：
+## 8.3 交互反馈机制
 
-- Success → 正常渲染
-- Failure → 状态提示（SnackBar / Error View）
+### Snackbar 替代 Toast
 
-***
+所有用户反馈使用 Snackbar 而非 Toast，原因：
 
-## 8.3 并发与一致性控制（Concurrency & Consistency）
+- Snackbar 可附带操作按钮（如"撤销"）
+- Snackbar 不会遮挡重要内容（显示在底部）
+- Snackbar 与 Scaffold 集成，生命周期可控
+- Toast 在 Android 11+ 有限制，且无法自定义样式
 
-核心业务（选座/预约）涉及强一致性要求。
+### 确认对话框
 
-### 设计原则
+危险操作（取消订单、退出登录）使用 `AlertDialog` 进行二次确认，防止误操作。
 
-- 客户端不做最终决策
-- 服务端负责“唯一真相”
-- 客户端只做：
-  - 状态提示
-  - 防重复操作
-  - 乐观 UI 更新（可回滚）
+### 加载状态
 
-### 并发控制手段
+所有异步操作按钮在请求中显示 `CircularProgressIndicator` 并 `enabled = false`，防止重复提交。
 
-#### 1. 防抖（Debounce）
+## 8.4 表单验证策略
 
-防止重复点击：
+### 客户端即时验证
 
-```
-if (state.loading) return
-```
+登录/注册表单采用客户端即时验证 + 服务端错误展示双层策略：
 
-#### 2. 请求串行化
+1. **客户端验证**：空值检查、密码一致性检查，通过 `isError` + `supportingText` 在输入框下方实时显示
+2. **服务端错误**：通过 `errorMessage` 参数在表单顶部展示，与客户端验证错误区分
 
-同一座位操作必须串行执行
+### 为什么不在 ViewModel 中做客户端验证？
 
-#### 3. 状态锁定机制
+ViewModel 中的验证（如空值检查）仍然保留作为安全兜底，但 UI 层的即时验证提供更好的用户体验——用户不需要点击按钮就能看到错误提示。
 
-```
-Idle → Locking → Locked → Released
-```
+## 8.5 页面导航与动画
 
-### 补充：幂等性保证
+### 导航架构
 
-客户端：
+使用 Compose Navigation + 类型安全路由（`@Serializable`），底部导航 4 个 Tab（首页/规则/更多/我的），其他页面通过 `navigate()` 进入。
 
-- 每次关键请求生成唯一 requestId
-- requestId 与操作绑定（选座 / 下单）
+### 页面切换动画
 
-服务端（约定）：
+- 底部 Tab 切换：淡入淡出（fadeIn/fadeOut, 300ms）
+- 详情页进入：从右滑入（slideIntoContainer, 300ms）
+- 详情页返回：向右滑出（slideOutOfContainer, 300ms）
+- 登录/注册：从底部滑入（slideDirection.Up, 300ms）
 
-- 同一 requestId 只允许成功一次
-- 重复请求直接返回第一次结果
+### 为什么用滑动动画？
 
-目的：
+Material Design 3 推荐的页面转场是共享元素过渡，但在列表-详情场景中，简单的左右滑动更符合用户对"进入/返回"的心智模型，且实现成本低。
 
-- 防止重复下单
-- 防止网络重试导致异常
+## 8.6 空状态设计
 
-***
+### 统一空状态模式
 
-## 8.4 UI 状态驱动模型（State-driven UI）
-
-UI 完全由状态驱动，不存在“手动修改 UI”的逻辑。
-
-### 核心原则
-
-- UI = f(State)
-- 状态变化 → 自动 UI 更新
-- 禁止 UI 层保存业务判断逻辑
-
-### 优点
-
-- 可预测性强
-- 易测试（状态可复现）
-- 降低 UI bug
-
-***
-
-## 8.5 数据一致性策略（Data Freshness）
-
-针对座位系统的高频变化场景：
-
-### 刷新策略
-
-- 进入页面：强制刷新
-- 返回页面：时间戳判断是否刷新
-- 关键操作前：再次确认服务器状态
-
-### 一致性级别
-
-| 场景      | 一致性要求 |
-| ------- | ----- |
-| 座位展示    | 高     |
-| UI 动画状态 | 中     |
-| 本地缓存    | 弱     |
-
-***
-
-## 8.6 缓存策略（Caching Strategy）
-
-客户端采用分层缓存：
-
-### 1. 内存缓存
-
-- ViewModel State
-- 生命周期内有效
-
-### 2. 本地缓存（Room / DataStore）
-
-- 用户信息
-- 非实时配置
-- 最近访问数据
-
-### 3. 网络数据优先级
+所有列表/数据页面的空状态遵循统一模式：
 
 ```
-Network > Cache > Default
+图标（72dp, onSurfaceVariant 50% alpha）
+├── 主提示文字（bodyLarge, onSurfaceVariant）
+├── 副提示文字（bodySmall, onSurfaceVariant 60% alpha）
+└── [可选] 操作引导按钮
 ```
 
-***
+### 为什么不用独立空状态组件？
 
-## 8.7 性能优化机制（Performance）
+当前页面数量有限，各空状态的图标和文案不同，抽取通用组件的收益不大。如果后续页面增多，可以提取 `EmptyStateComposable`。
 
-### UI 层优化
+## 8.7 错误处理机制
 
-- RecyclerView 复用
-- DiffUtil 减少重绘
-- 避免主线程计算
+### 分层错误处理
 
-### 3D 渲染优化
+```
+API Error → ErrorHandler → ViewModel State → UI 展示
+```
 
-\- 使用轻量级渲染方案（避免大型引擎）
-\- 避免引入高体积资源（满足 APK < 20MB）
-\- 渲染逻辑必须运行在子线程
-\- UI 层仅接收渲染结果
+- **网络错误**：Snackbar 提示 + 自动重试（后续可扩展）
+- **业务错误**（座位被占等）：Snackbar 提示
+- **认证错误**（401）：Snackbar 提示 + 跳转登录页（后续可扩展）
+- **空数据**：空状态组件展示
 
-可选方案：
+# 9. 架构决策
 
-\- OpenGL / Filament（需评估体积）
-\- 轻量自定义 Canvas 渲染（优先推荐）
+## AD-1: 使用 Compose 而非传统 View 系统
 
-### 数据层优化
+**背景**：项目启动时需在传统 View 系统和 Compose 之间选择。
 
-- 请求合并（batching）
-- 延迟加载（lazy loading）
+**决策**：使用 Jetpack Compose。
 
-***
+**原因**：
+- 声明式 UI 更适合状态驱动的架构
+- Compose 与 StateFlow/Flow 天然集成
+- Material 3 Compose 组件库完善
+- 减少模板代码（不需要 Adapter、ViewHolder 等）
 
-## 8.8 安全与可靠性（Security & Robustness）
+**后果**：
+- 正向：开发效率高，状态管理简洁
+- 负向：部分自定义 View（如 SeatMapView.kt）无法直接复用，需要用 Compose 重写
 
-### 安全原则
+## AD-2: ExtendedColors 扩展主题色
 
-- 所有关键逻辑由后端校验
-- 客户端不信任本地状态
-- 所有请求必须带 token
+**背景**：Material 3 ColorScheme 不包含 success/warning/info 等业务常用语义色。
 
-### 可靠性机制
+**决策**：通过 `ExtendedColors` + `CompositionLocal` 扩展。
 
-- 请求重试（retry with backoff）
-- 网络异常降级提示
-- 失败可恢复流程（resume flow）
+**替代方案**：
+1. 直接在各 Screen 中硬编码色值 → 维护困难，暗色模式不可控
+2. 使用 Material Theme Builder 自定义扩展 → 不支持自定义属性
+3. 每次使用时判断 `isSystemInDarkTheme()` → 代码重复，容易遗漏
 
-***
+**原因**：`CompositionLocal` 方案自动跟随主题切换，使用方式与 `MaterialTheme.colorScheme` 一致，学习成本低。
 
-## 8.9 可测试性设计（Testability）
+## AD-3: Snackbar 替代 Toast
 
-系统设计支持分层测试：
+**背景**：项目初期使用 Toast 进行所有用户反馈。
 
-### UI 测试
+**决策**：全面替换为 Snackbar。
 
-- Fragment + Mock ViewModel
+**替代方案**：
+1. 继续使用 Toast → 无法自定义样式，Android 11+ 有限制
+2. 自定义 Toast View → 兼容性问题
+3. 使用内联错误提示 → 不适合全局操作反馈
 
-### ViewModel 测试
+**原因**：Snackbar 是 Material 3 推荐的反馈方式，与 Scaffold 集成，支持操作按钮，生命周期可控。
 
-- State 输入 → 输出验证
+## AD-4: 客户端表单即时验证
 
-### UseCase 测试
+**背景**：登录/注册表单的验证逻辑仅在 ViewModel 中，用户需要点击按钮后才能看到错误。
 
-- 纯业务逻辑单元测试
+**决策**：在 UI 层添加即时验证，ViewModel 验证作为兜底。
 
-### Repository 测试
+**原因**：
+- 即时验证提供更好的用户体验（输入时就能看到错误）
+- 减少无效网络请求
+- ViewModel 验证仍然保留，防止绕过 UI 直接调用 ViewModel 方法
 
-- Mock Remote / Local datasource
+## AD-5: 确认对话框保护危险操作
 
-### 依赖注入支持测试
+**背景**：取消订单、退出登录等操作一旦执行不可撤销，但之前无二次确认。
 
-- 使用 Hilt 注入 Repository / UseCase
-- 测试中可替换为 Fake / Mock 实现
+**决策**：所有不可逆操作使用 `AlertDialog` 二次确认。
 
-示例：
+**原因**：防止用户误触导致数据丢失或状态变更，符合 Material Design 的"宽容度"原则。
 
-- FakeSeatRepository
-- MockPaymentService
+## AD-6: 页面切换动画策略
 
-***
+**背景**：Compose Navigation 默认无动画，页面切换体验生硬。
 
-## 8.10 可扩展性设计（Extensibility）
+**决策**：为不同类型页面配置不同动画。
 
-系统预留以下扩展能力：
+**原因**：
+- 左右滑动符合用户对"层级导航"的心智模型
+- 上下滑动适合模态页面（登录/注册）
+- 淡入淡出适合 Tab 切换（避免方向歧义）
 
-- WebSocket 实时座位同步
-- 动态定价策略插件化
-- 多自习室多租户支持
-- A/B 实验流量控制
-- 新支付渠道接入
+## AD-7: 可滚动表单布局
 
-***
+**背景**：登录/注册表单使用固定 `padding(top = 260.dp)` 定位，在小屏幕上可能溢出。
 
-## 8.11 小结
+**决策**：使用 `verticalScroll` + 自适应偏移。
 
-## 本系统横切设计的核心思想：
+**原因**：
+- 固定偏移在不同屏幕尺寸上表现不一致
+- 可滚动布局确保所有内容始终可达
+- 自适应偏移保持视觉层次
 
-- **状态驱动 UI**
-- **服务端保证一致性**
-- **客户端负责体验与防护**
-- **分层职责严格隔离**
-- **所有通用能力横切复用，不侵入业务模块**
+# 10. 质量要求
 
-这些机制共同支撑了系统在高并发选座场景下的稳定性与可维护性。
+| 场景 | 质量属性 | 度量标准 | 当前状态 |
+|------|----------|----------|----------|
+| 座位选择 | 正确性 | 不可预订的座位不可点击 | ✅ 已实现 |
+| 登录/注册 | 可用性 | 表单验证即时反馈 | ✅ 已实现 |
+| 异步操作 | 可靠性 | 按钮加载态防止重复提交 | ✅ 已实现 |
+| 暗色模式 | 一致性 | 所有页面暗色模式可用 | ✅ 已实现 |
+| 危险操作 | 安全性 | 二次确认对话框 | ✅ 已实现 |
+| 页面切换 | 流畅性 | 动画过渡无卡顿 | ✅ 已实现 |
+| 错误反馈 | 可见性 | Snackbar 替代 Toast | ✅ 已实现 |
+
+# 11. 风险与技术债务
+
+| 编号 | 风险/债务 | 影响 | 缓解措施 |
+|------|-----------|------|----------|
+| TD-1 | Mock 数据与真实数据混杂 | 用户无法区分真实数据和假数据 | 逐步接入后端 API，Mock 数据标记 TODO |
+| TD-2 | 主题偏好未持久化 | 应用重启后主题选择丢失 | 后续使用 DataStore 持久化 |
+| TD-3 | ViewModel 直接实例化 | 同一 ViewModel 在不同页面分别创建，状态不共享 | 后续引入 Hilt DI |
+| TD-4 | 字符串硬编码 | 不支持国际化 | 后续提取到 strings.xml |
+| TD-5 | SeatMapView.kt 未使用 | 死代码增加维护负担 | 确认后删除 |
+| TD-6 | contentDescription 缺失 | 无障碍支持不完整 | 逐步补充 |
+| TD-7 | 部分页面缺少 TopAppBar | 导航路径不明确 | 逐步补充 |
+
+# 12. 术语表
+
+| 术语 | 含义 |
+|------|------|
+| Compose | Jetpack Compose，Android 声明式 UI 框架 |
+| Material 3 | Material Design 3，Google 最新的设计系统 |
+| MVVM | Model-View-ViewModel 架构模式 |
+| StateFlow | Kotlin 协程中的状态流，用于 ViewModel 向 UI 暴露状态 |
+| ExtendedColors | 本项目扩展的语义色系统，补充 Material 3 ColorScheme |
+| CompositionLocal | Compose 的依赖注入机制，用于在树中传递数据 |
+| Snackbar | Material 3 的底部提示条，替代 Toast |
+| SSOT | Single Source of Truth，单一数据源原则 |
+| WCAG AA | Web Content Accessibility Guidelines AA 级，对比度标准 |

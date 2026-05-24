@@ -41,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.example.scylier.istudyspot.ui.components.AppTopBar
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -52,7 +53,8 @@ fun BookingScreen(
     studyRoomName: String,
     seatPosition: String,
     pricePerHour: Double,
-    onBook: (String, String, String) -> Unit
+    onBook: (String, String, String) -> Unit,
+    onBack: () -> Unit = {}
 ) {
     var startCalendar by remember { mutableStateOf<Calendar?>(null) }
     var endCalendar by remember { mutableStateOf<Calendar?>(null) }
@@ -80,7 +82,17 @@ fun BookingScreen(
         if (diff > 0) diff / (1000.0 * 60 * 60) else null
     } else null
 
-    val totalPrice = durationHours?.let { it * pricePerHour }
+    val isStartTimeValid = startCalendar?.let { it.timeInMillis > System.currentTimeMillis() } ?: false
+    val isTimeRangeValid = durationHours != null
+    val isDurationValid = durationHours?.let { it <= 12.0 } ?: false
+    val isFormValid = startTime.isNotEmpty() && endTime.isNotEmpty() && isStartTimeValid && isTimeRangeValid && isDurationValid
+
+    val totalPrice = when {
+        durationHours == null -> null
+        bookingType == "half_day" -> pricePerHour * 4
+        bookingType == "day" -> pricePerHour * 8
+        else -> durationHours * pricePerHour
+    }
 
     if (showStartDatePicker) {
         DatePickerDialog(
@@ -220,6 +232,7 @@ fun BookingScreen(
             .padding(horizontal = 20.dp)
             .verticalScroll(rememberScrollState())
     ) {
+        AppTopBar(title = "预约座位", onBack = onBack)
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = "预约座位",
@@ -358,13 +371,39 @@ fun BookingScreen(
         }
 
         Spacer(modifier = Modifier.height(28.dp))
+
+        if (startTime.isNotEmpty() && !isStartTimeValid) {
+            Text(
+                text = "开始时间必须晚于当前时间",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+        if (startCalendar != null && endCalendar != null && !isTimeRangeValid) {
+            Text(
+                text = "结束时间必须晚于开始时间",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+        if (durationHours != null && !isDurationValid) {
+            Text(
+                text = "单次预约时长不能超过12小时",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
         Button(
             onClick = { onBook(startTime, endTime, bookingType) },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp),
             shape = RoundedCornerShape(16.dp),
-            enabled = startTime.isNotEmpty() && endTime.isNotEmpty(),
+            enabled = isFormValid,
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.primary
             )

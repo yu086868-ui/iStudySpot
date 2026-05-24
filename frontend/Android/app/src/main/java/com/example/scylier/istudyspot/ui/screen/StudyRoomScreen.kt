@@ -43,18 +43,25 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.scylier.istudyspot.models.studyroom.StudyRoomItem
+import com.example.scylier.istudyspot.ui.components.AppTopBar
+import com.example.scylier.istudyspot.ui.theme.ExtendedColors
+import com.example.scylier.istudyspot.ui.theme.LocalExtendedColors
 
 @Composable
 fun StudyRoomScreen(
     studyRooms: List<StudyRoomItem>,
     isLoading: Boolean,
-    onStudyRoomClick: (StudyRoomItem) -> Unit
+    onStudyRoomClick: (StudyRoomItem) -> Unit,
+    onBack: () -> Unit = {}
 ) {
+    val extendedColors = LocalExtendedColors.current
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 20.dp)
     ) {
+        AppTopBar(title = "自习室", onBack = onBack)
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = "自习室列表",
@@ -66,13 +73,40 @@ fun StudyRoomScreen(
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
+        } else if (studyRooms.isEmpty()) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        imageVector = Icons.Default.MeetingRoom,
+                        contentDescription = null,
+                        modifier = Modifier.size(72.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "暂无自习室",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "请稍后再试",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
+                }
+            }
         } else {
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(14.dp),
                 contentPadding = PaddingValues(bottom = 16.dp)
             ) {
                 items(studyRooms) { room ->
-                    StudyRoomCard(studyRoom = room, onClick = { onStudyRoomClick(room) })
+                    StudyRoomCard(
+                        studyRoom = room,
+                        extendedColors = extendedColors,
+                        onClick = { onStudyRoomClick(room) }
+                    )
                 }
             }
         }
@@ -81,11 +115,15 @@ fun StudyRoomScreen(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun StudyRoomCard(studyRoom: StudyRoomItem, onClick: () -> Unit) {
+private fun StudyRoomCard(
+    studyRoom: StudyRoomItem,
+    extendedColors: ExtendedColors,
+    onClick: () -> Unit
+) {
     var isFavorite by remember { mutableStateOf(false) }
     val tags = generateTags(studyRoom.name)
-    val totalSeats = 30
-    val currentPeople = (studyRoom.occupancyRate * totalSeats).toInt()
+    val occupancyText = "${(studyRoom.occupancyRate * 100).toInt()}% 使用中"
+    val errorColor = MaterialTheme.colorScheme.error
 
     Card(
         modifier = Modifier
@@ -117,8 +155,8 @@ private fun StudyRoomCard(studyRoom: StudyRoomItem, onClick: () -> Unit) {
                 ) {
                     Icon(
                         imageVector = Icons.Default.Bookmark,
-                        contentDescription = null,
-                        tint = if (isFavorite) Color(0xFFF59E0B)
+                        contentDescription = if (isFavorite) "取消收藏" else "收藏",
+                        tint = if (isFavorite) extendedColors.warning
                         else MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f)
                     )
                 }
@@ -134,7 +172,11 @@ private fun StudyRoomCard(studyRoom: StudyRoomItem, onClick: () -> Unit) {
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
-                    OccupancyBadge(rate = studyRoom.occupancyRate.toFloat())
+                    OccupancyBadge(
+                        rate = studyRoom.occupancyRate.toFloat(),
+                        extendedColors = extendedColors,
+                        errorColor = errorColor
+                    )
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 FlowRow(
@@ -197,18 +239,18 @@ private fun StudyRoomCard(studyRoom: StudyRoomItem, onClick: () -> Unit) {
                             .weight(1f)
                             .height(6.dp)
                             .clip(RoundedCornerShape(3.dp)),
-                        color = occupancyColor(studyRoom.occupancyRate.toFloat()),
+                        color = occupancyColor(studyRoom.occupancyRate.toFloat(), extendedColors, errorColor),
                         trackColor = MaterialTheme.colorScheme.surfaceVariant,
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
                         text = "${(studyRoom.occupancyRate * 100).toInt()}%",
                         style = MaterialTheme.typography.labelMedium,
-                        color = occupancyColor(studyRoom.occupancyRate.toFloat())
+                        color = occupancyColor(studyRoom.occupancyRate.toFloat(), extendedColors, errorColor)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "当前 $currentPeople/$totalSeats 人",
+                        text = occupancyText,
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -219,8 +261,12 @@ private fun StudyRoomCard(studyRoom: StudyRoomItem, onClick: () -> Unit) {
 }
 
 @Composable
-private fun OccupancyBadge(rate: Float) {
-    val color = occupancyColor(rate)
+private fun OccupancyBadge(
+    rate: Float,
+    extendedColors: ExtendedColors,
+    errorColor: Color
+) {
+    val color = occupancyColor(rate, extendedColors, errorColor)
     val label = when {
         rate < 0.3f -> "空闲"
         rate < 0.7f -> "适中"
@@ -240,11 +286,15 @@ private fun OccupancyBadge(rate: Float) {
     }
 }
 
-private fun occupancyColor(rate: Float): Color {
+private fun occupancyColor(
+    rate: Float,
+    extendedColors: ExtendedColors,
+    errorColor: Color
+): Color {
     return when {
-        rate < 0.3f -> Color(0xFF22C55E)
-        rate < 0.7f -> Color(0xFFF59E0B)
-        else -> Color(0xFFEF4444)
+        rate < 0.3f -> extendedColors.success
+        rate < 0.7f -> extendedColors.warning
+        else -> errorColor
     }
 }
 
@@ -252,8 +302,7 @@ private fun generateTags(name: String): List<String> {
     val tags = mutableListOf<String>()
     if (name.contains("静音")) tags.add("安静区")
     if (name.contains("讨论")) tags.add("讨论区")
-    tags.add("有空调")
-    tags.add("有电源")
-    tags.add("靠窗位")
+    if (name.contains("多媒体") || name.contains("电脑")) tags.add("多媒体区")
+    if (name.contains("VIP") || name.contains("vip")) tags.add("VIP区")
     return tags
 }
