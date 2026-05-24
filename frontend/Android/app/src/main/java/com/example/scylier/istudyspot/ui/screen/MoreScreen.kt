@@ -19,7 +19,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Feedback
@@ -37,7 +36,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -45,33 +43,36 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import com.example.scylier.istudyspot.ui.theme.LocalExtendedColors
 
 data class MoreItemData(
     val title: String,
     val icon: ImageVector,
-    val group: String,
-    val iconBgColor: Color
-)
-
-val moreItems = listOf(
-    MoreItemData("预约记录", Icons.AutoMirrored.Filled.ReceiptLong, "预约管理", Color(0xFF3B82F6)),
-    MoreItemData("违规记录", Icons.Default.Warning, "预约管理", Color(0xFFEF4444)),
-    MoreItemData("学习统计", Icons.Default.Timer, "学习数据", Color(0xFF22C55E)),
-    MoreItemData("成就徽章", Icons.Default.Star, "学习数据", Color(0xFFF59E0B)),
-    MoreItemData("积分兑换", Icons.Default.CardGiftcard, "积分中心", Color(0xFF8B5CF6)),
-    MoreItemData("积分明细", Icons.AutoMirrored.Filled.ReceiptLong, "积分中心", Color(0xFF8B5CF6)),
-    MoreItemData("帮助中心", Icons.AutoMirrored.Filled.Help, "其他", Color(0xFF06B6D4)),
-    MoreItemData("意见反馈", Icons.Default.Feedback, "其他", Color(0xFF06B6D4)),
-    MoreItemData("关于我们", Icons.Default.Info, "其他", Color(0xFF06B6D4)),
-    MoreItemData("推荐好友", Icons.Default.GroupAdd, "其他", Color(0xFF06B6D4)),
-    MoreItemData("退出登录", Icons.AutoMirrored.Filled.ExitToApp, "其他", Color(0xFFEF4444)),
+    val group: String
 )
 
 @Composable
 fun MoreScreen(onAction: (String) -> Unit) {
+    val extendedColors = LocalExtendedColors.current
+
+    val moreItems = listOf(
+        MoreItemData("学习统计", Icons.Default.Timer, "学习数据"),
+        MoreItemData("成就徽章", Icons.Default.Star, "学习数据"),
+        MoreItemData("预约记录", Icons.AutoMirrored.Filled.ReceiptLong, "预约管理"),
+        MoreItemData("违规记录", Icons.Default.Warning, "预约管理"),
+        MoreItemData("积分兑换", Icons.Default.CardGiftcard, "积分中心"),
+        MoreItemData("积分明细", Icons.AutoMirrored.Filled.ReceiptLong, "积分中心"),
+        MoreItemData("帮助中心", Icons.AutoMirrored.Filled.Help, "其他"),
+        MoreItemData("意见反馈", Icons.Default.Feedback, "其他"),
+        MoreItemData("关于我们", Icons.Default.Info, "其他"),
+        MoreItemData("推荐好友", Icons.Default.GroupAdd, "其他"),
+    )
+
+    val itemIconTint = MaterialTheme.colorScheme.primary
+    val itemIconBg = MaterialTheme.colorScheme.primaryContainer
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -94,11 +95,11 @@ fun MoreScreen(onAction: (String) -> Unit) {
                 modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp)
             )
             if (group == "学习数据") {
-                AchievementPreview(onAction = onAction)
+                AchievementPreview(onAction = onAction, extendedColors = extendedColors)
                 Spacer(modifier = Modifier.height(12.dp))
             }
             if (group == "积分中心") {
-                PointsSummaryCard()
+                PointsSummaryCard(extendedColors = extendedColors)
                 Spacer(modifier = Modifier.height(12.dp))
             }
             Card(
@@ -126,13 +127,13 @@ fun MoreScreen(onAction: (String) -> Unit) {
                             modifier = Modifier
                                 .size(36.dp)
                                 .clip(RoundedCornerShape(10.dp))
-                                .background(item.iconBgColor.copy(alpha = 0.12f)),
+                                .background(itemIconBg),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = item.icon,
                                 contentDescription = item.title,
-                                tint = item.iconBgColor,
+                                tint = itemIconTint,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
@@ -140,6 +141,7 @@ fun MoreScreen(onAction: (String) -> Unit) {
                         Text(
                             text = item.title,
                             style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.weight(1f)
                         )
                         Icon(
@@ -157,7 +159,10 @@ fun MoreScreen(onAction: (String) -> Unit) {
 }
 
 @Composable
-private fun AchievementPreview(onAction: (String) -> Unit) {
+private fun AchievementPreview(
+    onAction: (String) -> Unit,
+    extendedColors: com.example.scylier.istudyspot.ui.theme.ExtendedColors
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -165,33 +170,11 @@ private fun AchievementPreview(onAction: (String) -> Unit) {
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "我的成就",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Row(
-                    modifier = Modifier.clickable { onAction("成就徽章") },
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "查看全部",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Icon(
-                        imageVector = Icons.Default.ChevronRight,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(16.dp)
-                    )
-                }
-            }
+            Text(
+                text = "我的成就",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
             Spacer(modifier = Modifier.height(16.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -200,17 +183,17 @@ private fun AchievementPreview(onAction: (String) -> Unit) {
                 AchievementBadge(
                     name = "早起鸟",
                     icon = Icons.Default.WbSunny,
-                    color = Color(0xFFF59E0B)
+                    color = extendedColors.warning
                 )
                 AchievementBadge(
-                    name = "学习达人",
+                    name = "学霸",
                     icon = Icons.Default.School,
-                    color = Color(0xFF3B82F6)
+                    color = extendedColors.info
                 )
                 AchievementBadge(
                     name = "连击王",
                     icon = Icons.Default.LocalFireDepartment,
-                    color = Color(0xFFEF4444)
+                    color = MaterialTheme.colorScheme.error
                 )
             }
         }
@@ -246,7 +229,7 @@ private fun AchievementBadge(name: String, icon: ImageVector, color: Color) {
 }
 
 @Composable
-private fun PointsSummaryCard() {
+private fun PointsSummaryCard(extendedColors: com.example.scylier.istudyspot.ui.theme.ExtendedColors) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -267,37 +250,9 @@ private fun PointsSummaryCard() {
                 Text(
                     text = "1,280",
                     style = MaterialTheme.typography.headlineMedium,
-                    color = Color(0xFF8B5CF6)
+                    color = MaterialTheme.colorScheme.tertiary
                 )
             }
-            Spacer(modifier = Modifier.height(12.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "距下一等级还需720积分",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    text = "1,280 / 2,000",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color(0xFF8B5CF6)
-                )
-            }
-            Spacer(modifier = Modifier.height(6.dp))
-            LinearProgressIndicator(
-                progress = { 1280f / 2000f },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(8.dp)
-                    .clip(RoundedCornerShape(4.dp)),
-                color = Color(0xFF8B5CF6),
-                trackColor = Color(0xFF8B5CF6).copy(alpha = 0.12f),
-                strokeCap = StrokeCap.Round
-            )
         }
     }
 }

@@ -10,23 +10,36 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ErrorOutline
+import com.example.scylier.istudyspot.ui.components.AppTopBar
 import com.example.scylier.istudyspot.models.order.OrderDetail
+import com.example.scylier.istudyspot.ui.theme.LocalExtendedColors
 
 @Composable
 fun OrderDetailScreen(
@@ -34,13 +47,40 @@ fun OrderDetailScreen(
     isLoading: Boolean,
     onCheckin: () -> Unit,
     onCheckout: () -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
+    onBack: () -> Unit = {}
 ) {
+    val extendedColors = LocalExtendedColors.current
+    var showCancelDialog by remember { mutableStateOf(false) }
+
+    if (showCancelDialog) {
+        AlertDialog(
+            onDismissRequest = { showCancelDialog = false },
+            title = { Text("确认取消") },
+            text = { Text("确定要取消此订单吗？此操作不可撤销。") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showCancelDialog = false
+                        onCancel()
+                    },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) { Text("确认取消") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showCancelDialog = false }) { Text("再想想") }
+            }
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 20.dp)
     ) {
+        AppTopBar(title = "订单详情", onBack = onBack)
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = "订单详情",
@@ -70,7 +110,7 @@ fun OrderDetailScreen(
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onSurface
                         )
-                        DetailStatusBadge(status = order.status)
+                        DetailStatusBadge(status = order.status, extendedColors = extendedColors)
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     OrderDetailRow(label = "订单号", value = order.id)
@@ -108,7 +148,7 @@ fun OrderDetailScreen(
                             .height(48.dp),
                         shape = RoundedCornerShape(14.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF22C55E)
+                            containerColor = extendedColors.success
                         )
                     ) {
                         Text("签退", style = MaterialTheme.typography.labelLarge)
@@ -116,7 +156,7 @@ fun OrderDetailScreen(
                 }
                 if (order.status == "paid" || order.status == "pending") {
                     OutlinedButton(
-                        onClick = onCancel,
+                        onClick = { showCancelDialog = true },
                         modifier = Modifier
                             .weight(1f)
                             .height(48.dp),
@@ -127,6 +167,29 @@ fun OrderDetailScreen(
                     ) {
                         Text("取消订单", style = MaterialTheme.typography.labelLarge)
                     }
+                }
+            }
+        } else {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        imageVector = Icons.Default.ErrorOutline,
+                        contentDescription = null,
+                        modifier = Modifier.size(72.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "订单加载失败",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "请返回重试",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
                 }
             }
         }
@@ -161,14 +224,17 @@ private fun OrderDetailRow(
 }
 
 @Composable
-private fun DetailStatusBadge(status: String) {
+private fun DetailStatusBadge(
+    status: String,
+    extendedColors: com.example.scylier.istudyspot.ui.theme.ExtendedColors
+) {
     val (color, label) = when (status) {
-        "pending" -> Color(0xFFF59E0B) to "待支付"
-        "paid" -> Color(0xFF3B82F6) to "已支付"
-        "in_use" -> Color(0xFF22C55E) to "使用中"
-        "completed" -> Color(0xFF94A3B8) to "已完成"
-        "cancelled" -> Color(0xFFEF4444) to "已取消"
-        else -> Color(0xFF94A3B8) to status
+        "pending" -> extendedColors.warning to "待支付"
+        "paid" -> extendedColors.info to "已支付"
+        "in_use" -> extendedColors.success to "使用中"
+        "completed" -> MaterialTheme.colorScheme.onSurfaceVariant to "已完成"
+        "cancelled" -> MaterialTheme.colorScheme.error to "已取消"
+        else -> MaterialTheme.colorScheme.onSurfaceVariant to status
     }
     Box(
         modifier = Modifier

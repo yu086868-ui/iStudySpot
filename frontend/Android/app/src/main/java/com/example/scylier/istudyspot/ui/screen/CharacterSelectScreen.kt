@@ -33,8 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.scylier.istudyspot.models.ai.AiCharacter
-import com.example.scylier.istudyspot.ui.theme.GradientEnd
-import com.example.scylier.istudyspot.ui.theme.GradientStart
+import com.example.scylier.istudyspot.ui.theme.LocalExtendedColors
 
 @Composable
 fun CharacterSelectScreen(
@@ -42,6 +41,8 @@ fun CharacterSelectScreen(
     isLoading: Boolean,
     onSelectCharacter: (AiCharacter) -> Unit
 ) {
+    val extendedColors = LocalExtendedColors.current
+
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -50,7 +51,7 @@ fun CharacterSelectScreen(
                 .fillMaxWidth()
                 .background(
                     brush = Brush.horizontalGradient(
-                        colors = listOf(GradientStart, GradientEnd)
+                        colors = listOf(extendedColors.gradientStart, extendedColors.gradientEnd)
                     ),
                     shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)
                 )
@@ -60,13 +61,13 @@ fun CharacterSelectScreen(
                 Text(
                     text = "选择AI助手",
                     style = MaterialTheme.typography.headlineLarge,
-                    color = Color.White
+                    color = extendedColors.onGradient
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "选择一个AI角色开始对话",
                     style = MaterialTheme.typography.bodyLarge,
-                    color = Color.White.copy(alpha = 0.85f)
+                    color = extendedColors.onGradientVariant
                 )
             }
         }
@@ -128,7 +129,7 @@ private fun CharacterCard(
                 Text(
                     text = character.name.first().toString(),
                     style = MaterialTheme.typography.headlineSmall,
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
             }
             Spacer(modifier = Modifier.width(16.dp))

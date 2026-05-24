@@ -73,8 +73,26 @@ val DarkOutlineVariant = Color(0xFF334155)
 val DarkError = Color(0xFFFCA5A5)
 val DarkErrorContainer = Color(0xFF7F1D1D)
 
+val DarkSuccess = Color(0xFF86EFAC)
+val DarkSuccessContainer = Color(0xFF166534)
+val DarkOnSuccessContainer = Color(0xFFDCFCE7)
+
+val DarkWarning = Color(0xFFFCD34D)
+val DarkWarningContainer = Color(0xFF92400E)
+val DarkOnWarningContainer = Color(0xFFFEF3C7)
+
+val DarkInfo = Color(0xFF93C5FD)
+val DarkInfoContainer = Color(0xFF1E3A5F)
+val DarkOnInfoContainer = Color(0xFFDBEAFE)
+
 val GradientStart = Color(0xFF6366F1)
 val GradientEnd = Color(0xFF06B6D4)
 
 val DarkGradientStart = Color(0xFF4F46E5)
 val DarkGradientEnd = Color(0xFF0891B2)
+
+val CardGradientStart = Color(0xFF818CF8)
+val CardGradientEnd = Color(0xFF22D3EE)
+
+val DarkCardGradientStart = Color(0xFF312E81)
+val DarkCardGradientEnd = Color(0xFF164E63)
