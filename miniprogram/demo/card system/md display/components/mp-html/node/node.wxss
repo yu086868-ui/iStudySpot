@@ -189,19 +189,22 @@
   display: block;
 }
 
-/* 引用块样式 */
+/* 引用块样式 - 带左侧强调边框与背景区分的引用容器 */
 ._blockquote {
-  margin: 0.8em 0;
-  padding: 16rpx 24rpx;
-  border-left: 6rpx solid #4a7af5;
-  background: #f0f4f8;
+  display: block;
+  margin: 24rpx 0;
+  padding: 28rpx 32rpx;
+  border-left: 8rpx solid #5b7db1;
+  background: #f3f4f6;
   color: #4a5568;
-  border-radius: 0 8rpx 8rpx 0;
+  border-radius: 0 12rpx 12rpx 0;
   font-size: 0.95em;
+  line-height: 1.7;
 }
 
 ._blockquote ._p {
-  margin: 0.2em 0;
+  margin: 0;
+  color: inherit;
 }
 
 /* 段落间距 */
