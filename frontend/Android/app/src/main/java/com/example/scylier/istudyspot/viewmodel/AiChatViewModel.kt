@@ -206,7 +206,7 @@ VIP座位：15元/小时
             message = "success",
             data = AiChatResponse(
                 reply = reply,
-                sessionId = sessionId ?: UUID.randomUUID().toString()
+                session_id = sessionId ?: UUID.randomUUID().toString()
             )
         )
     }

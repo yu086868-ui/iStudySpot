@@ -4,12 +4,15 @@ import com.example.scylier.istudyspot.models.ApiResponse
 
 object ErrorHandler {
     fun handleError(code: Int, message: String): String {
+        val safeMessage = if (message.contains("<") && message.contains(">")) "服务器异常" else message
         return when (code) {
-            400 -> "请求参数错误: $message"
+            400 -> "请求参数错误"
             401 -> "未授权，请重新登录"
-            404 -> "资源不存在: $message"
-            500 -> "服务器内部错误: $message"
-            else -> "网络请求失败: $message"
+            403 -> "没有权限执行此操作"
+            404 -> "请求的资源不存在"
+            408 -> "网络请求超时，请重试"
+            500 -> "服务器内部错误，请稍后重试"
+            else -> "网络请求失败($code)"
         }
     }
 

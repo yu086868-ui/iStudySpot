@@ -1,13 +1,20 @@
 package com.ycyu.istudyspotbackend.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.time.LocalDateTime;
 
 public class BookingDTO {
     private Long studyRoomId;
     private Long seatId;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime startTime;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime endTime;
-    private String bookingType;  // hour, day
+
+    private String bookingType;
 
     public Long getStudyRoomId() { return studyRoomId; }
     public void setStudyRoomId(Long studyRoomId) { this.studyRoomId = studyRoomId; }

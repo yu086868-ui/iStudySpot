@@ -110,15 +110,15 @@ fun OrderDetailScreen(
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onSurface
                         )
-                        DetailStatusBadge(status = order.status, extendedColors = extendedColors)
+                        DetailStatusBadge(status = order.status ?: "", extendedColors = extendedColors)
                     }
                     Spacer(modifier = Modifier.height(16.dp))
-                    OrderDetailRow(label = "订单号", value = order.id)
-                    OrderDetailRow(label = "自习室", value = order.studyRoomName)
-                    OrderDetailRow(label = "座位", value = order.seatPosition)
-                    OrderDetailRow(label = "开始时间", value = order.startTime)
-                    OrderDetailRow(label = "结束时间", value = order.endTime)
-                    OrderDetailRow(label = "总价", value = "¥${order.totalPrice}", isHighlight = true)
+                    OrderDetailRow(label = "订单号", value = order.id.toString())
+                    OrderDetailRow(label = "自习室", value = order.displayName)
+                    OrderDetailRow(label = "座位", value = order.displaySeat)
+                    OrderDetailRow(label = "开始时间", value = order.startTime ?: "")
+                    OrderDetailRow(label = "结束时间", value = order.endTime ?: "")
+                    OrderDetailRow(label = "总价", value = "¥${order.displayPrice}", isHighlight = true)
                 }
             }
             Spacer(modifier = Modifier.height(28.dp))
@@ -228,13 +228,13 @@ private fun DetailStatusBadge(
     status: String,
     extendedColors: com.example.scylier.istudyspot.ui.theme.ExtendedColors
 ) {
-    val (color, label) = when (status) {
+    val (color, label) = when (status ?: "") {
         "pending" -> extendedColors.warning to "待支付"
         "paid" -> extendedColors.info to "已支付"
         "in_use" -> extendedColors.success to "使用中"
         "completed" -> MaterialTheme.colorScheme.onSurfaceVariant to "已完成"
         "cancelled" -> MaterialTheme.colorScheme.error to "已取消"
-        else -> MaterialTheme.colorScheme.onSurfaceVariant to status
+        else -> MaterialTheme.colorScheme.onSurfaceVariant to (status ?: "未知")
     }
     Box(
         modifier = Modifier

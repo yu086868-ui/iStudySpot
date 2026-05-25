@@ -6,9 +6,14 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.security.SecureRandom
+import java.security.cert.X509Certificate
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
+import javax.net.ssl.X509TrustManager
 
 object ApiClient {
-    private const val BASE_URL = BuildConfig.BASE_URL
+    private val baseUrl: String = BuildConfig.BASE_URL
 
     var currentToken: String? = null
 
@@ -28,13 +33,31 @@ object ApiClient {
         chain.proceed(requestBuilder.build())
     }
 
-    private val okHttpClient: OkHttpClient = OkHttpClient.Builder()
-        .addInterceptor(authInterceptor)
-        .addInterceptor(loggingInterceptor)
-        .build()
+    private val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
+        override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
+        override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
+        override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
+    })
+
+    private val okHttpClient: OkHttpClient = if (BuildConfig.DEBUG) {
+        val sslContext = SSLContext.getInstance("TLS").apply {
+            init(null, trustAllCerts, SecureRandom())
+        }
+        OkHttpClient.Builder()
+            .addInterceptor(authInterceptor)
+            .addInterceptor(loggingInterceptor)
+            .sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
+            .hostnameVerifier { _, _ -> true }
+            .build()
+    } else {
+        OkHttpClient.Builder()
+            .addInterceptor(authInterceptor)
+            .addInterceptor(loggingInterceptor)
+            .build()
+    }
 
     private val retrofit: Retrofit = Retrofit.Builder()
-        .baseUrl(BASE_URL)
+        .baseUrl(baseUrl)
         .client(okHttpClient)
         .addConverterFactory(GsonConverterFactory.create())
         .build()

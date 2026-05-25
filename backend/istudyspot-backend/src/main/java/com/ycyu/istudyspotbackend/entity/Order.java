@@ -1,5 +1,7 @@
 package com.ycyu.istudyspotbackend.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -13,11 +15,13 @@ public class Order {
     private String roomName;
     private String seatPosition;
     private String seatNumber;
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
+    private LocalDateTime planStartTime;
+    private LocalDateTime planEndTime;
+    private LocalDateTime actualStartTime;
+    private LocalDateTime actualEndTime;
     private BigDecimal totalPrice;
     private BigDecimal totalAmount;
-    private String status;        // pending, paid, in_use, completed, cancelled
+    private String status;
     private LocalDateTime checkinTime;
     private LocalDateTime checkoutTime;
     private Integer actualDuration;
@@ -25,7 +29,14 @@ public class Order {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    // Getter and Setter
+    @JsonProperty("startTime")
+    public LocalDateTime getStartTime() { return planStartTime; }
+    public void setStartTime(LocalDateTime startTime) { this.planStartTime = startTime; }
+
+    @JsonProperty("endTime")
+    public LocalDateTime getEndTime() { return planEndTime; }
+    public void setEndTime(LocalDateTime endTime) { this.planEndTime = endTime; }
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -56,12 +67,6 @@ public class Order {
     public BigDecimal getTotalAmount() { return totalAmount; }
     public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }
 
-    public LocalDateTime getStartTime() { return startTime; }
-    public void setStartTime(LocalDateTime startTime) { this.startTime = startTime; }
-
-    public LocalDateTime getEndTime() { return endTime; }
-    public void setEndTime(LocalDateTime endTime) { this.endTime = endTime; }
-
     public BigDecimal getTotalPrice() { return totalPrice; }
     public void setTotalPrice(BigDecimal totalPrice) { this.totalPrice = totalPrice; }
 
@@ -85,4 +90,16 @@ public class Order {
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public LocalDateTime getPlanStartTime() { return planStartTime; }
+    public void setPlanStartTime(LocalDateTime planStartTime) { this.planStartTime = planStartTime; }
+
+    public LocalDateTime getPlanEndTime() { return planEndTime; }
+    public void setPlanEndTime(LocalDateTime planEndTime) { this.planEndTime = planEndTime; }
+
+    public LocalDateTime getActualStartTime() { return actualStartTime; }
+    public void setActualStartTime(LocalDateTime actualStartTime) { this.actualStartTime = actualStartTime; }
+
+    public LocalDateTime getActualEndTime() { return actualEndTime; }
+    public void setActualEndTime(LocalDateTime actualEndTime) { this.actualEndTime = actualEndTime; }
 }

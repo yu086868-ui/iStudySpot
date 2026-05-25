@@ -56,7 +56,7 @@ class ProfileViewModel : ViewModel() {
                         val user = response.data
                         _state.value = _state.value.copy(
                             username = user.username,
-                            nickname = user.nickname,
+                            nickname = user.nickname ?: user.username,
                             phone = user.phone ?: "未设置",
                             email = user.email ?: "未设置",
                             avatar = user.avatar,

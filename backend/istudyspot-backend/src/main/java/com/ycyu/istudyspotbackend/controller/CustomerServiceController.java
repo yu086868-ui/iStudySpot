@@ -1,9 +1,8 @@
 package com.ycyu.istudyspotbackend.controller;
 
+import com.ycyu.istudyspotbackend.entity.Result;
 import com.ycyu.istudyspotbackend.service.CustomerServiceService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -19,35 +18,34 @@ public class CustomerServiceController {
     private CustomerServiceService customerServiceService;
 
     @GetMapping("/welcome")
-    public ResponseEntity<Map<String, Object>> getWelcomeInfo() {
+    public Result<Map<String, Object>> getWelcomeInfo() {
         Map<String, Object> response = new HashMap<>();
         response.put("welcomeMessage", customerServiceService.getWelcomeMessage());
         response.put("recommendedQuestions", customerServiceService.getRecommendedQuestions());
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        return Result.success(response);
     }
 
     @PostMapping("/chat")
-    public ResponseEntity<Map<String, Object>> chatWithCustomerService(
+    public Result<Map<String, Object>> chatWithCustomerService(
             @RequestBody Map<String, String> request) {
         try {
             String sessionId = request.get("sessionId");
             String message = request.get("message");
 
             if (sessionId == null || sessionId.isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("error", "EMPTY_SESSION_ID"));
+                return Result.error(400, "EMPTY_SESSION_ID");
             }
             if (message == null || message.isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("error", "EMPTY_MESSAGE"));
+                return Result.error(400, "EMPTY_MESSAGE");
             }
 
             String response = customerServiceService.chatWithCustomerService(sessionId, message);
             Map<String, Object> result = new HashMap<>();
             result.put("response", response);
-            return new ResponseEntity<>(result, HttpStatus.OK);
+            return Result.success(result);
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "INTERNAL_ERROR", "detail", e.getMessage()));
+            return Result.error(500, "INTERNAL_ERROR");
         }
     }
 
@@ -74,10 +72,10 @@ public class CustomerServiceController {
     }
 
     @GetMapping("/history")
-    public ResponseEntity<Map<String, Object>> getSessionHistory(
+    public Result<Map<String, Object>> getSessionHistory(
             @RequestParam String sessionId) {
         Map<String, Object> result = new HashMap<>();
         result.put("messages", customerServiceService.getSessionHistory(sessionId));
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return Result.success(result);
     }
 }

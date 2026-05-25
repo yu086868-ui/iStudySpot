@@ -34,6 +34,9 @@ public class AIServiceImpl implements AIService {
         characters.add(new Character("teacher", "老师", "耐心细致，善于引导", "温和亲切，鼓励式"));
         characters.add(new Character("artist", "艺术家", "富有创意，情感丰富", "感性表达，富有想象力"));
         characters.add(new Character("customer_service", "小i", "热情友好，专业细致", "亲切自然，简洁明了"));
+        characters.add(new Character("xuemaomao", "学霸猫", "擅长学习规划和方法论", "轻松活泼"));
+        characters.add(new Character("wenrouxuejie", "温柔学姐", "耐心解答你的每一个问题", "温柔细致"));
+        characters.add(new Character("yanlidaooshi", "严厉导师", "帮你养成高效学习习惯", "简洁有力"));
 
         this.sessions = new HashMap<>();
         this.executorService = Executors.newFixedThreadPool(10);
@@ -49,7 +52,7 @@ public class AIServiceImpl implements AIService {
         return characters.stream()
                 .filter(character -> character.getId().equals(characterId))
                 .findFirst()
-                .orElse(null);
+                .orElse(characters.get(3));
     }
 
     @Override

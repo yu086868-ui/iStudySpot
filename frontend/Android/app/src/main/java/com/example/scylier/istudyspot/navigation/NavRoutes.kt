@@ -11,14 +11,14 @@ sealed class NavRoutes {
 
     @Serializable
     data class Seat(
-        val studyRoomId: String,
+        val studyRoomId: Long,
         val studyRoomName: String
     ) : NavRoutes()
 
     @Serializable
     data class Booking(
-        val seatId: String,
-        val studyRoomId: String,
+        val seatId: Long,
+        val studyRoomId: Long,
         val studyRoomName: String,
         val seatPosition: String,
         val pricePerHour: Double
@@ -26,7 +26,7 @@ sealed class NavRoutes {
 
     @Serializable
     data class Order(
-        val orderId: String
+        val orderId: Long
     ) : NavRoutes()
 
     @Serializable

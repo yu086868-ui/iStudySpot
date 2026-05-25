@@ -63,15 +63,18 @@ class StudyRoomViewModel : ViewModel() {
         }
     }
 
-    fun loadSeats(studyRoomId: String) {
+    fun loadSeats(studyRoomId: Long) {
         _seatMapState.value = _seatMapState.value.copy(isLoading = true)
         viewModelScope.launch {
             when (val response = repository.getStudyRoomSeats(studyRoomId)) {
                 is ApiResponse.Success -> {
+                    val seats = response.data
+                    val maxRow = seats.maxOfOrNull { it.row } ?: 0
+                    val maxCol = seats.maxOfOrNull { it.col } ?: 0
                     _seatMapState.value = SeatMapUiState(
-                        seats = response.data.seats,
-                        rows = response.data.rows,
-                        cols = response.data.cols,
+                        seats = seats,
+                        rows = maxRow,
+                        cols = maxCol,
                         isLoading = false
                     )
                 }
@@ -85,7 +88,7 @@ class StudyRoomViewModel : ViewModel() {
         }
     }
 
-    fun loadStudyRoomDetail(studyRoomId: String) {
+    fun loadStudyRoomDetail(studyRoomId: Long) {
         _detailState.value = _detailState.value.copy(isLoading = true)
         viewModelScope.launch {
             try {

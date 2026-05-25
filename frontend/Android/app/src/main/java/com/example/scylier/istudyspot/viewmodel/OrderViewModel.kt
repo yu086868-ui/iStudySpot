@@ -52,7 +52,7 @@ class OrderViewModel : ViewModel() {
         }
     }
 
-    fun loadOrderDetail(orderId: String) {
+    fun loadOrderDetail(orderId: Long) {
         _orderDetailState.value = _orderDetailState.value.copy(isLoading = true, actionSuccess = null)
         viewModelScope.launch {
             when (val response = repository.getOrderDetail(orderId)) {
@@ -72,7 +72,7 @@ class OrderViewModel : ViewModel() {
         }
     }
 
-    fun checkin(orderId: String) {
+    fun checkin(orderId: Long) {
         viewModelScope.launch {
             when (val response = repository.checkin(orderId, orderId)) {
                 is ApiResponse.Success -> {
@@ -90,7 +90,7 @@ class OrderViewModel : ViewModel() {
         }
     }
 
-    fun checkout(orderId: String) {
+    fun checkout(orderId: Long) {
         viewModelScope.launch {
             when (val response = repository.checkout(orderId)) {
                 is ApiResponse.Success -> {
@@ -108,7 +108,7 @@ class OrderViewModel : ViewModel() {
         }
     }
 
-    fun cancelOrder(orderId: String) {
+    fun cancelOrder(orderId: Long) {
         viewModelScope.launch {
             when (val response = repository.cancelOrder(orderId)) {
                 is ApiResponse.Success -> {
