@@ -334,4 +334,79 @@ public class OrderServiceImplTest {
 
         verify(orderMapper, times(1)).findById(1L);
     }
+
+    @Test
+    void testCancelOrderWithPaidStatus() {
+        testOrder.setStatus("paid");
+        when(orderMapper.findById(1L)).thenReturn(testOrder);
+        when(orderMapper.updateStatus(1L, "cancelled")).thenReturn(1);
+
+        orderService.cancelOrder(1L);
+
+        verify(orderMapper, times(1)).updateStatus(1L, "cancelled");
+    }
+
+    @Test
+    void testCancelOrderWithInvalidStatus() {
+        testOrder.setStatus("in_use");
+        when(orderMapper.findById(1L)).thenReturn(testOrder);
+
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            orderService.cancelOrder(1L);
+        });
+
+        assertEquals("当前状态无法取消", exception.getMessage());
+    }
+
+    @Test
+    void testCheckoutWithNullCheckinTime() {
+        testOrder.setStatus("in_use");
+        testOrder.setActualStartTime(null);
+        testOrder.setCheckinTime(null);
+        when(orderMapper.findById(1L)).thenReturn(testOrder);
+
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            orderService.checkout(1L);
+        });
+
+        assertEquals("签到时间不存在", exception.getMessage());
+    }
+
+    @Test
+    void testCheckoutWithActualStartTime() {
+        testOrder.setStatus("in_use");
+        testOrder.setActualStartTime(LocalDateTime.now().minusHours(1));
+        testOrder.setCheckinTime(null);
+        testOrder.setTotalPrice(BigDecimal.valueOf(10.0));
+        when(orderMapper.findById(1L)).thenReturn(testOrder);
+        when(orderMapper.checkout(eq(1L), anyInt(), any(BigDecimal.class))).thenReturn(1);
+
+        Map<String, Object> result = orderService.checkout(1L);
+
+        assertNotNull(result);
+        assertEquals("completed", result.get("status"));
+    }
+
+    @Test
+    void testMarkAsPaidWithInvalidStatus() {
+        testOrder.setStatus("paid");
+        when(orderMapper.findById(1L)).thenReturn(testOrder);
+
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            orderService.markAsPaid(1L);
+        });
+
+        assertEquals("订单状态不正确，无法支付", exception.getMessage());
+    }
+
+    @Test
+    void testCreateOrderSeatNotFound() {
+        when(seatMapper.findById(999L)).thenReturn(null);
+
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            orderService.createOrder(1L, 1L, 999L, LocalDateTime.now(), LocalDateTime.now().plusHours(2), "normal");
+        });
+
+        assertEquals("座位不存在", exception.getMessage());
+    }
 }

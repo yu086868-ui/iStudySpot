@@ -2146,3 +2146,4 @@ Order status: pending
 [INFO] Total time:  09:25 min
 [INFO] Finished at: 2026-05-25T15:31:52Z
 [INFO] ------------------------------------------------------------------------
+TEST_EXIT_CODE=False

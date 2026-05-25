@@ -1,153 +1,116 @@
 ```
-[060](https://github.com/yu086868-ui/iStudySpot/actions/runs/26405773721/job/77728667583?pr=96#step:4:4061)        Error:  Failures:    
+Run gitleaks/gitleaks-action@v2   
 
-​            Error:    AIControllerTest.testChatWithEmptyCharacterId:94 expected: <400> but was: <500>   
+​            [yu086868-ui] is an individual user. No license key is required.   
 
-​            Error:    AIControllerTest.testChatWithEmptySessionId:80 expected: <400> but was: <500>   
+​            gitleaks version: 8.24.3   
 
-​            Error:    AIControllerTest.testChatWithIllegalArgumentException:125 expected: <400> but was: <500>   
+​            Version to install: 8.24.3 (target directory: /tmp/gitleaks-8.24.3)   
 
-​            Error:    AIControllerTest.testStreamChatWithEmptySessionId:173 expected: not <null>   
+​            Cache hit for: gitleaks-cache-8.24.3-linux-x64   
 
-​            Error:    AIServiceImplTest.testChatWithInvalidCharacter:69 Expected java.lang.IllegalArgumentException to be thrown, but nothing was thrown.   
+​            Received 1519322 of 5713626 (26.6%), 1.4 MBs/sec   
 
-​            Error:    AIServiceImplTest.testGetCharacter:47 expected: <null> but was: <com.ycyu.istudyspotbackend.entity.Character@599fab92>   
+​            Received 5713626 of 5713626 (100.0%), 4.4 MBs/sec   
 
-​            Error:    AIServiceImplTest.testGetCharacters:37 expected: <4> but was: <7>   
+​            Cache Size: ~5 MB (5713626 B)   
 
-​            Error:    DeepSeekServiceImplTest.testStreamChat:183 expected: <true> but was: <false>   
+​            /usr/bin/tar -xf /home/runner/work/_temp/f2898540-a0cf-4f23-b49d-9fa9d4326901/cache.tzst -P -C /home/runner/work/iStudySpot/iStudySpot --use-compress-program unzstd   
 
-​            Error:    OrderServiceImplTest.testCheckinOrderStatusIncorrect:245 expected: <订单状态不正确，无法签到> but was: <订单状态不正确，无法签到，当前状态：pending>   
+​            Cache restored successfully   
 
-​            Error:    OrderServiceImplTest.testRenewEndTimeBeforeOriginal:381 expected: <新结束时间必须晚于原结束时间> but was: <订单未在使用中>   
+​            Gitleaks restored from cache   
 
-​            Error:  Errors:    
+​            event type: pull_request   
 
-​            Error:    CheckInControllerTest.testGetCurrentCheckInStatus:83 » Servlet Request processing failed: java.lang.NullPointerException: Cannot invoke "com.ycyu.istudyspotbackend.mapper.OrderMapper.findCurrentCheckinByUserId(java.lang.Long)" because "this.orderMapper" is null   
+​            gitleaks cmd: gitleaks detect --redact -v --exit-code=2 --report-format=sarif --report-path=results.sarif --log-level=debug --log-opts=--no-merges --first-parent fafeef2b76b90957597a9fa2903baceef87eddec^..7d552b953bb23a1d38d9a25261a7ef951c3c9d53   
 
-​            Error:    OrderServiceImplTest.testCheckin:206 » Runtime 订单状态不正确，无法签到，当前状态：2   
+​            /tmp/gitleaks-8.24.3/gitleaks detect --redact -v --exit-code=2 --report-format=sarif --report-path=results.sarif --log-level=debug --log-opts=--no-merges --first-parent fafeef2b76b90957597a9fa2903baceef87eddec^..7d552b953bb23a1d38d9a25261a7ef951c3c9d53   
 
-​            Error:    OrderServiceImplTest.testRenew:324 » Runtime 订单未在使用中   
+​               
 
-​            Error:    SeatServiceImplTest.testGetSeatDetail:114 » NullPointer Cannot invoke "com.ycyu.istudyspotbackend.mapper.OrderMapper.findActiveByRoomId(java.lang.Long)" because "this.orderMapper" is null   
+​                ○   
 
-​            Error:    SeatServiceImplTest.testGetSeatList:59 » NullPointer Cannot invoke "com.ycyu.istudyspotbackend.mapper.OrderMapper.findActiveByRoomId(java.lang.Long)" because "this.orderMapper" is null   
+​                │╲   
 
-​            Error:    SeatServiceImplTest.testGetSeatListWithEmptySeats:88 » NullPointer Cannot invoke "com.ycyu.istudyspotbackend.mapper.OrderMapper.findActiveByRoomId(java.lang.Long)" because "this.orderMapper" is null   
+​                │ ○   
 
-​            Error:    SeatServiceImplTest.testGetSeatListWithNullParameters:104 » NullPointer Cannot invoke "com.ycyu.istudyspotbackend.mapper.OrderMapper.findActiveByRoomId(java.lang.Long)" because "this.orderMapper" is null   
+​                ○ ░   
 
-​            Error:    SeatServiceImplTest.testGetSeatMap:155 » NullPointer Cannot invoke "com.ycyu.istudyspotbackend.mapper.OrderMapper.findActiveByRoomId(java.lang.Long)" because "this.orderMapper" is null   
+​                ░    gitleaks   
 
-​            Error:    SeatServiceImplTest.testGetSeatMapWithEmptySeats:183 » NullPointer Cannot invoke "com.ycyu.istudyspotbackend.mapper.OrderMapper.findActiveByRoomId(java.lang.Long)" because "this.orderMapper" is null   
+​               
 
-​            Error:    SeatServiceImplTest.testGetSeatMapWithNullRowCol:207 » NullPointer Cannot invoke "com.ycyu.istudyspotbackend.mapper.OrderMapper.findActiveByRoomId(java.lang.Long)" because "this.orderMapper" is null   
+​            2:34PM DBG using github.com/wasilibs/go-re2 regex engine   
 
-​            Error:    JwtUtilsTest.testGenerateRefreshToken:21 » NullPointer Cannot invoke "String.getBytes()" because "this.secretKey" is null   
+​            2:34PM DBG using existing gitleaks config .gitleaks.toml from `(--source)/.gitleaks.toml`   
 
-​            Error:    JwtUtilsTest.testGenerateToken:13 » NullPointer Cannot invoke "String.getBytes()" because "this.secretKey" is null   
+​            2:34PM DBG extending config with default config   
 
-​            Error:    JwtUtilsTest.testGetUserIdFromToken:30 » NullPointer Cannot invoke "String.getBytes()" because "this.secretKey" is null   
+​            2:34PM DBG executing: /usr/bin/git -C . log -p -U0 --no-merges --first-parent fafeef2b76b90957597a9fa2903baceef87eddec^..7d552b953bb23a1d38d9a25261a7ef951c3c9d53   
 
-​            Error:    JwtUtilsTest.testValidateToken:38 » NullPointer Cannot invoke "String.getBytes()" because "this.secretKey" is null   
+​            2:34PM DBG SCM platform parsed from host host=github.com platform=github   
 
-​            [INFO]    
+​            Finding:     REDACTED   
 
-​            Error:  Tests run: 224, Failures: 10, Errors: 14, Skipped: 0   
+​            Secret:      REDACTED   
 
-​            [INFO]    
+​            RuleID:      jwt   
 
-​            [INFO] ------------------------------------------------------------------------   
+​            Entropy:     5.369494   
 
-​            [INFO] BUILD FAILURE   
+​            File:        test_token.txt   
 
-​            [INFO] ------------------------------------------------------------------------   
+​            Line:        1   
 
-​            [INFO] Total time:  45.106 s   
+​            Commit:      7d552b953bb23a1d38d9a25261a7ef951c3c9d53   
 
-​            [INFO] Finished at: 2026-05-25T14:35:35Z   
+​            Author:      Scylier   
 
-​            [INFO] ------------------------------------------------------------------------   
+​            Email:       xiangyear@gmail.com   
 
-​            Error:  Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.1.2:test (default-test) on project istudyspot-backend: There are test failures.   
+​            Date:        2026-05-25T14:30:49Z   
 
-​            Error:     
+​            Fingerprint: 7d552b953bb23a1d38d9a25261a7ef951c3c9d53:test_token.txt:jwt:1   
 
-​            Error:  Please refer to /home/runner/work/iStudySpot/iStudySpot/backend/istudyspot-backend/target/surefire-reports for the individual test results.   
+​            Link:        https://github.com/yu086868-ui/iStudySpot/blob/7d552b953bb23a1d38d9a25261a7ef951c3c9d53/test_token.txt#L1   
 
-​            Error:  Please refer to dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.   
+​               
 
-​            Error:  -> [Help 1]   
+​            2:34PM INF 1 commits scanned.   
 
-​            Error:     
+​            2:34PM DBG Note: this number might be smaller than expected due to commits with no additions   
 
-​            Error:  To see the full stack trace of the errors, re-run Maven with the -e switch.   
+​            2:34PM INF scanned ~264492 bytes (264.49 KB) in 185ms   
 
-​            Error:  Re-run Maven using the -X switch to enable full debug logging.   
+​            2:34PM WRN leaks found: 1   
 
-​            Error:     
+​            Artifact name is valid!   
 
-​            Error:  For more information about the errors and possible solutions, please read the following articles:   
+​            Root directory input is valid!   
 
-​            Error:  [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException   
+​            Beginning upload of artifact content to blob storage   
 
-​            Error: Process completed with exit code 1.   
+​            Uploaded bytes 7202   
+
+​            Finished uploading artifact content to blob storage!   
+
+​            SHA256 digest of uploaded artifact zip is 40df7e353ca3c2adea74f111a609efe148cdc37363c0e07077674218cb608dce   
+
+​            Finalizing artifact upload   
+
+​            Artifact gitleaks-results.sarif.zip successfully finalized. Artifact ID 7200137017   
+
+​            Warning: Error encountered when attempting to write a comment on PR #96: HttpError: Resource not accessible by integration   
+
+​            Likely an issue with too large of a diff for the comment to be written.   
+
+​            All secrets that have been leaked will be reported in the summary and job artifact.   
+
+​            Warning: 🛑 Leaks detected, see job summary for details   
 ```
 
 
 
-```
-57
-[INFO] 
-[INFO] Results:
-[INFO] 
-Error:  Failures: 
-Error:    AIControllerTest.testChatWithEmptyCharacterId:94 expected: <400> but was: <500>
-Error:    AIControllerTest.testChatWithEmptySessionId:80 expected: <400> but was: <500>
-Error:    AIControllerTest.testChatWithIllegalArgumentException:125 expected: <400> but was: <500>
-Error:    AIControllerTest.testStreamChatWithEmptySessionId:173 expected: not <null>
-Error:    AIServiceImplTest.testChatWithInvalidCharacter:69 Expected java.lang.IllegalArgumentException to be thrown, but nothing was thrown.
-Error:    AIServiceImplTest.testGetCharacter:47 expected: <null> but was: <com.ycyu.istudyspotbackend.entity.Character@599fab92>
-Error:    AIServiceImplTest.testGetCharacters:37 expected: <4> but was: <7>
-Error:    DeepSeekServiceImplTest.testStreamChat:183 expected: <true> but was: <false>
-Error:    OrderServiceImplTest.testCheckinOrderStatusIncorrect:245 expected: <订单状态不正确，无法签到> but was: <订单状态不正确，无法签到，当前状态：pending>
-Error:    OrderServiceImplTest.testRenewEndTimeBeforeOriginal:381 expected: <新结束时间必须晚于原结束时间> but was: <订单未在使用中>
-Error:  Errors: 
-Error:    CheckInControllerTest.testGetCurrentCheckInStatus:83 » Servlet Request processing failed: java.lang.NullPointerException: Cannot invoke "com.ycyu.istudyspotbackend.mapper.OrderMapper.findCurrentCheckinByUserId(java.lang.Long)" because "this.orderMapper" is null
-Error:    OrderServiceImplTest.testCheckin:206 » Runtime 订单状态不正确，无法签到，当前状态：2
-Error:    OrderServiceImplTest.testRenew:324 » Runtime 订单未在使用中
-Error:    SeatServiceImplTest.testGetSeatDetail:114 » NullPointer Cannot invoke "com.ycyu.istudyspotbackend.mapper.OrderMapper.findActiveByRoomId(java.lang.Long)" because "this.orderMapper" is null
-Error:    SeatServiceImplTest.testGetSeatList:59 » NullPointer Cannot invoke "com.ycyu.istudyspotbackend.mapper.OrderMapper.findActiveByRoomId(java.lang.Long)" because "this.orderMapper" is null
-Error:    SeatServiceImplTest.testGetSeatListWithEmptySeats:88 » NullPointer Cannot invoke "com.ycyu.istudyspotbackend.mapper.OrderMapper.findActiveByRoomId(java.lang.Long)" because "this.orderMapper" is null
-Error:    SeatServiceImplTest.testGetSeatListWithNullParameters:104 » NullPointer Cannot invoke "com.ycyu.istudyspotbackend.mapper.OrderMapper.findActiveByRoomId(java.lang.Long)" because "this.orderMapper" is null
-Error:    SeatServiceImplTest.testGetSeatMap:155 » NullPointer Cannot invoke "com.ycyu.istudyspotbackend.mapper.OrderMapper.findActiveByRoomId(java.lang.Long)" because "this.orderMapper" is null
-Error:    SeatServiceImplTest.testGetSeatMapWithEmptySeats:183 » NullPointer Cannot invoke "com.ycyu.istudyspotbackend.mapper.OrderMapper.findActiveByRoomId(java.lang.Long)" because "this.orderMapper" is null
-Error:    SeatServiceImplTest.testGetSeatMapWithNullRowCol:207 » NullPointer Cannot invoke "com.ycyu.istudyspotbackend.mapper.OrderMapper.findActiveByRoomId(java.lang.Long)" because "this.orderMapper" is null
-Error:    JwtUtilsTest.testGenerateRefreshToken:21 » NullPointer Cannot invoke "String.getBytes()" because "this.secretKey" is null
-Error:    JwtUtilsTest.testGenerateToken:13 » NullPointer Cannot invoke "String.getBytes()" because "this.secretKey" is null
-Error:    JwtUtilsTest.testGetUserIdFromToken:30 » NullPointer Cannot invoke "String.getBytes()" because "this.secretKey" is null
-Error:    JwtUtilsTest.testValidateToken:38 » NullPointer Cannot invoke "String.getBytes()" because "this.secretKey" is null
-[INFO] 
-Error:  Tests run: 224, Failures: 10, Errors: 14, Skipped: 0
-[INFO] 
-[INFO] ------------------------------------------------------------------------
-[INFO] BUILD FAILURE
-[INFO] ------------------------------------------------------------------------
-[INFO] Total time:  45.106 s
-[INFO] Finished at: 2026-05-25T14:35:35Z
-[INFO] ------------------------------------------------------------------------
-Error:  Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.1.2:test (default-test) on project istudyspot-backend: There are test failures.
-Error:  
-Error:  Please refer to /home/runner/work/iStudySpot/iStudySpot/backend/istudyspot-backend/target/surefire-reports for the individual test results.
-Error:  Please refer to dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
-Error:  -> [Help 1]
-Error:  
-Error:  To see the full stack trace of the errors, re-run Maven with the -e switch.
-Error:  Re-run Maven using the -X switch to enable full debug logging.
-Error:  
-Error:  For more information about the errors and possible solutions, please read the following articles:
-Error:  [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
-Error: Process completed with exit code 1.
 
-```
 

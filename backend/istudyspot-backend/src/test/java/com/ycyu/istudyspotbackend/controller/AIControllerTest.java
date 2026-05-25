@@ -220,4 +220,30 @@ public class AIControllerTest {
         assertNotNull(emitter);
         verify(aiService, times(1)).streamChat("session123", "char123", "Hello");
     }
+
+    @Test
+    public void testStreamChatWithNullSessionAndCharacterId() {
+        Map<String, String> request = Map.of(
+                "message", "Hello"
+        );
+
+        SseEmitter emitter = aiController.streamChat(request);
+
+        assertNotNull(emitter);
+        verify(aiService, never()).streamChat(anyString(), anyString(), anyString());
+    }
+
+    @Test
+    public void testChatWithNullSessionAndCharacterId() {
+        Map<String, String> request = Map.of(
+                "message", "Hello"
+        );
+
+        when(aiService.chat(anyString(), eq("customer_service"), eq("Hello"))).thenReturn("Reply");
+
+        Result<?> result = aiController.chat(request);
+
+        assertEquals(200, result.getCode());
+        verify(aiService, times(1)).chat(anyString(), eq("customer_service"), eq("Hello"));
+    }
 }
