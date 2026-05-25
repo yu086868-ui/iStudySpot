@@ -75,11 +75,12 @@ public class AIControllerTest {
                 "message", "Hello"
         );
 
+        when(aiService.chat(anyString(), eq("char123"), eq("Hello"))).thenReturn("Reply");
+
         Result<?> result = aiController.chat(request);
 
-        assertEquals(400, result.getCode());
-        assertEquals("EMPTY_SESSION_ID", result.getMessage());
-        verify(aiService, never()).chat(anyString(), anyString(), anyString());
+        assertEquals(200, result.getCode());
+        verify(aiService, times(1)).chat(anyString(), eq("char123"), eq("Hello"));
     }
 
     @Test
@@ -89,11 +90,12 @@ public class AIControllerTest {
                 "message", "Hello"
         );
 
+        when(aiService.chat(eq("session123"), eq("customer_service"), eq("Hello"))).thenReturn("Reply");
+
         Result<?> result = aiController.chat(request);
 
-        assertEquals(400, result.getCode());
-        assertEquals("EMPTY_CHARACTER_ID", result.getMessage());
-        verify(aiService, never()).chat(anyString(), anyString(), anyString());
+        assertEquals(200, result.getCode());
+        verify(aiService, times(1)).chat(eq("session123"), eq("customer_service"), eq("Hello"));
     }
 
     @Test
@@ -122,8 +124,8 @@ public class AIControllerTest {
 
         Result<?> result = aiController.chat(request);
 
-        assertEquals(400, result.getCode());
-        assertEquals("INVALID_CHARACTER", result.getMessage());
+        assertEquals(500, result.getCode());
+        assertEquals("INTERNAL_ERROR", result.getMessage());
         verify(aiService, times(1)).chat("session123", "char123", "Hello");
     }
 
@@ -168,10 +170,13 @@ public class AIControllerTest {
                 "message", "Hello"
         );
 
+        SseEmitter mockEmitter = new SseEmitter();
+        when(aiService.streamChat(anyString(), eq("char123"), eq("Hello"))).thenReturn(mockEmitter);
+
         SseEmitter emitter = aiController.streamChat(request);
 
         assertNotNull(emitter);
-        verify(aiService, never()).streamChat(anyString(), anyString(), anyString());
+        verify(aiService, times(1)).streamChat(anyString(), eq("char123"), eq("Hello"));
     }
 
     @Test

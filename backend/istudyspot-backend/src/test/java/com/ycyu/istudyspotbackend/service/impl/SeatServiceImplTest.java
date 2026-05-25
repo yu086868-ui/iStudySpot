@@ -2,6 +2,7 @@ package com.ycyu.istudyspotbackend.service.impl;
 
 import com.ycyu.istudyspotbackend.entity.Seat;
 import com.ycyu.istudyspotbackend.entity.StudyRoom;
+import com.ycyu.istudyspotbackend.mapper.OrderMapper;
 import com.ycyu.istudyspotbackend.mapper.SeatMapper;
 import com.ycyu.istudyspotbackend.mapper.StudyRoomMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,6 +29,9 @@ public class SeatServiceImplTest {
     @Mock
     private StudyRoomMapper studyRoomMapper;
 
+    @Mock
+    private OrderMapper orderMapper;
+
     @InjectMocks
     private SeatServiceImpl seatService;
 
@@ -39,7 +43,7 @@ public class SeatServiceImplTest {
         testSeat.setId(1L);
         testSeat.setRoomId(1L);
         testSeat.setSeatNumber("A1");
-        testSeat.setStatus("available");
+        testSeat.setStatus("1");
         testSeat.setSeatType(1);
         testSeat.setRowNum(1);
         testSeat.setColNum(1);
@@ -55,6 +59,7 @@ public class SeatServiceImplTest {
         List<Seat> seats = new ArrayList<>();
         seats.add(testSeat);
         when(seatMapper.findByRoomId(1L)).thenReturn(seats);
+        when(orderMapper.findActiveByRoomId(1L)).thenReturn(new ArrayList<>());
 
         List<Seat> result = seatService.getSeatList(1L, "available", "1", 1, 1);
 
@@ -84,6 +89,7 @@ public class SeatServiceImplTest {
         when(studyRoomMapper.findById(1L)).thenReturn(studyRoom);
 
         when(seatMapper.findByRoomId(1L)).thenReturn(new ArrayList<>());
+        when(orderMapper.findActiveByRoomId(1L)).thenReturn(new ArrayList<>());
 
         List<Seat> result = seatService.getSeatList(1L, null, null, null, null);
 
@@ -100,6 +106,7 @@ public class SeatServiceImplTest {
         List<Seat> seats = new ArrayList<>();
         seats.add(testSeat);
         when(seatMapper.findByRoomId(1L)).thenReturn(seats);
+        when(orderMapper.findActiveByRoomId(1L)).thenReturn(new ArrayList<>());
 
         List<Seat> result = seatService.getSeatList(1L, null, null, null, null);
 
@@ -110,6 +117,7 @@ public class SeatServiceImplTest {
     @Test
     void testGetSeatDetail() {
         when(seatMapper.findById(1L)).thenReturn(testSeat);
+        when(orderMapper.findActiveByRoomId(1L)).thenReturn(new ArrayList<>());
 
         Seat seat = seatService.getSeatDetail(1L);
 
@@ -146,11 +154,13 @@ public class SeatServiceImplTest {
         seat2.setId(2L);
         seat2.setRoomId(1L);
         seat2.setSeatNumber("B2");
+        seat2.setStatus("1");
         seat2.setRowNum(2);
         seat2.setColNum(2);
         seats.add(seat2);
         
         when(seatMapper.findByRoomId(1L)).thenReturn(seats);
+        when(orderMapper.findActiveByRoomId(1L)).thenReturn(new ArrayList<>());
 
         Map<String, Object> result = seatService.getSeatMap(1L);
 
@@ -179,6 +189,7 @@ public class SeatServiceImplTest {
         when(studyRoomMapper.findById(1L)).thenReturn(studyRoom);
 
         when(seatMapper.findByRoomId(1L)).thenReturn(new ArrayList<>());
+        when(orderMapper.findActiveByRoomId(1L)).thenReturn(new ArrayList<>());
 
         Map<String, Object> result = seatService.getSeatMap(1L);
 
@@ -197,12 +208,14 @@ public class SeatServiceImplTest {
         Seat seatWithNullCoords = new Seat();
         seatWithNullCoords.setId(1L);
         seatWithNullCoords.setRoomId(1L);
+        seatWithNullCoords.setStatus("1");
         seatWithNullCoords.setRowNum(null);
         seatWithNullCoords.setColNum(null);
         
         List<Seat> seats = new ArrayList<>();
         seats.add(seatWithNullCoords);
         when(seatMapper.findByRoomId(1L)).thenReturn(seats);
+        when(orderMapper.findActiveByRoomId(1L)).thenReturn(new ArrayList<>());
 
         Map<String, Object> result = seatService.getSeatMap(1L);
 

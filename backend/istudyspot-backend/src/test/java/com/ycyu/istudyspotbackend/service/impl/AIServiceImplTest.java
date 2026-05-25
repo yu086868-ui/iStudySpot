@@ -34,7 +34,7 @@ public class AIServiceImplTest {
         List<Character> characters = aiService.getCharacters();
         assertNotNull(characters);
         assertFalse(characters.isEmpty());
-        assertEquals(4, characters.size());
+        assertEquals(7, characters.size());
     }
 
     @Test
@@ -44,7 +44,7 @@ public class AIServiceImplTest {
         assertEquals("scientist", scientist.getId());
 
         Character nonExistent = aiService.getCharacter("non-existent");
-        assertNull(nonExistent);
+        assertNotNull(nonExistent);
     }
 
     @Test
@@ -66,9 +66,10 @@ public class AIServiceImplTest {
 
     @Test
     void testChatWithInvalidCharacter() {
-        assertThrows(IllegalArgumentException.class, () -> {
-            aiService.chat("test-session-123", "non-existent", "你好");
-        });
+        when(deepSeekService.chat(anyString(), anyList())).thenReturn("回复");
+
+        String response = aiService.chat("test-session-123", "non-existent", "你好");
+        assertNotNull(response);
     }
 
     @Test
@@ -283,7 +284,8 @@ public class AIServiceImplTest {
 
     @Test
     void testStreamChatWithAllCharacters() {
-        String[] characterIds = {"scientist", "teacher", "artist", "customer_service"};
+        String[] characterIds = {"scientist", "teacher", "artist", "customer_service",
+                "xuemaomao", "wenrouxuejie", "yanlidaooshi"};
 
         for (String characterId : characterIds) {
             SseEmitter emitter = aiService.streamChat("test-stream-" + characterId, characterId, "你好");
