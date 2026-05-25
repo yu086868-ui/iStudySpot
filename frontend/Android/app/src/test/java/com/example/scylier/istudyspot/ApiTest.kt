@@ -29,7 +29,7 @@ class ApiTest {
 
     @Test
     fun testGetStudyRoomDetail() = runBlocking {
-        val response = apiManager.getStudyRoomDetail("1")
+        val response = apiManager.getStudyRoomDetail(1L)
         when (response) {
             is ApiResponse.Success -> println("Get study room detail success: ${response.data.name}")
             is ApiResponse.Error -> println("Get study room detail error: ${response.message}")
