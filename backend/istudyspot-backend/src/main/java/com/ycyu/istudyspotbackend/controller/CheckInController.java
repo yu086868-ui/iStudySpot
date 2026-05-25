@@ -46,7 +46,7 @@ public class CheckInController {
         } catch (NumberFormatException e) {
             return Result.error("预约ID格式错误");
         } catch (Exception e) {
-            return Result.error(e.getMessage());
+            return Result.internalServerError(e.getMessage());
         }
     }
 
@@ -65,7 +65,7 @@ public class CheckInController {
         } catch (NumberFormatException e) {
             return Result.error("签到记录ID格式错误");
         } catch (Exception e) {
-            return Result.error(e.getMessage());
+            return Result.internalServerError(e.getMessage());
         }
     }
 

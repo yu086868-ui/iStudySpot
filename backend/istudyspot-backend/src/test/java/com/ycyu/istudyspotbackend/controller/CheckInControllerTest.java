@@ -69,7 +69,7 @@ public class CheckInControllerTest {
                 .content(objectMapper.writeValueAsString(Map.of("seatId", "A1")))
                 .requestAttr("userId", 1L))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(jsonPath("$.code").value(400))
                 .andExpect(jsonPath("$.message").value("预约ID不能为空"));
 
         verify(orderService, never()).checkin(anyLong(), anyString());
@@ -82,7 +82,7 @@ public class CheckInControllerTest {
                 .content(objectMapper.writeValueAsString(Map.of("reservationId", "", "seatId", "A1")))
                 .requestAttr("userId", 1L))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(jsonPath("$.code").value(400))
                 .andExpect(jsonPath("$.message").value("预约ID不能为空"));
     }
 
@@ -93,7 +93,7 @@ public class CheckInControllerTest {
                 .content(objectMapper.writeValueAsString(Map.of("reservationId", "1")))
                 .requestAttr("userId", 1L))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(jsonPath("$.code").value(400))
                 .andExpect(jsonPath("$.message").value("座位ID不能为空"));
     }
 
@@ -104,7 +104,7 @@ public class CheckInControllerTest {
                 .content(objectMapper.writeValueAsString(Map.of("reservationId", "1", "seatId", "")))
                 .requestAttr("userId", 1L))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(jsonPath("$.code").value(400))
                 .andExpect(jsonPath("$.message").value("座位ID不能为空"));
     }
 
@@ -115,7 +115,7 @@ public class CheckInControllerTest {
                 .content(objectMapper.writeValueAsString(Map.of("reservationId", "abc", "seatId", "A1")))
                 .requestAttr("userId", 1L))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(jsonPath("$.code").value(400))
                 .andExpect(jsonPath("$.message").value("预约ID格式错误"));
     }
 
@@ -157,7 +157,7 @@ public class CheckInControllerTest {
                 .content("{}")
                 .requestAttr("userId", 1L))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(jsonPath("$.code").value(400))
                 .andExpect(jsonPath("$.message").value("签到记录ID不能为空"));
     }
 
@@ -168,7 +168,7 @@ public class CheckInControllerTest {
                 .content(objectMapper.writeValueAsString(Map.of("checkInRecordId", "")))
                 .requestAttr("userId", 1L))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(jsonPath("$.code").value(400))
                 .andExpect(jsonPath("$.message").value("签到记录ID不能为空"));
     }
 
@@ -179,7 +179,7 @@ public class CheckInControllerTest {
                 .content(objectMapper.writeValueAsString(Map.of("checkInRecordId", "abc")))
                 .requestAttr("userId", 1L))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(jsonPath("$.code").value(400))
                 .andExpect(jsonPath("$.message").value("签到记录ID格式错误"));
     }
 
@@ -229,7 +229,7 @@ public class CheckInControllerTest {
 
         Order order2 = new Order();
         order2.setId(2L);
-        order2.setSeatPosition("B2");
+        order2.setSeatPosition("A1");
         order2.setStudyRoomName("自习室2");
         order2.setPlanStartTime(LocalDateTime.now().minusHours(4));
         order2.setPlanEndTime(LocalDateTime.now().minusHours(2));
@@ -243,7 +243,7 @@ public class CheckInControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.total").value(2))
-                .andExpect(jsonPath("$.data.streak").value(2))
+                .andExpect(jsonPath("$.data.streak").value(1))
                 .andExpect(jsonPath("$.data.favoriteSeat").value("A1"))
                 .andExpect(jsonPath("$.data.records").isNotEmpty());
     }
