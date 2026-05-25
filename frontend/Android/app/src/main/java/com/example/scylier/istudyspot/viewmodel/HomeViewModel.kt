@@ -18,8 +18,7 @@ data class HomeUiState(
     val isLoading: Boolean = true
 )
 
-class HomeViewModel : ViewModel() {
-    private val repository = MainRepository()
+class HomeViewModel(private val repository: MainRepository = MainRepository()) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeUiState())
     val state: StateFlow<HomeUiState> = _state
