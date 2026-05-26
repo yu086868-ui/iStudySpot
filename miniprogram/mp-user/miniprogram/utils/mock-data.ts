@@ -240,36 +240,6 @@ const generateSeats = (): void => {
 
 const generateReservations = (): void => {
   const now = new Date();
-  
-  const currentReservation = {
-    id: 'res_current',
-    userId: mockData.users[0].id,
-    studyRoomId: mockData.studyRooms[0].id,
-    seatId: `seat_${mockData.studyRooms[0].id}_1_1`,
-    startTime: new Date(now.getTime() - 30 * 60 * 1000).toISOString(),
-    endTime: new Date(now.getTime() + 2 * 60 * 60 * 1000).toISOString(),
-    status: 'confirmed' as const,
-    checkInTime: null,
-    checkOutTime: null,
-    createdAt: new Date(now.getTime() - 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(now.getTime() - 60 * 60 * 1000).toISOString()
-  };
-  mockData.reservations.push(currentReservation);
-
-  const futureReservation = {
-    id: 'res_future',
-    userId: mockData.users[0].id,
-    studyRoomId: mockData.studyRooms[1].id,
-    seatId: `seat_${mockData.studyRooms[1].id}_2_3`,
-    startTime: new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString(),
-    endTime: new Date(now.getTime() + 24 * 60 * 60 * 1000 + 3 * 60 * 60 * 1000).toISOString(),
-    status: 'confirmed' as const,
-    checkInTime: null,
-    checkOutTime: null,
-    createdAt: now.toISOString(),
-    updatedAt: now.toISOString()
-  };
-  mockData.reservations.push(futureReservation);
 
   for (let i = 0; i < 5; i++) {
     const startTime = new Date(now.getTime() - (i + 2) * 24 * 60 * 60 * 1000);

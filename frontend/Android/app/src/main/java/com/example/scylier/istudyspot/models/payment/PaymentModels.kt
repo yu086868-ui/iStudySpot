@@ -1,29 +1,27 @@
 package com.example.scylier.istudyspot.models.payment
 
-// 创建支付请求
 class CreatePaymentRequest(
-    val orderId: String,
+    val orderId: Long,
     val amount: Double,
-    val paymentMethod: String // wechat, alipay
+    val paymentMethod: String
 )
 
-// 支付响应
 class PaymentResponse(
-    val paymentId: String,
-    val orderId: String,
+    val id: Long,
+    val paymentNo: String? = null,
+    val orderId: Long,
     val amount: Double,
     val paymentMethod: String,
-    val paymentUrl: String,
-    val createdAt: String
+    val paymentUrl: String? = null,
+    val createdAt: String? = null
 )
 
-// 支付状态响应
 class PaymentStatusResponse(
-    val id: String,
-    val orderId: String,
+    val id: Long,
+    val orderId: Long,
     val amount: Double,
     val paymentMethod: String,
-    val status: String, // pending, success, failed
-    val createdAt: String,
-    val updatedAt: String
+    val status: String,
+    val createdAt: String? = null,
+    val updatedAt: String? = null
 )

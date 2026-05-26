@@ -9,9 +9,10 @@ import retrofit2.Response
 import java.io.IOException
 import java.net.SocketTimeoutException
 
-class ApiManager {
-    private val apiService = ApiClient.apiService
-    private val useMockData = BuildConfig.USE_MOCK
+class ApiManager(
+    private val apiService: ApiService = ApiClient.apiService,
+    private val useMockData: Boolean = BuildConfig.USE_MOCK
+) {
 
     suspend fun <T> executeRequest(request: suspend () -> Response<BaseResponse<T>>): ApiResponse<T> {
         return withContext(Dispatchers.IO) {
@@ -21,7 +22,14 @@ class ApiManager {
                     val body = response.body()
                     if (body != null) {
                         if (body.code in 200..299) {
-                            ApiResponse.Success(body.code, body.message, body.data!!)
+                            @Suppress("UNCHECKED_CAST")
+                            val safeData = body.data as? T
+                            if (safeData != null) {
+                                ApiResponse.Success(body.code, body.message, safeData)
+                            } else {
+                                @Suppress("UNCHECKED_CAST")
+                                ApiResponse.Success(body.code, body.message, Unit as T)
+                            }
                         } else {
                             ApiResponse.Error(body.code, body.message)
                         }
@@ -30,7 +38,7 @@ class ApiManager {
                     }
                 } else {
                     val errorBody = response.errorBody()?.string()
-                    ApiResponse.Error(response.code(), errorBody ?: "网络请求失败")
+                    ApiResponse.Error(response.code(), parseErrorMessage(errorBody))
                 }
             } catch (e: SocketTimeoutException) {
                 ApiResponse.Error(408, "网络请求超时，请检查网络连接")
@@ -39,6 +47,44 @@ class ApiManager {
             } catch (e: Exception) {
                 ApiResponse.Error(500, "网络请求异常: ${e.message}")
             }
+        }
+    }
+
+    suspend fun <T> executeRawRequest(request: suspend () -> Response<T>): ApiResponse<T> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = request()
+                if (response.isSuccessful) {
+                    val body = response.body()
+                    if (body != null) {
+                        ApiResponse.Success(200, "success", body)
+                    } else {
+                        ApiResponse.Error(500, "服务器响应为空")
+                    }
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    ApiResponse.Error(response.code(), parseErrorMessage(errorBody))
+                }
+            } catch (e: SocketTimeoutException) {
+                ApiResponse.Error(408, "网络请求超时，请检查网络连接")
+            } catch (e: IOException) {
+                ApiResponse.Error(408, "网络连接异常: ${e.message}")
+            } catch (e: Exception) {
+                ApiResponse.Error(500, "网络请求异常: ${e.message}")
+            }
+        }
+    }
+
+    private fun parseErrorMessage(errorBody: String?): String {
+        if (errorBody.isNullOrBlank()) return "网络请求失败"
+        if (errorBody.trim().startsWith("<") || errorBody.contains("<!DOCTYPE") || errorBody.contains("<html")) {
+            return "服务器处理异常"
+        }
+        return try {
+            val json = org.json.JSONObject(errorBody)
+            json.optString("message", json.optString("error", "网络请求失败"))
+        } catch (e: Exception) {
+            if (errorBody.length > 100) errorBody.substring(0, 100) + "..." else errorBody
         }
     }
 
@@ -51,7 +97,7 @@ class ApiManager {
                     data = com.example.scylier.istudyspot.models.auth.LoginResponse(
                         token = "mock_token",
                         user = com.example.scylier.istudyspot.models.auth.UserInfo(
-                            id = "1",
+                            id = 1L,
                             username = username,
                             nickname = "测试用户",
                             avatar = "https://example.com/avatar.jpg"
@@ -72,7 +118,7 @@ class ApiManager {
                     data = com.example.scylier.istudyspot.models.auth.RegisterResponse(
                         token = "mock_token",
                         user = com.example.scylier.istudyspot.models.auth.UserInfo(
-                            id = "1",
+                            id = 1L,
                             username = username,
                             nickname = nickname,
                             avatar = "https://example.com/avatar.jpg"
@@ -122,19 +168,19 @@ class ApiManager {
                         total = 2,
                         list = listOf(
                             com.example.scylier.istudyspot.models.studyroom.StudyRoomItem(
-                                id = "1",
+                                id = 1L,
                                 name = "自习室1",
                                 address = "图书馆三楼",
-                                openingHours = "08:00-22:00",
-                                occupancyRate = 0.8,
+                                openTime = "08:00",
+                                closeTime = "22:00",
                                 imageUrl = "https://example.com/room1.jpg"
                             ),
                             com.example.scylier.istudyspot.models.studyroom.StudyRoomItem(
-                                id = "2",
+                                id = 2L,
                                 name = "自习室2",
                                 address = "图书馆四楼",
-                                openingHours = "08:00-22:00",
-                                occupancyRate = 0.6,
+                                openTime = "08:00",
+                                closeTime = "22:00",
                                 imageUrl = "https://example.com/room2.jpg"
                             )
                         )
@@ -145,7 +191,7 @@ class ApiManager {
         apiService.getStudyRooms(page, pageSize, status, null, keyword)
     }
 
-    suspend fun getStudyRoomDetail(id: String) = executeRequest {
+    suspend fun getStudyRoomDetail(id: Long) = executeRequest {
         if (useMockData) {
             return@executeRequest Response.success(
                 BaseResponse(
@@ -155,7 +201,8 @@ class ApiManager {
                         id = id,
                         name = "自习室$id",
                         address = "图书馆${id}楼",
-                        openingHours = "08:00-22:00",
+                        openTime = "08:00",
+                        closeTime = "22:00",
                         description = "安静舒适的学习环境",
                         rules = "禁止大声喧哗，保持卫生",
                         imageUrl = "https://example.com/room$id.jpg"
@@ -166,18 +213,18 @@ class ApiManager {
         apiService.getStudyRoomDetail(id)
     }
 
-    suspend fun getStudyRoomSeats(id: String, status: String? = null, type: String? = null) = executeRequest {
+    suspend fun getStudyRoomSeats(id: Long, status: String? = null, type: String? = null) = executeRequest {
         if (useMockData) {
             val seats = mutableListOf<com.example.scylier.istudyspot.models.studyroom.SeatInfo>()
             for (row in 1..5) {
                 for (col in 1..8) {
                     seats.add(
                         com.example.scylier.istudyspot.models.studyroom.SeatInfo(
-                            id = "${id}_${row}_${col}",
-                            row = row,
-                            col = col,
+                            id = (row * 10 + col).toLong(),
+                            rowNum = row,
+                            colNum = col,
                             status = if ((row + col) % 3 == 0) "booked" else if ((row + col) % 4 == 0) "in_use" else "available",
-                            type = if (col == 1) "vip" else "normal",
+                            seatType = if (col == 1) 2 else 1,
                             pricePerHour = if (col == 1) 15.0 else 10.0
                         )
                     )
@@ -187,19 +234,14 @@ class ApiManager {
                 BaseResponse(
                     code = 200,
                     message = "获取成功",
-                    data = com.example.scylier.istudyspot.models.studyroom.SeatMapResponse(
-                        studyRoomId = id,
-                        rows = 5,
-                        cols = 8,
-                        seats = seats
-                    )
+                    data = seats
                 )
             )
         }
         apiService.getStudyRoomSeats(id, status, type)
     }
 
-    suspend fun getSeatDetail(id: String) = executeRequest {
+    suspend fun getSeatDetail(id: Long) = executeRequest {
         if (useMockData) {
             return@executeRequest Response.success(
                 BaseResponse(
@@ -207,11 +249,11 @@ class ApiManager {
                     message = "获取成功",
                     data = com.example.scylier.istudyspot.models.studyroom.SeatDetail(
                         id = id,
-                        studyRoomId = "1",
-                        row = 1,
-                        col = 1,
+                        roomId = 1L,
+                        rowNum = 1,
+                        colNum = 1,
                         status = "available",
-                        type = "normal",
+                        seatType = 1,
                         pricePerHour = 10.0,
                         description = "普通座位"
                     )
@@ -221,16 +263,16 @@ class ApiManager {
         apiService.getSeatDetail(id)
     }
 
-    suspend fun createOrder(studyRoomId: String, seatId: String, startTime: String, endTime: String, bookingType: String) = executeRequest {
+    suspend fun createOrder(studyRoomId: Long, seatId: Long, startTime: String, endTime: String, bookingType: String) = executeRequest {
         if (useMockData) {
             return@executeRequest Response.success(
                 BaseResponse(
                     code = 201,
                     message = "订单创建成功",
                     data = com.example.scylier.istudyspot.models.order.OrderResponse(
-                        id = "order_${System.currentTimeMillis()}",
+                        id = System.currentTimeMillis(),
                         seatId = seatId,
-                        userId = "1",
+                        userId = 1L,
                         startTime = startTime,
                         endTime = endTime,
                         totalPrice = 20.0,
@@ -247,8 +289,8 @@ class ApiManager {
         if (useMockData) {
             val orders = listOf(
                 com.example.scylier.istudyspot.models.order.OrderItem(
-                    id = "order1",
-                    seatId = "seat1",
+                    id = 1L,
+                    seatId = 1L,
                     studyRoomName = "自习室1",
                     seatPosition = "1-1",
                     startTime = "2026-10-01T10:00:00",
@@ -258,8 +300,8 @@ class ApiManager {
                     createdAt = "2026-10-01T09:00:00"
                 ),
                 com.example.scylier.istudyspot.models.order.OrderItem(
-                    id = "order2",
-                    seatId = "seat2",
+                    id = 2L,
+                    seatId = 2L,
                     studyRoomName = "自习室2",
                     seatPosition = "2-3",
                     startTime = "2026-10-02T14:00:00",
@@ -283,7 +325,7 @@ class ApiManager {
         apiService.getUserOrders(status, startDate, endDate, page, pageSize)
     }
 
-    suspend fun getOrderDetail(id: String) = executeRequest {
+    suspend fun getOrderDetail(id: Long) = executeRequest {
         if (useMockData) {
             return@executeRequest Response.success(
                 BaseResponse(
@@ -291,8 +333,8 @@ class ApiManager {
                     message = "获取成功",
                     data = com.example.scylier.istudyspot.models.order.OrderDetail(
                         id = id,
-                        seatId = "seat1",
-                        userId = "1",
+                        seatId = 1L,
+                        userId = 1L,
                         studyRoomName = "自习室1",
                         seatPosition = "1-1",
                         startTime = "2026-10-01T10:00:00",
@@ -308,7 +350,7 @@ class ApiManager {
         apiService.getOrderDetail(id)
     }
 
-    suspend fun cancelOrder(id: String) = executeRequest {
+    suspend fun cancelOrder(id: Long) = executeRequest {
         if (useMockData) {
             return@executeRequest Response.success(
                 BaseResponse(
@@ -324,7 +366,7 @@ class ApiManager {
         apiService.cancelOrder(id)
     }
 
-    suspend fun payOrder(id: String) = executeRequest {
+    suspend fun payOrder(id: Long) = executeRequest {
         if (useMockData) {
             return@executeRequest Response.success(
                 BaseResponse(
@@ -357,7 +399,7 @@ class ApiManager {
         apiService.getReservationRules()
     }
 
-    suspend fun checkin(reservationId: String, seatId: String) = executeRequest {
+    suspend fun checkin(reservationId: Long, seatId: Long) = executeRequest {
         if (useMockData) {
             return@executeRequest Response.success(
                 BaseResponse(
@@ -371,10 +413,10 @@ class ApiManager {
                 )
             )
         }
-        apiService.checkin(mapOf("reservationId" to reservationId, "seatId" to seatId))
+        apiService.checkin(mapOf("reservationId" to reservationId.toString(), "seatId" to seatId.toString()))
     }
 
-    suspend fun checkout(checkInRecordId: String) = executeRequest {
+    suspend fun checkout(checkInRecordId: Long) = executeRequest {
         if (useMockData) {
             return@executeRequest Response.success(
                 BaseResponse(
@@ -390,7 +432,7 @@ class ApiManager {
                 )
             )
         }
-        apiService.checkout(mapOf("checkInRecordId" to checkInRecordId))
+        apiService.checkout(mapOf("checkInRecordId" to checkInRecordId.toString()))
     }
 
     suspend fun getCheckinRecords(startDate: String? = null, endDate: String? = null, page: Int = 1, pageSize: Int = 20) = executeRequest {
@@ -426,7 +468,7 @@ class ApiManager {
                     code = 200,
                     message = "获取成功",
                     data = com.example.scylier.istudyspot.models.auth.UserInfo(
-                        id = "1",
+                        id = 1L,
                         username = "test",
                         nickname = "测试用户",
                         avatar = "https://example.com/avatar.jpg",
@@ -446,7 +488,7 @@ class ApiManager {
                     code = 200,
                     message = "更新成功",
                     data = com.example.scylier.istudyspot.models.auth.UserInfo(
-                        id = "1",
+                        id = 1L,
                         username = "test",
                         nickname = nickname ?: "测试用户",
                         avatar = avatar ?: "https://example.com/avatar.jpg",
@@ -472,14 +514,14 @@ class ApiManager {
         apiService.changePassword(com.example.scylier.istudyspot.models.user.ChangePasswordRequest(oldPassword, newPassword))
     }
 
-    suspend fun createPayment(orderId: String, amount: Double, paymentMethod: String) = executeRequest {
+    suspend fun createPayment(orderId: Long, amount: Double, paymentMethod: String) = executeRequest {
         if (useMockData) {
             return@executeRequest Response.success(
                 BaseResponse(
                     code = 201,
                     message = "支付创建成功",
                     data = com.example.scylier.istudyspot.models.payment.PaymentResponse(
-                        paymentId = "payment_${System.currentTimeMillis()}",
+                        id = System.currentTimeMillis(),
                         orderId = orderId,
                         amount = amount,
                         paymentMethod = paymentMethod,
@@ -492,7 +534,7 @@ class ApiManager {
         apiService.createPayment(com.example.scylier.istudyspot.models.payment.CreatePaymentRequest(orderId, amount, paymentMethod))
     }
 
-    suspend fun getPaymentStatus(id: String) = executeRequest {
+    suspend fun getPaymentStatus(id: Long) = executeRequest {
         if (useMockData) {
             return@executeRequest Response.success(
                 BaseResponse(
@@ -500,7 +542,7 @@ class ApiManager {
                     message = "获取成功",
                     data = com.example.scylier.istudyspot.models.payment.PaymentStatusResponse(
                         id = id,
-                        orderId = "order1",
+                        orderId = 1L,
                         amount = 20.0,
                         paymentMethod = "wechat",
                         status = "success",
@@ -513,7 +555,7 @@ class ApiManager {
         apiService.getPaymentStatus(id)
     }
 
-    suspend fun getStudyRoomStatistics(id: String, startDate: String, endDate: String) = executeRequest {
+    suspend fun getStudyRoomStatistics(id: Long, startDate: String, endDate: String) = executeRequest {
         if (useMockData) {
             val dailyData = listOf(
                 com.example.scylier.istudyspot.models.statistics.DailyData(
@@ -561,7 +603,7 @@ class ApiManager {
         apiService.getAnnouncements(type, priority, page, pageSize)
     }
 
-    suspend fun getAnnouncementDetail(id: String) = executeRequest {
+    suspend fun getAnnouncementDetail(id: Long) = executeRequest {
         if (useMockData) {
             return@executeRequest Response.success(
                 BaseResponse(
@@ -587,7 +629,7 @@ class ApiManager {
         apiService.getRules(studyRoomId, category)
     }
 
-    suspend fun getRuleDetail(id: String) = executeRequest {
+    suspend fun getRuleDetail(id: Long) = executeRequest {
         if (useMockData) {
             return@executeRequest Response.success(
                 BaseResponse(
@@ -607,7 +649,7 @@ class ApiManager {
                     code = 200,
                     message = "获取成功",
                     data = listOf(
-                        mapOf("id" to "1", "name" to "学习助手", "persona" to "friendly", "speaking_style" to "casual")
+                        mapOf("id" to 1L, "name" to "学习助手", "persona" to "friendly", "speaking_style" to "casual")
                     )
                 )
             )
@@ -615,20 +657,32 @@ class ApiManager {
         apiService.getAiCharacters()
     }
 
-    suspend fun sendAiMessage(message: String, sessionId: String? = null, characterId: String? = null) = executeRequest {
-        if (useMockData) {
-            return@executeRequest Response.success(
-                BaseResponse(
-                    code = 200,
-                    message = "success",
-                    data = com.example.scylier.istudyspot.models.ai.AiChatResponse(
-                        reply = "这是AI助手的回复",
-                        sessionId = sessionId ?: "session_${System.currentTimeMillis()}"
+    suspend fun sendAiMessage(message: String, sessionId: String? = null, characterId: String? = null): ApiResponse<com.example.scylier.istudyspot.models.ai.AiChatResponse> {
+        val result = executeRequest {
+            if (useMockData) {
+                return@executeRequest Response.success(
+                    BaseResponse(
+                        code = 200,
+                        message = "success",
+                        data = mapOf(
+                            "reply" to "这是AI助手的回复",
+                            "session_id" to (sessionId ?: "session_${System.currentTimeMillis()}")
+                        )
                     )
                 )
-            )
+            }
+            apiService.sendAiMessage(com.example.scylier.istudyspot.models.ai.AiChatRequest(message, sessionId, characterId))
         }
-        apiService.sendAiMessage(com.example.scylier.istudyspot.models.ai.AiChatRequest(message, sessionId, characterId))
+        return when (result) {
+            is ApiResponse.Success -> {
+                val map = result.data
+                ApiResponse.Success(result.code, result.message, com.example.scylier.istudyspot.models.ai.AiChatResponse(
+                    reply = map["reply"] as? String ?: "",
+                    session_id = map["session_id"] as? String
+                ))
+            }
+            is ApiResponse.Error -> result
+        }
     }
 
     suspend fun getCustomerServiceWelcome() = executeRequest {
@@ -649,12 +703,12 @@ class ApiManager {
             return@executeRequest Response.success(
                 BaseResponse(
                     code = 200,
-                    message = "获取成功",
+                    message = "success",
                     data = mapOf("response" to "这是智能客服的回复")
                 )
             )
         }
-        apiService.customerServiceChat(sessionId, message)
+        apiService.customerServiceChat(mapOf("sessionId" to sessionId, "message" to message))
     }
 
     suspend fun getCustomerServiceHistory(sessionId: String) = executeRequest {

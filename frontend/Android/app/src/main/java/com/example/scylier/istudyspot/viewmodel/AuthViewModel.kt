@@ -35,9 +35,9 @@ class AuthViewModel : ViewModel() {
             when (val response = repository.login(username, password)) {
                 is ApiResponse.Success -> {
                     configManager.saveToken(response.data.token)
-                    configManager.saveUserId(response.data.user.id)
+                    configManager.saveUserId(response.data.user.id.toString())
                     configManager.saveUsername(response.data.user.username)
-                    configManager.saveNickname(response.data.user.nickname)
+                    configManager.saveNickname(response.data.user.nickname ?: "")
                     ApiClient.currentToken = response.data.token
                     _loginState.value = AuthUiState(isSuccess = true)
                 }
@@ -61,11 +61,15 @@ class AuthViewModel : ViewModel() {
         viewModelScope.launch {
             when (val response = repository.register(username, password, nickname)) {
                 is ApiResponse.Success -> {
-                    configManager.saveToken(response.data.token)
-                    configManager.saveUserId(response.data.user.id)
-                    configManager.saveUsername(response.data.user.username)
-                    configManager.saveNickname(response.data.user.nickname)
-                    ApiClient.currentToken = response.data.token
+                    val token = response.data.token
+                    val user = response.data.user
+                    if (token != null && user != null) {
+                        configManager.saveToken(token)
+                        configManager.saveUserId(user.id.toString())
+                        configManager.saveUsername(user.username)
+                        configManager.saveNickname(user.nickname ?: "")
+                        ApiClient.currentToken = token
+                    }
                     _registerState.value = AuthUiState(isSuccess = true)
                 }
                 is ApiResponse.Error -> {

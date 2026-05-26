@@ -1,0 +1,6 @@
+{
+  "usingComponents": {
+    "markdown-card": "../../components/markdown-card/index"
+  },
+  "navigationBarTitleText": "Markdown Display"
+}

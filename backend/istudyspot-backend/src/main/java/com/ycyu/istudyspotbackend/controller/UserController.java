@@ -6,6 +6,7 @@ import com.ycyu.istudyspotbackend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -16,21 +17,56 @@ public class UserController {
     private UserService userService;
 
     @GetMapping
-    public Result<User> getUserInfo(@RequestAttribute Long userId) {
+    public Result<Map<String, Object>> getUserInfo(@RequestAttribute Long userId) {
         try {
             User user = userService.getUserInfo(userId);
-            return Result.success("获取成功", user);
+            Map<String, Object> safeInfo = new HashMap<>();
+            safeInfo.put("id", user.getId());
+            safeInfo.put("username", user.getUsername());
+            safeInfo.put("nickname", user.getNickname());
+            safeInfo.put("avatar", user.getAvatar());
+            safeInfo.put("phone", user.getPhone());
+            safeInfo.put("email", user.getEmail());
+            safeInfo.put("studentId", user.getStudentId());
+            safeInfo.put("creditScore", user.getCreditScore());
+            safeInfo.put("balance", user.getBalance());
+            safeInfo.put("points", user.getPoints());
+            return Result.success("获取成功", safeInfo);
         } catch (RuntimeException e) {
             return Result.error(e.getMessage());
         }
     }
 
     @PutMapping
-    public Result<User> updateUserInfo(@RequestBody User user, @RequestAttribute Long userId) {
+    public Result<Map<String, Object>> updateUserInfo(@RequestBody Map<String, Object> params, @RequestAttribute Long userId) {
         try {
+            User user = new User();
             user.setId(userId);
+            if (params.get("nickname") != null) {
+                user.setNickname((String) params.get("nickname"));
+            }
+            if (params.get("avatar") != null) {
+                user.setAvatar((String) params.get("avatar"));
+            }
+            if (params.get("phone") != null) {
+                user.setPhone((String) params.get("phone"));
+            }
+            if (params.get("email") != null) {
+                user.setEmail((String) params.get("email"));
+            }
             User updated = userService.updateUserInfo(user);
-            return Result.success("更新成功", updated);
+            Map<String, Object> safeInfo = new HashMap<>();
+            safeInfo.put("id", updated.getId());
+            safeInfo.put("username", updated.getUsername());
+            safeInfo.put("nickname", updated.getNickname());
+            safeInfo.put("avatar", updated.getAvatar());
+            safeInfo.put("phone", updated.getPhone());
+            safeInfo.put("email", updated.getEmail());
+            safeInfo.put("studentId", updated.getStudentId());
+            safeInfo.put("creditScore", updated.getCreditScore());
+            safeInfo.put("balance", updated.getBalance());
+            safeInfo.put("points", updated.getPoints());
+            return Result.success("更新成功", safeInfo);
         } catch (RuntimeException e) {
             return Result.error(e.getMessage());
         }

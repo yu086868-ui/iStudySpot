@@ -59,6 +59,10 @@ reports/
 junit.xml
 test-results/
 
+# 测试输出
+test-result.txt
+test_token.txt
+
 # Jest
 .jest-cache/
 # 例外

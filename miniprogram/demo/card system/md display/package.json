@@ -1,0 +1,10 @@
+{
+  "name": "md-display-demo",
+  "version": "1.0.0",
+  "description": "微信小程序 Markdown Display Demo",
+  "main": "app.ts",
+  "devDependencies": {
+    "miniprogram-api-typings": "^5.2.1",
+    "typescript": "^6.0.3"
+  }
+}

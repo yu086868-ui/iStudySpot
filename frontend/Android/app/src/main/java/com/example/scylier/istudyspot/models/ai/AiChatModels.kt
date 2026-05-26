@@ -1,13 +1,15 @@
 package com.example.scylier.istudyspot.models.ai
 
 import androidx.compose.ui.graphics.Color
+import com.google.gson.annotations.SerializedName
 
 data class AiCharacter(
     val id: String,
     val name: String,
     val persona: String,
+    @SerializedName("speaking_style")
     val speakingStyle: String,
-    val avatarColor: Color
+    val avatarColor: Color = Color(0xFF6366F1)
 )
 
 data class AiChatRequest(
@@ -18,8 +20,11 @@ data class AiChatRequest(
 
 data class AiChatResponse(
     val reply: String,
-    val sessionId: String
-)
+    val session_id: String? = null
+) {
+    val sessionId: String?
+        get() = session_id
+}
 
 enum class MessageType {
     USER,

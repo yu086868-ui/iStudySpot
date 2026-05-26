@@ -302,7 +302,9 @@ fun AppNavigation(
                 ProfileScreen(
                     uiState = state,
                     onAvatarClick = {
-                        navController.navigate(NavRoutes.Login)
+                        if (!state.isLoggedIn) {
+                            navController.navigate(NavRoutes.Login)
+                        }
                     },
                     onOrderListClick = {
                         navController.navigate(NavRoutes.OrderList)

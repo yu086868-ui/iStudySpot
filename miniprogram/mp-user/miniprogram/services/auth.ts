@@ -1,6 +1,7 @@
 import type { ApiResponse } from '../typings/api';
 import type { LoginParams, LoginResponse, RegisterParams } from '../typings/api';
 import request from '../utils/request';
+import store from '../utils/store';
 import mockManager from '../utils/mock';
 
 export const authApi = {
@@ -14,6 +15,18 @@ export const authApi = {
 
       if (response.code === 200 && response.data) {
         request.saveTokens(response.data.token, response.data.refreshToken);
+        if (response.data.user) {
+          store.setUser({
+            ...response.data.user,
+            phone: '',
+            email: '',
+            studentId: '',
+            creditScore: 100,
+            status: 'active',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          });
+        }
       }
 
       return response;
@@ -23,6 +36,18 @@ export const authApi = {
 
     if (response.code === 200 && response.data) {
       request.saveTokens(response.data.token, response.data.refreshToken);
+      if (response.data.user) {
+        store.setUser({
+          ...response.data.user,
+          phone: '',
+          email: '',
+          studentId: '',
+          creditScore: 100,
+          status: 'active',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        });
+      }
     }
 
     return response;
@@ -72,11 +97,13 @@ export const authApi = {
       });
 
       request.clearTokens();
+      store.clearUser();
       return response;
     }
 
     const response = await request.post<null>('/auth/logout');
     request.clearTokens();
+    store.clearUser();
     return response;
   }
 };

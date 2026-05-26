@@ -29,7 +29,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -122,8 +121,17 @@ private fun StudyRoomCard(
 ) {
     var isFavorite by remember { mutableStateOf(false) }
     val tags = generateTags(studyRoom.name)
-    val occupancyText = "${(studyRoom.occupancyRate * 100).toInt()}% 使用中"
+    val statusLabel = when (studyRoom.status) {
+        0 -> "开放中"
+        1 -> "已关闭"
+        else -> "未知"
+    }
     val errorColor = MaterialTheme.colorScheme.error
+    val statusColor = when (studyRoom.status) {
+        0 -> extendedColors.success
+        1 -> errorColor
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
 
     Card(
         modifier = Modifier
@@ -172,10 +180,9 @@ private fun StudyRoomCard(
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
-                    OccupancyBadge(
-                        rate = studyRoom.occupancyRate.toFloat(),
-                        extendedColors = extendedColors,
-                        errorColor = errorColor
+                    StatusBadge(
+                        label = statusLabel,
+                        color = statusColor
                     )
                 }
                 Spacer(modifier = Modifier.height(8.dp))
@@ -233,26 +240,17 @@ private fun StudyRoomCard(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    LinearProgressIndicator(
-                        progress = { studyRoom.occupancyRate.toFloat() },
+                    Box(
                         modifier = Modifier
-                            .weight(1f)
-                            .height(6.dp)
-                            .clip(RoundedCornerShape(3.dp)),
-                        color = occupancyColor(studyRoom.occupancyRate.toFloat(), extendedColors, errorColor),
-                        trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        text = "${(studyRoom.occupancyRate * 100).toInt()}%",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = occupancyColor(studyRoom.occupancyRate.toFloat(), extendedColors, errorColor)
+                            .size(8.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(statusColor)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = occupancyText,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        text = statusLabel,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = statusColor
                     )
                 }
             }
@@ -261,17 +259,10 @@ private fun StudyRoomCard(
 }
 
 @Composable
-private fun OccupancyBadge(
-    rate: Float,
-    extendedColors: ExtendedColors,
-    errorColor: Color
+private fun StatusBadge(
+    label: String,
+    color: Color
 ) {
-    val color = occupancyColor(rate, extendedColors, errorColor)
-    val label = when {
-        rate < 0.3f -> "空闲"
-        rate < 0.7f -> "适中"
-        else -> "紧张"
-    }
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(10.dp))
@@ -283,18 +274,6 @@ private fun OccupancyBadge(
             style = MaterialTheme.typography.labelSmall,
             color = color
         )
-    }
-}
-
-private fun occupancyColor(
-    rate: Float,
-    extendedColors: ExtendedColors,
-    errorColor: Color
-): Color {
-    return when {
-        rate < 0.3f -> extendedColors.success
-        rate < 0.7f -> extendedColors.warning
-        else -> errorColor
     }
 }
 

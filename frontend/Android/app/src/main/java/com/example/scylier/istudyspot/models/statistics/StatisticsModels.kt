@@ -1,6 +1,5 @@
 package com.example.scylier.istudyspot.models.statistics
 
-// 每日统计数据
 class DailyData(
     val date: String,
     val occupancyRate: Double,
@@ -8,9 +7,8 @@ class DailyData(
     val revenue: Double
 )
 
-// 自习室使用统计响应
 class StudyRoomStatisticsResponse(
-    val studyRoomId: String,
+    val studyRoomId: Long,
     val studyRoomName: String,
     val totalSeats: Int,
     val avgOccupancyRate: Double,

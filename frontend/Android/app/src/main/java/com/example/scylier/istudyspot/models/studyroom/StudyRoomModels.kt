@@ -1,58 +1,76 @@
 package com.example.scylier.istudyspot.models.studyroom
 
-// 自习室列表项
 class StudyRoomItem(
-    val id: String,
+    val id: Long,
     val name: String,
     val address: String,
-    val openingHours: String,
-    val occupancyRate: Double,
-    val imageUrl: String? = null
-)
+    val openTime: String? = null,
+    val closeTime: String? = null,
+    val imageUrl: String? = null,
+    val status: Int? = null,
+    val description: String? = null
+) {
+    val openingHours: String
+        get() = "${openTime ?: ""}-${closeTime ?: ""}"
+}
 
-// 自习室列表响应
 class StudyRoomListResponse(
     val total: Int,
     val list: List<StudyRoomItem>
 )
 
-// 自习室详情
 class StudyRoomDetail(
-    val id: String,
+    val id: Long,
     val name: String,
     val address: String,
-    val openingHours: String,
+    val openTime: String? = null,
+    val closeTime: String? = null,
     val description: String? = null,
     val rules: String? = null,
     val imageUrl: String? = null
-)
+) {
+    val openingHours: String
+        get() = "${openTime ?: ""}-${closeTime ?: ""}"
+}
 
-// 座位信息
 class SeatInfo(
-    val id: String,
-    val row: Int,
-    val col: Int,
-    val status: String, // available, booked, occupied, unavailable
-    val type: String, // normal, vip
-    val pricePerHour: Double
-)
-
-// 座位图响应
-class SeatMapResponse(
-    val studyRoomId: String,
-    val rows: Int,
-    val cols: Int,
-    val seats: List<SeatInfo>
-)
-
-// 座位详情
-class SeatDetail(
-    val id: String,
-    val studyRoomId: String,
-    val row: Int,
-    val col: Int,
+    val id: Long,
+    val rowNum: Int,
+    val colNum: Int,
     val status: String,
-    val type: String,
+    val seatType: Int,
     val pricePerHour: Double,
+    val seatNumber: String? = null,
+    val hasPower: Int? = null,
+    val hasLamp: Int? = null,
+    val isWindow: Int? = null,
     val description: String? = null
-)
+) {
+    val type: String
+        get() = if (seatType == 2) "vip" else "normal"
+    val row: Int
+        get() = rowNum
+    val col: Int
+        get() = colNum
+}
+
+class SeatDetail(
+    val id: Long,
+    val roomId: Long,
+    val rowNum: Int,
+    val colNum: Int,
+    val status: String,
+    val seatType: Int,
+    val pricePerHour: Double,
+    val seatNumber: String? = null,
+    val description: String? = null
+) {
+    val studyRoomId: Long
+        get() = roomId
+    val row: Int
+        get() = rowNum
+    val col: Int
+        get() = colNum
+    val type: String
+        get() = if (seatType == 2) "vip" else "normal"
+}
