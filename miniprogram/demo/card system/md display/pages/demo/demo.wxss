@@ -1,0 +1,95 @@
+.demo-page {
+  min-height: 100vh;
+  background: #f5f7fa;
+  padding: 32rpx;
+  box-sizing: border-box;
+  padding-bottom: 120rpx;
+}
+
+.page-header {
+  margin-bottom: 32rpx;
+  padding: 32rpx;
+  background: #ffffff;
+  border-radius: 16rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
+}
+
+.page-title {
+  display: block;
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 8rpx;
+}
+
+.page-desc {
+  display: block;
+  font-size: 26rpx;
+  color: #8b9cb6;
+  margin-bottom: 16rpx;
+}
+
+.arch-tags {
+  display: flex;
+  gap: 12rpx;
+}
+
+.tag {
+  display: inline-block;
+  padding: 4rpx 16rpx;
+  border-radius: 8rpx;
+  font-size: 22rpx;
+  font-weight: 500;
+}
+
+.tag-engine {
+  background: #e8f0fe;
+  color: #4a7af5;
+}
+
+.tag-contract {
+  background: #fce4ec;
+  color: #e91e63;
+}
+
+/* Tab 栏 */
+.tab-bar {
+  display: flex;
+  margin-bottom: 24rpx;
+  background: #ffffff;
+  border-radius: 12rpx;
+  padding: 6rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+}
+
+.tab {
+  flex: 1;
+  text-align: center;
+  padding: 16rpx 0;
+  font-size: 28rpx;
+  color: #8b9cb6;
+  border-radius: 10rpx;
+  transition: all 0.2s;
+}
+
+.tab-active {
+  background: #4a7af5;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.cards-container {
+  margin-top: 8rpx;
+}
+
+/* 底部说明 */
+.page-footer {
+  margin-top: 32rpx;
+  text-align: center;
+  padding: 24rpx;
+}
+
+.footer-text {
+  font-size: 22rpx;
+  color: #b0bec5;
+}

@@ -1,4 +1,4 @@
-import { authApi, userApi, studyRoomApi, seatApi, reservationApi, checkInApi, announcementApi, ruleApi } from '../services';
+import { authApi, userApi, studyRoomApi, seatApi, reservationApi, checkInApi, announcementApi, ruleApi } from '../../services/index';
 
 Page({
   data: {

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>iStudySpot 卡片系统 - 视觉效果 Demo</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header class="page-header">
+      <h1>🎴 iStudySpot 卡片收集系统</h1>
+      <p class="subtitle">学习行为 → AI生成 → 稀有收藏</p>
+    </header>
+
+    <section class="rarity-legend">
+      <h2>稀有度图鉴</h2>
+      <div class="legend-grid">
+        <div class="legend-item rarity-N">
+          <span class="legend-dot"></span>
+          <span class="legend-name">N 白卡</span>
+          <span class="legend-desc">基础鼓励</span>
+        </div>
+        <div class="legend-item rarity-R">
+          <span class="legend-dot"></span>
+          <span class="legend-name">R 绿卡</span>
+          <span class="legend-desc">学习成长</span>
+        </div>
+        <div class="legend-item rarity-SR">
+          <span class="legend-dot"></span>
+          <span class="legend-name">SR 蓝卡</span>
+          <span class="legend-desc">思考深度</span>
+        </div>
+        <div class="legend-item rarity-SSR">
+          <span class="legend-dot"></span>
+          <span class="legend-name">SSR 紫卡</span>
+          <span class="legend-desc">哲思审美</span>
+        </div>
+        <div class="legend-item rarity-UR">
+          <span class="legend-dot"></span>
+          <span class="legend-name">UR 金卡</span>
+          <span class="legend-desc">未来史诗</span>
+        </div>
+        <div class="legend-item rarity-LR">
+          <span class="legend-dot"></span>
+          <span class="legend-name">LR 红卡</span>
+          <span class="legend-desc">隐藏主题</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="cards-showcase">
+      <h2>卡片展示</h2>
+      <div class="cards-grid" id="cardsGrid">
+      </div>
+    </section>
+
+    <section class="theme-preview">
+      <h2>主题风格预览</h2>
+      <div class="theme-categories" id="themeCategories">
+      </div>
+    </section>
+
+    <footer class="page-footer">
+      <p>📚 卡片系统 V1 Demo | 基于学习时长的游戏化收藏机制</p>
+      <p class="note">* 本 Demo 为前端视觉效果验证，使用 Mock 数据，无后端依赖</p>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

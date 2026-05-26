@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>卡片视觉效果 Demo</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="page-header">
+    <h1>卡片视觉效果演示</h1>
+    <p>六种稀有度 · 边框宣告 · 主题区隔</p>
+  </div>
+
+  <!-- 普通卡区域 -->
+  <section class="rarity-section">
+    <h2 class="section-title">普通卡</h2>
+    <p class="section-desc">边框变化 · 普通卡面 · 不改变阅读背景</p>
+    <div class="card-row">
+
+      <!-- N 白卡 -->
+      <div class="card-wrapper" data-rarity="N">
+        <div class="card">
+          <div class="card-border"></div>
+          <div class="card-image-area">
+            <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=soft%20morning%20light%20through%20window%2C%20minimalist%20study%20desk%2C%20gentle%20atmosphere%2C%20watercolor%20style&image_size=square_hd" alt="配图" class="card-image">
+            <span class="rarity-badge rarity-N">N</span>
+          </div>
+          <div class="card-body">
+            <h3 class="card-title">每一步都算数</h3>
+            <div class="card-divider"></div>
+            <p class="card-text">坚持不是天赋，而是选择。今天的努力，是明天最好的礼物。</p>
+            <div class="card-divider"></div>
+            <blockquote class="card-quote">「千里之行，始于足下。」</blockquote>
+          </div>
+          <div class="card-footer">
+            <span class="study-duration">学习 8 分钟</span>
+            <span class="card-time">2026-05-24</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- R 绿卡 -->
+      <div class="card-wrapper" data-rarity="R">
+        <div class="card">
+          <div class="card-border"></div>
+          <div class="card-image-area">
+            <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=green%20sprout%20growing%20from%20soil%2C%20soft%20sunlight%2C%20hope%20and%20growth%2C%20watercolor%20style&image_size=square_hd" alt="配图" class="card-image">
+            <span class="rarity-badge rarity-R">R</span>
+          </div>
+          <div class="card-body">
+            <h3 class="card-title">生长的力量</h3>
+            <div class="card-divider"></div>
+            <p class="card-text">学习如同种树，看不见的日子里，根在向下扎。终有一天，枝叶会触及天空。</p>
+            <div class="card-divider"></div>
+            <blockquote class="card-quote">「日拱一卒，功不唐捐。」</blockquote>
+          </div>
+          <div class="card-footer">
+            <span class="study-duration">学习 25 分钟</span>
+            <span class="card-time">2026-05-24</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- SR 蓝卡 -->
+      <div class="card-wrapper" data-rarity="SR">
+        <div class="card">
+          <div class="card-border"></div>
+          <div class="card-image-area">
+            <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=deep%20blue%20ocean%20surface%20with%20stars%20reflection%2C%20contemplative%20mood%2C%20watercolor%20style&image_size=square_hd" alt="配图" class="card-image">
+            <span class="rarity-badge rarity-SR">SR</span>
+          </div>
+          <div class="card-body">
+            <h3 class="card-title">思考的深度</h3>
+            <div class="card-divider"></div>
+            <p class="card-text">真正的理解不来自重复，而来自追问。当你开始质疑理所当然，思考才真正开始。</p>
+            <div class="card-divider"></div>
+            <blockquote class="card-quote">「未经审视的人生不值得过。」——苏格拉底</blockquote>
+          </div>
+          <div class="card-footer">
+            <span class="study-duration">学习 45 分钟</span>
+            <span class="card-time">2026-05-24</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- SSR 紫卡 -->
+      <div class="card-wrapper" data-rarity="SSR">
+        <div class="card">
+          <div class="card-border"></div>
+          <div class="card-image-area">
+            <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=purple%20aurora%20borealis%20over%20mountains%2C%20ethereal%20beauty%2C%20philosophical%20atmosphere%2C%20watercolor%20style&image_size=square_hd" alt="配图" class="card-image">
+            <span class="rarity-badge rarity-SSR">SSR</span>
+          </div>
+          <div class="card-body">
+            <h3 class="card-title">美的觉醒</h3>
+            <div class="card-divider"></div>
+            <p class="card-text">美不在远方，而在凝视的瞬间。当你停下来真正看一眼世界，万物都在发光。</p>
+            <div class="card-divider"></div>
+            <blockquote class="card-quote">「生活中不是缺少美，而是缺少发现。」——罗丹</blockquote>
+          </div>
+          <div class="card-footer">
+            <span class="study-duration">学习 90 分钟</span>
+            <span class="card-time">2026-05-24</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 特殊卡区域 -->
+  <section class="rarity-section">
+    <h2 class="section-title">特殊卡</h2>
+    <p class="section-desc">特殊卡面 · 深色/轻主题背景 · 收藏感视觉</p>
+    <div class="card-row special-row">
+
+      <!-- UR 金卡 -->
+      <div class="card-wrapper" data-rarity="UR">
+        <div class="card card-special">
+          <div class="card-border"></div>
+          <div class="card-shine"></div>
+          <div class="card-image-area">
+            <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=golden%20sunrise%20over%20futuristic%20city%20skyline%2C%20epic%20and%20majestic%2C%20digital%20art&image_size=square_hd" alt="配图" class="card-image">
+            <span class="rarity-badge rarity-UR">UR</span>
+          </div>
+          <div class="card-body">
+            <h3 class="card-title">未来的回响</h3>
+            <div class="card-divider"></div>
+            <p class="card-text">每一个深夜的坚持，都是写给未来自己的信。当时代翻开新页，你会发现——你早已站在那里。</p>
+            <div class="card-divider"></div>
+            <blockquote class="card-quote">「未来属于那些相信梦想之美的人。」——埃莉诺·罗斯福</blockquote>
+          </div>
+          <div class="card-footer">
+            <span class="study-duration">学习 150 分钟</span>
+            <span class="card-time">2026-05-24</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- LR 红卡 -->
+      <div class="card-wrapper" data-rarity="LR">
+        <div class="card card-special card-legendary">
+          <div class="card-border"></div>
+          <div class="card-shine"></div>
+          <div class="card-texture"></div>
+          <div class="card-image-area">
+            <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=cosmic%20red%20nebula%20with%20ancient%20mythological%20symbols%2C%20surreal%20dreamscape%2C%20epic%20cosmic%20poetry%2C%20digital%20art%20masterpiece&image_size=square_hd" alt="配图" class="card-image">
+            <span class="rarity-badge rarity-LR">LR</span>
+          </div>
+          <div class="card-body">
+            <h3 class="card-title">星辰的低语</h3>
+            <div class="card-divider"></div>
+            <p class="card-text">在宇宙的尺度上，你的一生不过一瞬。但正是这一瞬，让星辰有了被看见的意义。你与光同源。</p>
+            <div class="card-divider"></div>
+            <blockquote class="card-quote">「我们都是星尘，终将回归星海。」</blockquote>
+          </div>
+          <div class="card-footer">
+            <span class="study-duration">学习 240 分钟</span>
+            <span class="card-time">2026-05-24</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 稀有度对照表 -->
+  <section class="rarity-section">
+    <h2 class="section-title">稀有度对照</h2>
+    <div class="rarity-table">
+      <div class="rarity-row" data-rarity="N">
+        <span class="rarity-dot dot-N"></span>
+        <span class="rarity-label">N 白</span>
+        <span class="rarity-desc">基础鼓励</span>
+      </div>
+      <div class="rarity-row" data-rarity="R">
+        <span class="rarity-dot dot-R"></span>
+        <span class="rarity-label">R 绿</span>
+        <span class="rarity-desc">学习成长</span>
+      </div>
+      <div class="rarity-row" data-rarity="SR">
+        <span class="rarity-dot dot-SR"></span>
+        <span class="rarity-label">SR 蓝</span>
+        <span class="rarity-desc">思考</span>
+      </div>
+      <div class="rarity-row" data-rarity="SSR">
+        <span class="rarity-dot dot-SSR"></span>
+        <span class="rarity-label">SSR 紫</span>
+        <span class="rarity-desc">哲思与审美</span>
+      </div>
+      <div class="rarity-row" data-rarity="UR">
+        <span class="rarity-dot dot-UR"></span>
+        <span class="rarity-label">UR 金</span>
+        <span class="rarity-desc">未来 / 史诗</span>
+      </div>
+      <div class="rarity-row" data-rarity="LR">
+        <span class="rarity-dot dot-LR"></span>
+        <span class="rarity-label">LR 红</span>
+        <span class="rarity-desc">隐藏主题</span>
+      </div>
+    </div>
+  </section>
+
+  <script src="script.js"></script>
+</body>
+</html>

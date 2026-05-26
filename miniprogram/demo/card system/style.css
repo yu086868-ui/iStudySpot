@@ -1,0 +1,557 @@
+/* ===== 基础重置 ===== */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  /* 稀有度色板 */
+  --color-N: #b0b0b0;
+  --color-N-light: #d4d4d4;
+  --color-R: #4caf50;
+  --color-R-light: #81c784;
+  --color-SR: #42a5f5;
+  --color-SR-light: #90caf9;
+  --color-SSR: #ab47bc;
+  --color-SSR-light: #ce93d8;
+  --color-UR: #c9a84c;
+  --color-UR-light: #e8d48b;
+  --color-UR-dark: #8b6914;
+  --color-LR: #e53935;
+  --color-LR-light: #ef5350;
+  --color-LR-dark: #8b0000;
+
+  /* 卡片通用 */
+  --card-width: 260px;
+  --card-radius: 12px;
+  --card-bg: #fefefe;
+  --card-text: #2c2c2c;
+  --card-text-secondary: #666;
+  --border-width: 3px;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: #0f0f13;
+  color: #e0e0e0;
+  min-height: 100vh;
+  padding: 40px 20px;
+}
+
+/* ===== 页面头部 ===== */
+.page-header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.page-header h1 {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.page-header p {
+  font-size: 14px;
+  color: #888;
+  letter-spacing: 4px;
+}
+
+/* ===== 区域标题 ===== */
+.rarity-section {
+  max-width: 1200px;
+  margin: 0 auto 56px;
+}
+
+.section-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #ccc;
+  margin-bottom: 4px;
+  padding-left: 4px;
+}
+
+.section-desc {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 24px;
+  padding-left: 4px;
+}
+
+/* ===== 卡片行 ===== */
+.card-row {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.special-row {
+  justify-content: center;
+}
+
+/* ===== 卡片容器 ===== */
+.card-wrapper {
+  perspective: 800px;
+}
+
+.card {
+  position: relative;
+  width: var(--card-width);
+  border-radius: var(--card-radius);
+  background: var(--card-bg);
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+}
+
+.card:hover {
+  transform: translateY(-6px);
+}
+
+/* ===== 卡片边框层 ===== */
+.card-border {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--card-radius);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ===== 稀有度边框 ===== */
+
+/* N 白 */
+[data-rarity="N"] .card-border {
+  border: var(--border-width) solid var(--color-N);
+}
+
+[data-rarity="N"] .card {
+  box-shadow: 0 2px 8px rgba(176, 176, 176, 0.15);
+}
+[data-rarity="N"] .card:hover {
+  box-shadow: 0 8px 24px rgba(176, 176, 176, 0.25);
+}
+
+/* R 绿 */
+[data-rarity="R"] .card-border {
+  border: var(--border-width) solid var(--color-R);
+}
+
+[data-rarity="R"] .card {
+  box-shadow: 0 2px 12px rgba(76, 175, 80, 0.2);
+}
+[data-rarity="R"] .card:hover {
+  box-shadow: 0 8px 28px rgba(76, 175, 80, 0.35);
+}
+
+/* SR 蓝 */
+[data-rarity="SR"] .card-border {
+  border: var(--border-width) solid var(--color-SR);
+}
+
+[data-rarity="SR"] .card {
+  box-shadow: 0 2px 12px rgba(66, 165, 245, 0.25);
+}
+[data-rarity="SR"] .card:hover {
+  box-shadow: 0 8px 28px rgba(66, 165, 245, 0.4);
+}
+
+/* SSR 紫 */
+[data-rarity="SSR"] .card-border {
+  border: var(--border-width) solid var(--color-SSR);
+  box-shadow: inset 0 0 12px rgba(171, 71, 188, 0.15);
+}
+
+[data-rarity="SSR"] .card {
+  box-shadow: 0 2px 16px rgba(171, 71, 188, 0.3);
+}
+[data-rarity="SSR"] .card:hover {
+  box-shadow: 0 8px 32px rgba(171, 71, 188, 0.5);
+}
+
+/* UR 金 */
+[data-rarity="UR"] .card-border {
+  border: var(--border-width) solid transparent;
+  background: linear-gradient(135deg, #c9a84c, #f0d78c, #c9a84c, #a07c1c) border-box;
+  -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+[data-rarity="UR"] .card {
+  background: linear-gradient(160deg, #1a1710, #2a2418, #1a1710);
+  box-shadow: 0 4px 20px rgba(201, 168, 76, 0.35);
+}
+[data-rarity="UR"] .card:hover {
+  box-shadow: 0 12px 40px rgba(201, 168, 76, 0.55);
+}
+
+/* UR 金卡文字颜色 */
+[data-rarity="UR"] .card-title {
+  color: var(--color-UR-light);
+}
+[data-rarity="UR"] .card-text {
+  color: #c8c0a8;
+}
+[data-rarity="UR"] .card-quote {
+  color: var(--color-UR);
+  border-left-color: var(--color-UR);
+}
+[data-rarity="UR"] .card-footer {
+  color: #8a7a5a;
+  border-top-color: rgba(201, 168, 76, 0.2);
+}
+[data-rarity="UR"] .card-divider {
+  background: linear-gradient(90deg, transparent, rgba(201, 168, 76, 0.3), transparent);
+}
+
+/* LR 红 */
+[data-rarity="LR"] .card-border {
+  border: var(--border-width) solid transparent;
+  background: linear-gradient(135deg, #e53935, #ff6f61, #e53935, #8b0000) border-box;
+  -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+[data-rarity="LR"] .card {
+  background: linear-gradient(160deg, #1a0a0a, #2a1010, #1a0808);
+  box-shadow: 0 4px 24px rgba(229, 57, 53, 0.4);
+}
+[data-rarity="LR"] .card:hover {
+  box-shadow: 0 12px 48px rgba(229, 57, 53, 0.6);
+}
+
+/* LR 红卡文字颜色 */
+[data-rarity="LR"] .card-title {
+  color: #f5c6c4;
+}
+[data-rarity="LR"] .card-text {
+  color: #c8a8a6;
+}
+[data-rarity="LR"] .card-quote {
+  color: var(--color-LR-light);
+  border-left-color: var(--color-LR);
+}
+[data-rarity="LR"] .card-footer {
+  color: #8a5a5a;
+  border-top-color: rgba(229, 57, 53, 0.2);
+}
+[data-rarity="LR"] .card-divider {
+  background: linear-gradient(90deg, transparent, rgba(229, 57, 53, 0.3), transparent);
+}
+
+/* ===== 红卡纹理 ===== */
+.card-texture {
+  display: none;
+}
+
+[data-rarity="LR"] .card-texture {
+  display: block;
+  position: absolute;
+  inset: 0;
+  border-radius: var(--card-radius);
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.06;
+  background-image:
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 10px,
+      rgba(255, 255, 255, 0.08) 10px,
+      rgba(255, 255, 255, 0.08) 11px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 10px,
+      rgba(255, 255, 255, 0.05) 10px,
+      rgba(255, 255, 255, 0.05) 11px
+    );
+}
+
+/* ===== 光效层 ===== */
+.card-shine {
+  display: none;
+  position: absolute;
+  inset: 0;
+  border-radius: var(--card-radius);
+  pointer-events: none;
+  z-index: 3;
+  overflow: hidden;
+}
+
+[data-rarity="UR"] .card-shine,
+[data-rarity="LR"] .card-shine {
+  display: block;
+}
+
+.card-shine::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    ellipse at 30% 20%,
+    rgba(255, 255, 255, 0.12) 0%,
+    transparent 50%
+  );
+  transition: opacity 0.3s;
+  opacity: 0;
+}
+
+.card:hover .card-shine::after {
+  opacity: 1;
+}
+
+/* ===== 卡片图片区域 ===== */
+.card-image-area {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+}
+
+.card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ===== 稀有度徽章 ===== */
+.rarity-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  z-index: 4;
+  backdrop-filter: blur(4px);
+}
+
+.rarity-N {
+  background: rgba(176, 176, 176, 0.85);
+  color: #fff;
+}
+
+.rarity-R {
+  background: rgba(76, 175, 80, 0.85);
+  color: #fff;
+}
+
+.rarity-SR {
+  background: rgba(66, 165, 245, 0.85);
+  color: #fff;
+}
+
+.rarity-SSR {
+  background: rgba(171, 71, 188, 0.85);
+  color: #fff;
+}
+
+.rarity-UR {
+  background: linear-gradient(135deg, #c9a84c, #f0d78c);
+  color: #3a2a00;
+}
+
+.rarity-LR {
+  background: linear-gradient(135deg, #e53935, #ff6f61);
+  color: #fff;
+  animation: lr-pulse 2s ease-in-out infinite;
+}
+
+@keyframes lr-pulse {
+  0%, 100% { box-shadow: 0 0 6px rgba(229, 57, 53, 0.4); }
+  50% { box-shadow: 0 0 14px rgba(229, 57, 53, 0.7); }
+}
+
+/* ===== 卡片内容区 ===== */
+.card-body {
+  padding: 16px 18px;
+}
+
+.card-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--card-text);
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+.card-divider {
+  height: 1px;
+  margin: 10px 0;
+  background: linear-gradient(90deg, transparent, #e0e0e0, transparent);
+}
+
+.card-text {
+  font-size: 13px;
+  line-height: 1.7;
+  color: #555;
+}
+
+.card-quote {
+  display: block;
+  margin: 0;
+  padding: 8px 0 0 12px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #888;
+  border-left: 3px solid #ccc;
+  font-style: italic;
+}
+
+/* ===== 卡片底部 ===== */
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 18px;
+  font-size: 11px;
+  color: #999;
+  border-top: 1px solid #f0f0f0;
+}
+
+.study-duration {
+  font-weight: 500;
+}
+
+/* ===== 稀有度对照表 ===== */
+.rarity-table {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
+.rarity-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.rarity-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.dot-N { background: var(--color-N); }
+.dot-R { background: var(--color-R); }
+.dot-SR { background: var(--color-SR); }
+.dot-SSR { background: var(--color-SSR); }
+.dot-UR { background: var(--color-UR); }
+.dot-LR { background: var(--color-LR); }
+
+.rarity-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ccc;
+}
+
+.rarity-desc {
+  font-size: 12px;
+  color: #777;
+}
+
+/* ===== SSR 紫卡微光动画 ===== */
+[data-rarity="SSR"] .card-border {
+  animation: ssr-glow 3s ease-in-out infinite;
+}
+
+@keyframes ssr-glow {
+  0%, 100% { box-shadow: inset 0 0 12px rgba(171, 71, 188, 0.15); }
+  50% { box-shadow: inset 0 0 20px rgba(171, 71, 188, 0.3); }
+}
+
+/* ===== UR 金卡流光动画 ===== */
+[data-rarity="UR"] .card-border::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 40%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.15),
+    transparent
+  );
+  transform: rotate(25deg);
+  animation: ur-sweep 4s ease-in-out infinite;
+}
+
+@keyframes ur-sweep {
+  0% { transform: rotate(25deg) translateX(-200%); }
+  40%, 100% { transform: rotate(25deg) translateX(400%); }
+}
+
+/* ===== LR 红卡呼吸光效 ===== */
+[data-rarity="LR"] .card-border::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 40%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 200, 200, 0.12),
+    transparent
+  );
+  transform: rotate(25deg);
+  animation: lr-sweep 3.5s ease-in-out infinite;
+}
+
+@keyframes lr-sweep {
+  0% { transform: rotate(25deg) translateX(-200%); }
+  35%, 100% { transform: rotate(25deg) translateX(400%); }
+}
+
+[data-rarity="LR"] .card {
+  animation: lr-breathe 3s ease-in-out infinite;
+}
+
+@keyframes lr-breathe {
+  0%, 100% { box-shadow: 0 4px 24px rgba(229, 57, 53, 0.4); }
+  50% { box-shadow: 0 4px 36px rgba(229, 57, 53, 0.6); }
+}
+
+/* ===== 响应式 ===== */
+@media (max-width: 600px) {
+  :root {
+    --card-width: 220px;
+  }
+
+  .card-row {
+    gap: 16px;
+  }
+
+  .page-header h1 {
+    font-size: 22px;
+  }
+}
