@@ -16,9 +16,9 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.scylier.istudyspot"
+        applicationId = "com.example.scyiler.istudyspot"
         minSdk = 24
-        targetSdk = 36
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
@@ -34,12 +34,12 @@ android {
             buildConfigField(
                 "String",
                 "BASE_URL",
-                "\"http://10.0.2.2:8080/\""
+                "\"https://frp-six.com:37379/\""
             )
             buildConfigField(
                 "Boolean",
                 "USE_MOCK",
-                "true"
+                "false"
             )
         }
 
@@ -54,7 +54,7 @@ android {
             buildConfigField(
                 "String",
                 "BASE_URL",
-                "\"https://api.yourdomain.com/\""
+                "\"https://frp-six.com:37379/\""
             )
             buildConfigField(
                 "Boolean",

@@ -49,19 +49,19 @@ class StudyRecordViewModel(private val repository: MainRepository = MainReposito
                 var avgDuration = 0.0
                 var favSeat = ""
                 var peak = ""
+                var apiSuccess = false
 
                 when (val response = repository.getCheckinRecords()) {
                     is ApiResponse.Success -> {
+                        apiSuccess = true
                         val data = response.data
-                        @Suppress("UNCHECKED_CAST")
-                        val records = (data["records"] as? List<Map<String, Any?>>) ?: emptyList()
-                        totalHours = (data["totalHours"] as? Number)?.toInt() ?: records.size * 3
+                        totalHours = (data["totalHours"] as? Number)?.toInt() ?: 0
                         streak = (data["streak"] as? Number)?.toInt() ?: 0
-                        avgDuration = (data["avgDuration"] as? Number)?.toDouble() ?: 3.5
+                        avgDuration = (data["avgDuration"] as? Number)?.toDouble() ?: 0.0
                         favSeat = (data["favoriteSeat"] as? String) ?: ""
                         peak = (data["peakTime"] as? String) ?: ""
-                        weekHours = (data["weekHours"] as? Number)?.toInt() ?: 24
-                        monthHours = (data["monthHours"] as? Number)?.toInt() ?: 96
+                        weekHours = (data["weekHours"] as? Number)?.toInt() ?: 0
+                        monthHours = (data["monthHours"] as? Number)?.toInt() ?: 0
                     }
                     is ApiResponse.Error -> {}
                 }
@@ -73,7 +73,7 @@ class StudyRecordViewModel(private val repository: MainRepository = MainReposito
                     is ApiResponse.Error -> {}
                 }
 
-                if (totalHours > 0 && weekHours > 0) {
+                if (apiSuccess) {
                     _state.value = StudyRecordUiState(
                         weekStudyHours = weekHours,
                         monthStudyHours = monthHours,

@@ -1,15 +1,15 @@
 package com.ycyu.istudyspotbackend.controller;
 
 import com.ycyu.istudyspotbackend.entity.Character;
+import com.ycyu.istudyspotbackend.entity.Result;
 import com.ycyu.istudyspotbackend.service.AIService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api")
@@ -20,37 +20,33 @@ public class AIController {
 
     // 获取角色列表
     @GetMapping("/characters")
-    public ResponseEntity<List<Character>> getCharacters() {
+    public Result<List<Character>> getCharacters() {
         List<Character> characters = aiService.getCharacters();
-        return ResponseEntity.ok(characters);
+        return Result.success(characters);
     }
 
     // 非流式聊天
     @PostMapping("/chat")
-    public ResponseEntity<?> chat(@RequestBody Map<String, String> request) {
+    public Result<?> chat(@RequestBody Map<String, String> request) {
         try {
             String sessionId = request.get("session_id");
+            if (sessionId == null || sessionId.isEmpty()) {
+                sessionId = UUID.randomUUID().toString();
+            }
             String characterId = request.get("character_id");
+            if (characterId == null || characterId.isEmpty()) {
+                characterId = "customer_service";
+            }
             String message = request.get("message");
 
-            // 验证参数
-            if (sessionId == null || sessionId.isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("error", "EMPTY_SESSION_ID"));
-            }
-            if (characterId == null || characterId.isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("error", "EMPTY_CHARACTER_ID"));
-            }
             if (message == null || message.isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("error", "EMPTY_MESSAGE"));
+                return Result.error(400, "EMPTY_MESSAGE");
             }
 
-            // 调用服务
             String reply = aiService.chat(sessionId, characterId, message);
-            return ResponseEntity.ok(Map.of("reply", reply));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", "INVALID_CHARACTER"));
+            return Result.success(Map.of("reply", reply, "session_id", sessionId));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "INTERNAL_ERROR"));
+            return Result.error(500, "INTERNAL_ERROR");
         }
     }
 
@@ -59,16 +55,12 @@ public class AIController {
     public SseEmitter streamChat(@RequestBody Map<String, String> request) {
         try {
             String sessionId = request.get("session_id");
+            if (sessionId == null || sessionId.isEmpty()) {
+                sessionId = UUID.randomUUID().toString();
+            }
             String characterId = request.get("character_id");
             String message = request.get("message");
 
-            // 验证参数
-            if (sessionId == null || sessionId.isEmpty()) {
-                SseEmitter emitter = new SseEmitter();
-                emitter.send(SseEmitter.event().data("{\"type\": \"error\", \"message\": \"EMPTY_SESSION_ID\"}"));
-                emitter.complete();
-                return emitter;
-            }
             if (characterId == null || characterId.isEmpty()) {
                 SseEmitter emitter = new SseEmitter();
                 emitter.send(SseEmitter.event().data("{\"type\": \"error\", \"message\": \"EMPTY_CHARACTER_ID\"}"));

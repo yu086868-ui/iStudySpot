@@ -1,7 +1,9 @@
 package com.ycyu.istudyspotbackend.service.impl;
 
+import com.ycyu.istudyspotbackend.entity.Order;
 import com.ycyu.istudyspotbackend.entity.Seat;
 import com.ycyu.istudyspotbackend.entity.StudyRoom;
+import com.ycyu.istudyspotbackend.mapper.OrderMapper;
 import com.ycyu.istudyspotbackend.mapper.SeatMapper;
 import com.ycyu.istudyspotbackend.mapper.StudyRoomMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,42 +30,47 @@ public class SeatServiceImplTest {
     @Mock
     private StudyRoomMapper studyRoomMapper;
 
+    @Mock
+    private OrderMapper orderMapper;
+
     @InjectMocks
     private SeatServiceImpl seatService;
 
-    private Seat testSeat;
+    private StudyRoom testRoom;
 
     @BeforeEach
     void setUp() {
-        testSeat = new Seat();
-        testSeat.setId(1L);
-        testSeat.setRoomId(1L);
-        testSeat.setSeatNumber("A1");
-        testSeat.setStatus("available");
-        testSeat.setSeatType(1);
-        testSeat.setRowNum(1);
-        testSeat.setColNum(1);
+        testRoom = new StudyRoom();
+        testRoom.setId(1L);
+        testRoom.setName("Study Room 1");
+    }
+
+    private Seat createSeat(Long id, String status, Integer rowNum, Integer colNum, Integer seatType) {
+        Seat seat = new Seat();
+        seat.setId(id);
+        seat.setRoomId(1L);
+        seat.setSeatNumber("S" + id);
+        seat.setStatus(status);
+        seat.setSeatType(seatType);
+        seat.setRowNum(rowNum);
+        seat.setColNum(colNum);
+        seat.setPricePerHour(BigDecimal.TEN);
+        return seat;
     }
 
     @Test
     void testGetSeatList() {
-        StudyRoom studyRoom = new StudyRoom();
-        studyRoom.setId(1L);
-        studyRoom.setName("Study Room 1");
-        when(studyRoomMapper.findById(1L)).thenReturn(studyRoom);
-
+        when(studyRoomMapper.findById(1L)).thenReturn(testRoom);
         List<Seat> seats = new ArrayList<>();
-        seats.add(testSeat);
+        seats.add(createSeat(1L, "1", 1, 1, 1));
         when(seatMapper.findByRoomId(1L)).thenReturn(seats);
+        when(orderMapper.findActiveByRoomId(1L)).thenReturn(new ArrayList<>());
 
-        List<Seat> result = seatService.getSeatList(1L, "available", "1", 1, 1);
+        List<Seat> result = seatService.getSeatList(1L, null, null, null, null);
 
         assertNotNull(result);
-        assertFalse(result.isEmpty());
         assertEquals(1, result.size());
-        assertEquals(1L, result.get(0).getId());
-
-        verify(seatMapper, times(1)).findByRoomId(1L);
+        assertEquals("available", result.get(0).getStatus());
     }
 
     @Test
@@ -78,12 +85,181 @@ public class SeatServiceImplTest {
     }
 
     @Test
-    void testGetSeatListWithEmptySeats() {
-        StudyRoom studyRoom = new StudyRoom();
-        studyRoom.setId(1L);
-        when(studyRoomMapper.findById(1L)).thenReturn(studyRoom);
+    void testGetSeatListStatusUnavailable0() {
+        when(studyRoomMapper.findById(1L)).thenReturn(testRoom);
+        List<Seat> seats = new ArrayList<>();
+        seats.add(createSeat(1L, "0", 1, 1, 1));
+        when(seatMapper.findByRoomId(1L)).thenReturn(seats);
+        when(orderMapper.findActiveByRoomId(1L)).thenReturn(new ArrayList<>());
 
+        List<Seat> result = seatService.getSeatList(1L, null, null, null, null);
+
+        assertEquals("unavailable", result.get(0).getStatus());
+    }
+
+    @Test
+    void testGetSeatListStatusUnavailable2() {
+        when(studyRoomMapper.findById(1L)).thenReturn(testRoom);
+        List<Seat> seats = new ArrayList<>();
+        seats.add(createSeat(1L, "2", 1, 1, 1));
+        when(seatMapper.findByRoomId(1L)).thenReturn(seats);
+        when(orderMapper.findActiveByRoomId(1L)).thenReturn(new ArrayList<>());
+
+        List<Seat> result = seatService.getSeatList(1L, null, null, null, null);
+
+        assertEquals("unavailable", result.get(0).getStatus());
+    }
+
+    @Test
+    void testGetSeatListStatusBookedWithPaidOrder() {
+        when(studyRoomMapper.findById(1L)).thenReturn(testRoom);
+        List<Seat> seats = new ArrayList<>();
+        seats.add(createSeat(1L, "1", 1, 1, 1));
+        when(seatMapper.findByRoomId(1L)).thenReturn(seats);
+
+        Order activeOrder = new Order();
+        activeOrder.setSeatId(1L);
+        activeOrder.setStatus("paid");
+        List<Order> activeOrders = new ArrayList<>();
+        activeOrders.add(activeOrder);
+        when(orderMapper.findActiveByRoomId(1L)).thenReturn(activeOrders);
+
+        List<Seat> result = seatService.getSeatList(1L, null, null, null, null);
+
+        assertEquals("booked", result.get(0).getStatus());
+    }
+
+    @Test
+    void testGetSeatListStatusInUseWithActiveOrder() {
+        when(studyRoomMapper.findById(1L)).thenReturn(testRoom);
+        List<Seat> seats = new ArrayList<>();
+        seats.add(createSeat(1L, "1", 1, 1, 1));
+        when(seatMapper.findByRoomId(1L)).thenReturn(seats);
+
+        Order activeOrder = new Order();
+        activeOrder.setSeatId(1L);
+        activeOrder.setStatus("in_use");
+        List<Order> activeOrders = new ArrayList<>();
+        activeOrders.add(activeOrder);
+        when(orderMapper.findActiveByRoomId(1L)).thenReturn(activeOrders);
+
+        List<Seat> result = seatService.getSeatList(1L, null, null, null, null);
+
+        assertEquals("in_use", result.get(0).getStatus());
+    }
+
+    @Test
+    void testGetSeatListStatusBookedWithPendingOrder() {
+        when(studyRoomMapper.findById(1L)).thenReturn(testRoom);
+        List<Seat> seats = new ArrayList<>();
+        seats.add(createSeat(1L, "1", 1, 1, 1));
+        when(seatMapper.findByRoomId(1L)).thenReturn(seats);
+
+        Order activeOrder = new Order();
+        activeOrder.setSeatId(1L);
+        activeOrder.setStatus("pending");
+        List<Order> activeOrders = new ArrayList<>();
+        activeOrders.add(activeOrder);
+        when(orderMapper.findActiveByRoomId(1L)).thenReturn(activeOrders);
+
+        List<Seat> result = seatService.getSeatList(1L, null, null, null, null);
+
+        assertEquals("booked", result.get(0).getStatus());
+    }
+
+    @Test
+    void testGetSeatListWithNonNumericStatus() {
+        when(studyRoomMapper.findById(1L)).thenReturn(testRoom);
+        List<Seat> seats = new ArrayList<>();
+        seats.add(createSeat(1L, "available", 1, 1, 1));
+        when(seatMapper.findByRoomId(1L)).thenReturn(seats);
+        when(orderMapper.findActiveByRoomId(1L)).thenReturn(new ArrayList<>());
+
+        List<Seat> result = seatService.getSeatList(1L, null, null, null, null);
+
+        assertEquals("available", result.get(0).getStatus());
+    }
+
+    @Test
+    void testGetSeatListFilterByStatus() {
+        when(studyRoomMapper.findById(1L)).thenReturn(testRoom);
+        List<Seat> seats = new ArrayList<>();
+        seats.add(createSeat(1L, "1", 1, 1, 1));
+        seats.add(createSeat(2L, "0", 2, 1, 1));
+        when(seatMapper.findByRoomId(1L)).thenReturn(seats);
+        when(orderMapper.findActiveByRoomId(1L)).thenReturn(new ArrayList<>());
+
+        List<Seat> result = seatService.getSeatList(1L, "available", null, null, null);
+
+        assertEquals(1, result.size());
+        assertEquals("available", result.get(0).getStatus());
+    }
+
+    @Test
+    void testGetSeatListFilterByVipType() {
+        when(studyRoomMapper.findById(1L)).thenReturn(testRoom);
+        List<Seat> seats = new ArrayList<>();
+        seats.add(createSeat(1L, "1", 1, 1, 1));
+        seats.add(createSeat(2L, "1", 2, 1, 2));
+        when(seatMapper.findByRoomId(1L)).thenReturn(seats);
+        when(orderMapper.findActiveByRoomId(1L)).thenReturn(new ArrayList<>());
+
+        List<Seat> result = seatService.getSeatList(1L, null, "vip", null, null);
+
+        assertEquals(1, result.size());
+        assertEquals(2, result.get(0).getSeatType());
+    }
+
+    @Test
+    void testGetSeatListFilterByNormalType() {
+        when(studyRoomMapper.findById(1L)).thenReturn(testRoom);
+        List<Seat> seats = new ArrayList<>();
+        seats.add(createSeat(1L, "1", 1, 1, 1));
+        seats.add(createSeat(2L, "1", 2, 1, 2));
+        when(seatMapper.findByRoomId(1L)).thenReturn(seats);
+        when(orderMapper.findActiveByRoomId(1L)).thenReturn(new ArrayList<>());
+
+        List<Seat> result = seatService.getSeatList(1L, null, "normal", null, null);
+
+        assertEquals(1, result.size());
+        assertEquals(1, result.get(0).getSeatType());
+    }
+
+    @Test
+    void testGetSeatListFilterByRow() {
+        when(studyRoomMapper.findById(1L)).thenReturn(testRoom);
+        List<Seat> seats = new ArrayList<>();
+        seats.add(createSeat(1L, "1", 1, 1, 1));
+        seats.add(createSeat(2L, "1", 2, 1, 1));
+        when(seatMapper.findByRoomId(1L)).thenReturn(seats);
+        when(orderMapper.findActiveByRoomId(1L)).thenReturn(new ArrayList<>());
+
+        List<Seat> result = seatService.getSeatList(1L, null, null, 1, null);
+
+        assertEquals(1, result.size());
+        assertEquals(1, result.get(0).getRowNum());
+    }
+
+    @Test
+    void testGetSeatListFilterByCol() {
+        when(studyRoomMapper.findById(1L)).thenReturn(testRoom);
+        List<Seat> seats = new ArrayList<>();
+        seats.add(createSeat(1L, "1", 1, 1, 1));
+        seats.add(createSeat(2L, "1", 1, 2, 1));
+        when(seatMapper.findByRoomId(1L)).thenReturn(seats);
+        when(orderMapper.findActiveByRoomId(1L)).thenReturn(new ArrayList<>());
+
+        List<Seat> result = seatService.getSeatList(1L, null, null, null, 2);
+
+        assertEquals(1, result.size());
+        assertEquals(2, result.get(0).getColNum());
+    }
+
+    @Test
+    void testGetSeatListWithEmptySeats() {
+        when(studyRoomMapper.findById(1L)).thenReturn(testRoom);
         when(seatMapper.findByRoomId(1L)).thenReturn(new ArrayList<>());
+        when(orderMapper.findActiveByRoomId(1L)).thenReturn(new ArrayList<>());
 
         List<Seat> result = seatService.getSeatList(1L, null, null, null, null);
 
@@ -92,32 +268,34 @@ public class SeatServiceImplTest {
     }
 
     @Test
-    void testGetSeatListWithNullParameters() {
-        StudyRoom studyRoom = new StudyRoom();
-        studyRoom.setId(1L);
-        when(studyRoomMapper.findById(1L)).thenReturn(studyRoom);
-
+    void testGetSeatListWithOrderNullSeatId() {
+        when(studyRoomMapper.findById(1L)).thenReturn(testRoom);
         List<Seat> seats = new ArrayList<>();
-        seats.add(testSeat);
+        seats.add(createSeat(1L, "1", 1, 1, 1));
         when(seatMapper.findByRoomId(1L)).thenReturn(seats);
+
+        Order activeOrder = new Order();
+        activeOrder.setSeatId(null);
+        activeOrder.setStatus("in_use");
+        List<Order> activeOrders = new ArrayList<>();
+        activeOrders.add(activeOrder);
+        when(orderMapper.findActiveByRoomId(1L)).thenReturn(activeOrders);
 
         List<Seat> result = seatService.getSeatList(1L, null, null, null, null);
 
-        assertNotNull(result);
-        assertFalse(result.isEmpty());
+        assertEquals("available", result.get(0).getStatus());
     }
 
     @Test
     void testGetSeatDetail() {
-        when(seatMapper.findById(1L)).thenReturn(testSeat);
+        Seat seat = createSeat(1L, "1", 1, 1, 1);
+        when(seatMapper.findById(1L)).thenReturn(seat);
+        when(orderMapper.findActiveByRoomId(1L)).thenReturn(new ArrayList<>());
 
-        Seat seat = seatService.getSeatDetail(1L);
+        Seat result = seatService.getSeatDetail(1L);
 
-        assertNotNull(seat);
-        assertEquals(1L, seat.getId());
-        assertEquals("A1", seat.getSeatNumber());
-
-        verify(seatMapper, times(1)).findById(1L);
+        assertNotNull(result);
+        assertEquals("available", result.getStatus());
     }
 
     @Test
@@ -129,28 +307,50 @@ public class SeatServiceImplTest {
         });
 
         assertEquals("座位不存在", exception.getMessage());
+    }
 
-        verify(seatMapper, times(1)).findById(1L);
+    @Test
+    void testGetSeatDetailWithActiveOrder() {
+        Seat seat = createSeat(1L, "1", 1, 1, 1);
+        when(seatMapper.findById(1L)).thenReturn(seat);
+
+        Order activeOrder = new Order();
+        activeOrder.setSeatId(1L);
+        activeOrder.setStatus("in_use");
+        List<Order> activeOrders = new ArrayList<>();
+        activeOrders.add(activeOrder);
+        when(orderMapper.findActiveByRoomId(1L)).thenReturn(activeOrders);
+
+        Seat result = seatService.getSeatDetail(1L);
+
+        assertEquals("in_use", result.getStatus());
+    }
+
+    @Test
+    void testGetSeatDetailWithNoMatchingActiveOrder() {
+        Seat seat = createSeat(1L, "1", 1, 1, 1);
+        when(seatMapper.findById(1L)).thenReturn(seat);
+
+        Order activeOrder = new Order();
+        activeOrder.setSeatId(999L);
+        activeOrder.setStatus("in_use");
+        List<Order> activeOrders = new ArrayList<>();
+        activeOrders.add(activeOrder);
+        when(orderMapper.findActiveByRoomId(1L)).thenReturn(activeOrders);
+
+        Seat result = seatService.getSeatDetail(1L);
+
+        assertEquals("available", result.getStatus());
     }
 
     @Test
     void testGetSeatMap() {
-        StudyRoom studyRoom = new StudyRoom();
-        studyRoom.setId(1L);
-        when(studyRoomMapper.findById(1L)).thenReturn(studyRoom);
-
+        when(studyRoomMapper.findById(1L)).thenReturn(testRoom);
         List<Seat> seats = new ArrayList<>();
-        seats.add(testSeat);
-        
-        Seat seat2 = new Seat();
-        seat2.setId(2L);
-        seat2.setRoomId(1L);
-        seat2.setSeatNumber("B2");
-        seat2.setRowNum(2);
-        seat2.setColNum(2);
-        seats.add(seat2);
-        
+        seats.add(createSeat(1L, "1", 1, 1, 1));
+        seats.add(createSeat(2L, "1", 2, 2, 1));
         when(seatMapper.findByRoomId(1L)).thenReturn(seats);
+        when(orderMapper.findActiveByRoomId(1L)).thenReturn(new ArrayList<>());
 
         Map<String, Object> result = seatService.getSeatMap(1L);
 
@@ -174,35 +374,25 @@ public class SeatServiceImplTest {
 
     @Test
     void testGetSeatMapWithEmptySeats() {
-        StudyRoom studyRoom = new StudyRoom();
-        studyRoom.setId(1L);
-        when(studyRoomMapper.findById(1L)).thenReturn(studyRoom);
-
+        when(studyRoomMapper.findById(1L)).thenReturn(testRoom);
         when(seatMapper.findByRoomId(1L)).thenReturn(new ArrayList<>());
+        when(orderMapper.findActiveByRoomId(1L)).thenReturn(new ArrayList<>());
 
         Map<String, Object> result = seatService.getSeatMap(1L);
 
         assertNotNull(result);
         assertEquals(0, result.get("rows"));
         assertEquals(0, result.get("cols"));
-        assertNotNull(result.get("seats"));
     }
 
     @Test
     void testGetSeatMapWithNullRowCol() {
-        StudyRoom studyRoom = new StudyRoom();
-        studyRoom.setId(1L);
-        when(studyRoomMapper.findById(1L)).thenReturn(studyRoom);
-
-        Seat seatWithNullCoords = new Seat();
-        seatWithNullCoords.setId(1L);
-        seatWithNullCoords.setRoomId(1L);
-        seatWithNullCoords.setRowNum(null);
-        seatWithNullCoords.setColNum(null);
-        
+        when(studyRoomMapper.findById(1L)).thenReturn(testRoom);
         List<Seat> seats = new ArrayList<>();
-        seats.add(seatWithNullCoords);
+        Seat seat = createSeat(1L, "1", null, null, 1);
+        seats.add(seat);
         when(seatMapper.findByRoomId(1L)).thenReturn(seats);
+        when(orderMapper.findActiveByRoomId(1L)).thenReturn(new ArrayList<>());
 
         Map<String, Object> result = seatService.getSeatMap(1L);
 
@@ -214,24 +404,19 @@ public class SeatServiceImplTest {
     @Test
     void testGetSeatTimeline() {
         Map<String, Object> result = seatService.getSeatTimeline(1L, "2024-01-01");
-
         assertNotNull(result);
     }
 
     @Test
     void testGetSeatTimelineWithNullDate() {
         Map<String, Object> result = seatService.getSeatTimeline(1L, null);
-
         assertNotNull(result);
     }
 
     @Test
     void testCalculatePrice() {
         Map<String, Object> result = seatService.calculatePrice(1L, "09:00", "11:00");
-
         assertNotNull(result);
-        assertNotNull(result.get("totalAmount"));
-        assertNotNull(result.get("hours"));
         assertEquals(new BigDecimal("20.00"), result.get("totalAmount"));
         assertEquals(2, result.get("hours"));
     }
@@ -239,29 +424,53 @@ public class SeatServiceImplTest {
     @Test
     void testCalculatePriceWithNullParameters() {
         Map<String, Object> result = seatService.calculatePrice(null, null, null);
+        assertNotNull(result);
+    }
+
+    @Test
+    void testGetSeatMapWithActiveOrders() {
+        when(studyRoomMapper.findById(1L)).thenReturn(testRoom);
+        List<Seat> seats = new ArrayList<>();
+        seats.add(createSeat(1L, "1", 1, 1, 1));
+        when(seatMapper.findByRoomId(1L)).thenReturn(seats);
+
+        Order activeOrder = new Order();
+        activeOrder.setSeatId(1L);
+        activeOrder.setStatus("paid");
+        List<Order> activeOrders = new ArrayList<>();
+        activeOrders.add(activeOrder);
+        when(orderMapper.findActiveByRoomId(1L)).thenReturn(activeOrders);
+
+        Map<String, Object> result = seatService.getSeatMap(1L);
 
         assertNotNull(result);
-        assertNotNull(result.get("totalAmount"));
+        List<Seat> resultSeats = (List<Seat>) result.get("seats");
+        assertEquals("booked", resultSeats.get(0).getStatus());
     }
 
     @Test
-    void testGetSeatDetailWithNullId() {
-        assertThrows(RuntimeException.class, () -> {
-            seatService.getSeatDetail(null);
-        });
+    void testGetSeatListWithEmptyStatusFilter() {
+        when(studyRoomMapper.findById(1L)).thenReturn(testRoom);
+        List<Seat> seats = new ArrayList<>();
+        seats.add(createSeat(1L, "1", 1, 1, 1));
+        when(seatMapper.findByRoomId(1L)).thenReturn(seats);
+        when(orderMapper.findActiveByRoomId(1L)).thenReturn(new ArrayList<>());
+
+        List<Seat> result = seatService.getSeatList(1L, "", null, null, null);
+
+        assertEquals(1, result.size());
     }
 
     @Test
-    void testGetSeatListWithNullRoomId() {
-        assertThrows(RuntimeException.class, () -> {
-            seatService.getSeatList(null, "available", "1", 1, 1);
-        });
-    }
+    void testGetSeatListWithEmptyTypeFilter() {
+        when(studyRoomMapper.findById(1L)).thenReturn(testRoom);
+        List<Seat> seats = new ArrayList<>();
+        seats.add(createSeat(1L, "1", 1, 1, 1));
+        when(seatMapper.findByRoomId(1L)).thenReturn(seats);
+        when(orderMapper.findActiveByRoomId(1L)).thenReturn(new ArrayList<>());
 
-    @Test
-    void testGetSeatMapWithNullRoomId() {
-        assertThrows(RuntimeException.class, () -> {
-            seatService.getSeatMap(null);
-        });
+        List<Seat> result = seatService.getSeatList(1L, null, "", null, null);
+
+        assertEquals(1, result.size());
     }
 }

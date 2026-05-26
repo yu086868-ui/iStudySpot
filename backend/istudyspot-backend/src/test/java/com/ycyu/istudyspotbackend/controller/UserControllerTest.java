@@ -40,95 +40,188 @@ public class UserControllerTest {
 
     @Test
     void testGetUserInfoSuccess() throws Exception {
-        // 模拟获取用户信息成功
         User user = new User();
         user.setId(1L);
         user.setUsername("testuser");
         user.setNickname("Test User");
+        user.setAvatar("avatar.png");
+        user.setPhone("13800138000");
+        user.setEmail("test@test.com");
+        user.setStudentId("2024001");
+        user.setCreditScore(100);
+        user.setBalance(java.math.BigDecimal.valueOf(50.0));
+        user.setPoints(200);
         when(userService.getUserInfo(anyLong())).thenReturn(user);
 
-        // 测试获取用户信息
         mockMvc.perform(get("/api/users/me")
                 .requestAttr("userId", 1L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.message").value("获取成功"))
-                .andExpect(jsonPath("$.data.username").value("testuser"));
+                .andExpect(jsonPath("$.data.username").value("testuser"))
+                .andExpect(jsonPath("$.data.avatar").value("avatar.png"))
+                .andExpect(jsonPath("$.data.phone").value("13800138000"))
+                .andExpect(jsonPath("$.data.email").value("test@test.com"))
+                .andExpect(jsonPath("$.data.studentId").value("2024001"))
+                .andExpect(jsonPath("$.data.creditScore").value(100))
+                .andExpect(jsonPath("$.data.balance").value(50.0))
+                .andExpect(jsonPath("$.data.points").value(200));
 
-        // 验证方法调用
         verify(userService, times(1)).getUserInfo(1L);
     }
 
     @Test
     void testGetUserInfoFailure() throws Exception {
-        // 模拟获取用户信息失败
         when(userService.getUserInfo(anyLong())).thenThrow(new RuntimeException("获取用户信息失败"));
 
-        // 测试获取用户信息
         mockMvc.perform(get("/api/users/me")
                 .requestAttr("userId", 1L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(400))
                 .andExpect(jsonPath("$.message").value("获取用户信息失败"));
 
-        // 验证方法调用
         verify(userService, times(1)).getUserInfo(1L);
     }
 
     @Test
-    void testUpdateUserInfoSuccess() throws Exception {
-        // 模拟更新用户信息成功
+    void testUpdateUserInfoWithNickname() throws Exception {
         User user = new User();
         user.setId(1L);
-        user.setNickname("Updated User");
-        user.setPhone("13800138000");
+        user.setNickname("Updated Nickname");
         when(userService.updateUserInfo(any(User.class))).thenReturn(user);
 
-        // 测试更新用户信息
-        User updateUser = new User();
-        updateUser.setNickname("Updated User");
-        updateUser.setPhone("13800138000");
+        Map<String, Object> params = new HashMap<>();
+        params.put("nickname", "Updated Nickname");
 
         mockMvc.perform(put("/api/users/me")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(updateUser))
+                .content(objectMapper.writeValueAsString(params))
+                .requestAttr("userId", 1L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.message").value("更新成功"));
+
+        verify(userService, times(1)).updateUserInfo(any(User.class));
+    }
+
+    @Test
+    void testUpdateUserInfoWithAvatar() throws Exception {
+        User user = new User();
+        user.setId(1L);
+        user.setAvatar("new_avatar.png");
+        when(userService.updateUserInfo(any(User.class))).thenReturn(user);
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("avatar", "new_avatar.png");
+
+        mockMvc.perform(put("/api/users/me")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(params))
+                .requestAttr("userId", 1L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200));
+
+        verify(userService, times(1)).updateUserInfo(any(User.class));
+    }
+
+    @Test
+    void testUpdateUserInfoWithPhone() throws Exception {
+        User user = new User();
+        user.setId(1L);
+        user.setPhone("13900139000");
+        when(userService.updateUserInfo(any(User.class))).thenReturn(user);
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("phone", "13900139000");
+
+        mockMvc.perform(put("/api/users/me")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(params))
+                .requestAttr("userId", 1L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200));
+
+        verify(userService, times(1)).updateUserInfo(any(User.class));
+    }
+
+    @Test
+    void testUpdateUserInfoWithEmail() throws Exception {
+        User user = new User();
+        user.setId(1L);
+        user.setEmail("new@test.com");
+        when(userService.updateUserInfo(any(User.class))).thenReturn(user);
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("email", "new@test.com");
+
+        mockMvc.perform(put("/api/users/me")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(params))
+                .requestAttr("userId", 1L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200));
+
+        verify(userService, times(1)).updateUserInfo(any(User.class));
+    }
+
+    @Test
+    void testUpdateUserInfoWithAllFields() throws Exception {
+        User user = new User();
+        user.setId(1L);
+        user.setUsername("testuser");
+        user.setNickname("New Nick");
+        user.setAvatar("new_avatar.png");
+        user.setPhone("13900139000");
+        user.setEmail("new@test.com");
+        user.setStudentId("2024001");
+        user.setCreditScore(100);
+        user.setBalance(java.math.BigDecimal.valueOf(50.0));
+        user.setPoints(200);
+        when(userService.updateUserInfo(any(User.class))).thenReturn(user);
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("nickname", "New Nick");
+        params.put("avatar", "new_avatar.png");
+        params.put("phone", "13900139000");
+        params.put("email", "new@test.com");
+
+        mockMvc.perform(put("/api/users/me")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(params))
                 .requestAttr("userId", 1L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.message").value("更新成功"))
-                .andExpect(jsonPath("$.data.nickname").value("Updated User"));
+                .andExpect(jsonPath("$.data.nickname").value("New Nick"))
+                .andExpect(jsonPath("$.data.avatar").value("new_avatar.png"))
+                .andExpect(jsonPath("$.data.phone").value("13900139000"))
+                .andExpect(jsonPath("$.data.email").value("new@test.com"));
 
-        // 验证方法调用
         verify(userService, times(1)).updateUserInfo(any(User.class));
     }
 
     @Test
     void testUpdateUserInfoFailure() throws Exception {
-        // 模拟更新用户信息失败
         when(userService.updateUserInfo(any(User.class))).thenThrow(new RuntimeException("更新用户信息失败"));
 
-        // 测试更新用户信息
-        User updateUser = new User();
-        updateUser.setNickname("Updated User");
+        Map<String, Object> params = new HashMap<>();
+        params.put("nickname", "Updated User");
 
         mockMvc.perform(put("/api/users/me")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(updateUser))
+                .content(objectMapper.writeValueAsString(params))
                 .requestAttr("userId", 1L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(400))
                 .andExpect(jsonPath("$.message").value("更新用户信息失败"));
 
-        // 验证方法调用
         verify(userService, times(1)).updateUserInfo(any(User.class));
     }
 
     @Test
     void testUpdatePasswordSuccess() throws Exception {
-        // 模拟更新密码成功
         doNothing().when(userService).updatePassword(anyLong(), anyString(), anyString());
 
-        // 测试更新密码
         Map<String, String> passwordData = new HashMap<>();
         passwordData.put("oldPassword", "123456");
         passwordData.put("newPassword", "654321");
@@ -141,16 +234,13 @@ public class UserControllerTest {
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.message").value("密码修改成功"));
 
-        // 验证方法调用
         verify(userService, times(1)).updatePassword(1L, "123456", "654321");
     }
 
     @Test
     void testUpdatePasswordFailure() throws Exception {
-        // 模拟更新密码失败
         doThrow(new RuntimeException("密码修改失败")).when(userService).updatePassword(anyLong(), anyString(), anyString());
 
-        // 测试更新密码
         Map<String, String> passwordData = new HashMap<>();
         passwordData.put("oldPassword", "123456");
         passwordData.put("newPassword", "654321");
@@ -163,7 +253,6 @@ public class UserControllerTest {
                 .andExpect(jsonPath("$.code").value(400))
                 .andExpect(jsonPath("$.message").value("密码修改失败"));
 
-        // 验证方法调用
         verify(userService, times(1)).updatePassword(1L, "123456", "654321");
     }
 }

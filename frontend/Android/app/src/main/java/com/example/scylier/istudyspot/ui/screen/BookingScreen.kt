@@ -1,7 +1,10 @@
 package com.example.scylier.istudyspot.ui.screen
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.indication
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -33,10 +36,11 @@ import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -267,43 +271,53 @@ fun BookingScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        OutlinedTextField(
-            value = startTime,
-            onValueChange = {},
-            readOnly = true,
-            label = { Text("开始时间") },
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { showStartDatePicker = true },
-            singleLine = true,
-            shape = RoundedCornerShape(12.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                focusedContainerColor = Color.Transparent,
-                unfocusedContainerColor = Color.Transparent
+                .clickable { showStartDatePicker = true }
+        ) {
+            OutlinedTextField(
+                value = startTime,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("开始时间") },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = false,
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                    disabledBorderColor = MaterialTheme.colorScheme.outline,
+                    disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    disabledContainerColor = Color.Transparent
+                )
             )
-        )
+        }
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        OutlinedTextField(
-            value = endTime,
-            onValueChange = {},
-            readOnly = true,
-            label = { Text("结束时间") },
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { showEndDatePicker = true },
-            singleLine = true,
-            shape = RoundedCornerShape(12.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                focusedContainerColor = Color.Transparent,
-                unfocusedContainerColor = Color.Transparent
+                .clickable { showEndDatePicker = true }
+        ) {
+            OutlinedTextField(
+                value = endTime,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("结束时间") },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = false,
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                    disabledBorderColor = MaterialTheme.colorScheme.outline,
+                    disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    disabledContainerColor = Color.Transparent
+                )
             )
-        )
+        }
 
         Spacer(modifier = Modifier.height(20.dp))
 

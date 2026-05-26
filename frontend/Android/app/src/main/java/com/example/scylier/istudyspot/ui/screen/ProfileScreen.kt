@@ -203,19 +203,21 @@ fun ProfileScreen(
                 }
             }
 
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                shape = RoundedCornerShape(20.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-            ) {
-                Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                    MenuItemRow(
-                        icon = Icons.AutoMirrored.Filled.ExitToApp,
-                        label = "退出登录",
-                        onClick = { showLogoutDialog = true },
-                        isDestructive = true
-                    )
+            if (uiState.isLoggedIn) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    shape = RoundedCornerShape(20.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                ) {
+                    Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                        MenuItemRow(
+                            icon = Icons.AutoMirrored.Filled.ExitToApp,
+                            label = "退出登录",
+                            onClick = { showLogoutDialog = true },
+                            isDestructive = true
+                        )
+                    }
                 }
             }
         }

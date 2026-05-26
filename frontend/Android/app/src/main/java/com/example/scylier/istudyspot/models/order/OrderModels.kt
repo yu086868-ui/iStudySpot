@@ -1,83 +1,89 @@
 package com.example.scylier.istudyspot.models.order
 
-// 创建订单请求
 class CreateOrderRequest(
-    val studyRoomId: String,
-    val seatId: String,
+    val studyRoomId: Long,
+    val seatId: Long,
     val startTime: String,
     val endTime: String,
     val bookingType: String
 )
 
-// 订单响应
 class OrderResponse(
-    val id: String,
-    val seatId: String,
-    val userId: String,
-    val startTime: String,
-    val endTime: String,
-    val totalPrice: Double,
-    val status: String, // pending, paid, completed, cancelled
-    val createdAt: String
+    val id: Long = 0,
+    val seatId: Long = 0,
+    val userId: Long = 0,
+    val startTime: String? = null,
+    val endTime: String? = null,
+    val totalPrice: Double? = null,
+    val status: String? = null,
+    val createdAt: String? = null
 )
 
-// 订单列表项
 class OrderItem(
-    val id: String,
-    val seatId: String,
-    val studyRoomName: String,
-    val seatPosition: String,
-    val startTime: String,
-    val endTime: String,
-    val totalPrice: Double,
-    val status: String,
-    val createdAt: String
-)
+    val id: Long = 0,
+    val seatId: Long = 0,
+    val studyRoomName: String? = null,
+    val seatPosition: String? = null,
+    val startTime: String? = null,
+    val endTime: String? = null,
+    val totalPrice: Double? = null,
+    val totalAmount: Double? = null,
+    val status: String? = null,
+    val createdAt: String? = null,
+    val roomName: String? = null,
+    val seatNumber: String? = null
+) {
+    val displayName: String get() = studyRoomName ?: roomName ?: "自习室"
+    val displaySeat: String get() = seatPosition ?: seatNumber ?: "未知座位"
+    val displayPrice: Double get() = totalPrice ?: totalAmount ?: 0.0
+}
 
-// 订单列表响应
 class OrderListResponse(
-    val total: Int,
-    val list: List<OrderItem>
+    val total: Int = 0,
+    val list: List<OrderItem> = emptyList()
 )
 
-// 订单详情
 class OrderDetail(
-    val id: String,
-    val seatId: String,
-    val userId: String,
-    val studyRoomName: String,
-    val seatPosition: String,
-    val startTime: String,
-    val endTime: String,
-    val totalPrice: Double,
-    val status: String,
-    val createdAt: String,
-    val updatedAt: String
-)
+    val id: Long = 0,
+    val seatId: Long = 0,
+    val userId: Long = 0,
+    val studyRoomName: String? = null,
+    val seatPosition: String? = null,
+    val startTime: String? = null,
+    val endTime: String? = null,
+    val totalPrice: Double? = null,
+    val totalAmount: Double? = null,
+    val status: String? = null,
+    val createdAt: String? = null,
+    val updatedAt: String? = null,
+    val roomName: String? = null,
+    val seatNumber: String? = null
+) {
+    val displayName: String get() = studyRoomName ?: roomName ?: "自习室"
+    val displaySeat: String get() = seatPosition ?: seatNumber ?: "未知座位"
+    val displayPrice: Double get() = totalPrice ?: totalAmount ?: 0.0
+}
 
-// 取消订单响应
 class CancelOrderResponse(
-    val id: String,
-    val status: String
+    val id: Long = 0,
+    val status: String? = null
 )
 
-// 签到请求
 class CheckinRequest(
-    val checkinCode: String
+    val reservationId: String,
+    val seatId: String
 )
 
-// 签到响应
 class CheckinResponse(
-    val id: String,
-    val checkinTime: String,
-    val status: String
+    val id: Long = 0,
+    val checkinTime: String? = null,
+    val status: String? = null
 )
 
-// 签退响应
 class CheckoutResponse(
-    val id: String,
-    val checkoutTime: String,
-    val actualDuration: Int, // 实际使用分钟数
-    val actualPrice: Double,
-    val status: String
+    val id: Long = 0,
+    val checkoutTime: String? = null,
+    val actualDuration: Int = 0,
+    val actualPrice: Double = 0.0,
+    val status: String? = null
 )

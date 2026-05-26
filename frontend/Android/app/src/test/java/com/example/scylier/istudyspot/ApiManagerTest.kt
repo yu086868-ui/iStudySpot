@@ -8,7 +8,7 @@ import org.junit.Test
 
 class ApiManagerTest {
 
-    private val apiManager = ApiManager()
+    private val apiManager = ApiManager(useMockData = true)
 
     @Test
     fun testLogin_success() = runBlocking {
@@ -19,7 +19,7 @@ class ApiManagerTest {
         assertEquals(200, success.code)
         assertEquals("登录成功", success.message)
         assertNotNull(success.data.token)
-        assertEquals("testuser", success.data.user.username)
+        assertEquals("testuser", success.data.user?.username)
     }
 
     @Test
@@ -31,8 +31,8 @@ class ApiManagerTest {
         assertEquals(201, success.code)
         assertEquals("注册成功", success.message)
         assertNotNull(success.data.token)
-        assertEquals("newuser", success.data.user.username)
-        assertEquals("新用户", success.data.user.nickname)
+        assertEquals("newuser", success.data.user?.username)
+        assertEquals("新用户", success.data.user?.nickname)
     }
 
     @Test
@@ -65,11 +65,11 @@ class ApiManagerTest {
 
     @Test
     fun testGetStudyRoomDetail_success() = runBlocking {
-        val response = apiManager.getStudyRoomDetail("1")
+        val response = apiManager.getStudyRoomDetail(1L)
 
         assertTrue(response is com.example.scylier.istudyspot.models.ApiResponse.Success)
         val success = response as com.example.scylier.istudyspot.models.ApiResponse.Success
-        assertEquals("1", success.data.id)
+        assertEquals(1L, success.data.id)
         assertNotNull(success.data.name)
         assertNotNull(success.data.address)
         assertNotNull(success.data.openingHours)
@@ -77,38 +77,35 @@ class ApiManagerTest {
 
     @Test
     fun testGetStudyRoomSeats_success() = runBlocking {
-        val response = apiManager.getStudyRoomSeats("1")
+        val response = apiManager.getStudyRoomSeats(1L)
 
         assertTrue(response is com.example.scylier.istudyspot.models.ApiResponse.Success)
         val success = response as com.example.scylier.istudyspot.models.ApiResponse.Success
-        assertEquals("1", success.data.studyRoomId)
-        assertTrue(success.data.rows > 0)
-        assertTrue(success.data.cols > 0)
-        assertTrue(success.data.seats.isNotEmpty())
+        assertTrue(success.data.isNotEmpty())
     }
 
     @Test
     fun testGetStudyRoomSeats_seatStatuses() = runBlocking {
-        val response = apiManager.getStudyRoomSeats("1")
+        val response = apiManager.getStudyRoomSeats(1L)
 
         assertTrue(response is com.example.scylier.istudyspot.models.ApiResponse.Success)
         val success = response as com.example.scylier.istudyspot.models.ApiResponse.Success
-        val seats = success.data.seats
+        val seats = success.data
 
         val availableSeats = seats.filter { it.status == "available" }
         val bookedSeats = seats.filter { it.status == "booked" }
-        val occupiedSeats = seats.filter { it.status == "occupied" }
+        val occupiedSeats = seats.filter { it.status == "in_use" }
 
         assertTrue(availableSeats.isNotEmpty() || bookedSeats.isNotEmpty() || occupiedSeats.isNotEmpty())
     }
 
     @Test
     fun testGetSeatDetail_success() = runBlocking {
-        val response = apiManager.getSeatDetail("seat_1_1")
+        val response = apiManager.getSeatDetail(1L)
 
         assertTrue(response is com.example.scylier.istudyspot.models.ApiResponse.Success)
         val success = response as com.example.scylier.istudyspot.models.ApiResponse.Success
-        assertEquals("seat_1_1", success.data.id)
+        assertEquals(1L, success.data.id)
         assertNotNull(success.data.status)
         assertNotNull(success.data.type)
         assertTrue(success.data.pricePerHour > 0)
@@ -117,8 +114,8 @@ class ApiManagerTest {
     @Test
     fun testCreateOrder_success() = runBlocking {
         val response = apiManager.createOrder(
-            studyRoomId = "1",
-            seatId = "seat_1_1",
+            studyRoomId = 1L,
+            seatId = 1L,
             startTime = "2026-10-01T10:00:00",
             endTime = "2026-10-01T12:00:00",
             bookingType = "hourly"
@@ -128,7 +125,7 @@ class ApiManagerTest {
         val success = response as com.example.scylier.istudyspot.models.ApiResponse.Success
         assertEquals(201, success.code)
         assertNotNull(success.data.id)
-        assertEquals("seat_1_1", success.data.seatId)
+        assertEquals(1L, success.data.seatId)
         assertEquals("pending", success.data.status)
     }
 
@@ -151,11 +148,11 @@ class ApiManagerTest {
 
     @Test
     fun testGetOrderDetail_success() = runBlocking {
-        val response = apiManager.getOrderDetail("order1")
+        val response = apiManager.getOrderDetail(1L)
 
         assertTrue(response is com.example.scylier.istudyspot.models.ApiResponse.Success)
         val success = response as com.example.scylier.istudyspot.models.ApiResponse.Success
-        assertEquals("order1", success.data.id)
+        assertEquals(1L, success.data.id)
         assertNotNull(success.data.seatId)
         assertNotNull(success.data.studyRoomName)
         assertNotNull(success.data.status)
@@ -163,32 +160,32 @@ class ApiManagerTest {
 
     @Test
     fun testCancelOrder_success() = runBlocking {
-        val response = apiManager.cancelOrder("order1")
+        val response = apiManager.cancelOrder(1L)
 
         assertTrue(response is com.example.scylier.istudyspot.models.ApiResponse.Success)
         val success = response as com.example.scylier.istudyspot.models.ApiResponse.Success
-        assertEquals("order1", success.data.id)
+        assertEquals(1L, success.data.id)
         assertEquals("cancelled", success.data.status)
     }
 
     @Test
     fun testCheckin_success() = runBlocking {
-        val response = apiManager.checkin("order1", "123456")
+        val response = apiManager.checkin(1L, 1L)
 
         assertTrue(response is com.example.scylier.istudyspot.models.ApiResponse.Success)
         val success = response as com.example.scylier.istudyspot.models.ApiResponse.Success
-        assertEquals("order1", success.data.id)
+        assertEquals(1L, success.data.id)
         assertNotNull(success.data.checkinTime)
         assertEquals("in_use", success.data.status)
     }
 
     @Test
     fun testCheckout_success() = runBlocking {
-        val response = apiManager.checkout("order1")
+        val response = apiManager.checkout(1L)
 
         assertTrue(response is com.example.scylier.istudyspot.models.ApiResponse.Success)
         val success = response as com.example.scylier.istudyspot.models.ApiResponse.Success
-        assertEquals("order1", success.data.id)
+        assertEquals(1L, success.data.id)
         assertNotNull(success.data.checkoutTime)
         assertTrue(success.data.actualDuration > 0)
         assertTrue(success.data.actualPrice > 0)
@@ -243,7 +240,7 @@ class ApiManagerTest {
     @Test
     fun testCreatePayment_success() = runBlocking {
         val response = apiManager.createPayment(
-            orderId = "order1",
+            orderId = 1L,
             amount = 20.0,
             paymentMethod = "wechat"
         )
@@ -251,19 +248,19 @@ class ApiManagerTest {
         assertTrue(response is com.example.scylier.istudyspot.models.ApiResponse.Success)
         val success = response as com.example.scylier.istudyspot.models.ApiResponse.Success
         assertEquals(201, success.code)
-        assertNotNull(success.data.paymentId)
-        assertEquals("order1", success.data.orderId)
+        assertNotNull(success.data.id)
+        assertEquals(1L, success.data.orderId)
         assertEquals(20.0, success.data.amount, 0.01)
         assertEquals("wechat", success.data.paymentMethod)
     }
 
     @Test
     fun testGetPaymentStatus_success() = runBlocking {
-        val response = apiManager.getPaymentStatus("payment1")
+        val response = apiManager.getPaymentStatus(1L)
 
         assertTrue(response is com.example.scylier.istudyspot.models.ApiResponse.Success)
         val success = response as com.example.scylier.istudyspot.models.ApiResponse.Success
-        assertEquals("payment1", success.data.id)
+        assertEquals(1L, success.data.id)
         assertNotNull(success.data.status)
         assertTrue(success.data.amount > 0)
     }
@@ -271,14 +268,14 @@ class ApiManagerTest {
     @Test
     fun testGetStudyRoomStatistics_success() = runBlocking {
         val response = apiManager.getStudyRoomStatistics(
-            id = "1",
+            id = 1L,
             startDate = "2026-10-01",
             endDate = "2026-10-07"
         )
 
         assertTrue(response is com.example.scylier.istudyspot.models.ApiResponse.Success)
         val success = response as com.example.scylier.istudyspot.models.ApiResponse.Success
-        assertEquals("1", success.data.studyRoomId)
+        assertEquals(1L, success.data.studyRoomId)
         assertTrue(success.data.totalSeats > 0)
         assertTrue(success.data.avgOccupancyRate >= 0)
         assertTrue(success.data.totalBookings >= 0)
@@ -288,7 +285,7 @@ class ApiManagerTest {
     @Test
     fun testApiManager_withToken() = runBlocking {
         ApiClient.currentToken = "test_token"
-        val apiManagerWithToken = ApiManager()
+        val apiManagerWithToken = ApiManager(useMockData = true)
         val response = apiManagerWithToken.getStudyRooms()
 
         assertTrue(response is com.example.scylier.istudyspot.models.ApiResponse.Success)

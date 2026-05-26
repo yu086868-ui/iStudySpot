@@ -1,14 +1,13 @@
 package com.ycyu.istudyspotbackend.controller;
 
 import com.ycyu.istudyspotbackend.entity.CustomerServiceMessage;
+import com.ycyu.istudyspotbackend.entity.Result;
 import com.ycyu.istudyspotbackend.service.CustomerServiceService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
@@ -44,12 +43,12 @@ public class CustomerServiceControllerTest {
         when(customerServiceService.getWelcomeMessage()).thenReturn(expectedWelcomeMessage);
         when(customerServiceService.getRecommendedQuestions()).thenReturn(expectedRecommendedQuestions);
 
-        ResponseEntity<Map<String, Object>> response = customerServiceController.getWelcomeInfo();
+        Result<Map<String, Object>> result = customerServiceController.getWelcomeInfo();
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(expectedWelcomeMessage, response.getBody().get("welcomeMessage"));
-        assertEquals(expectedRecommendedQuestions, response.getBody().get("recommendedQuestions"));
+        assertEquals(200, result.getCode());
+        assertNotNull(result.getData());
+        assertEquals(expectedWelcomeMessage, result.getData().get("welcomeMessage"));
+        assertEquals(expectedRecommendedQuestions, result.getData().get("recommendedQuestions"));
         verify(customerServiceService, times(1)).getWelcomeMessage();
         verify(customerServiceService, times(1)).getRecommendedQuestions();
     }
@@ -66,11 +65,11 @@ public class CustomerServiceControllerTest {
         request.put("sessionId", sessionId);
         request.put("message", message);
 
-        ResponseEntity<Map<String, Object>> response = customerServiceController.chatWithCustomerService(request);
+        Result<Map<String, Object>> result = customerServiceController.chatWithCustomerService(request);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(expectedResponse, response.getBody().get("response"));
+        assertEquals(200, result.getCode());
+        assertNotNull(result.getData());
+        assertEquals(expectedResponse, result.getData().get("response"));
         verify(customerServiceService, times(1)).chatWithCustomerService(sessionId, message);
     }
 
@@ -80,10 +79,10 @@ public class CustomerServiceControllerTest {
         request.put("sessionId", "");
         request.put("message", "Test message");
 
-        ResponseEntity<Map<String, Object>> response = customerServiceController.chatWithCustomerService(request);
+        Result<Map<String, Object>> result = customerServiceController.chatWithCustomerService(request);
 
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertEquals("EMPTY_SESSION_ID", response.getBody().get("error"));
+        assertEquals(400, result.getCode());
+        assertEquals("EMPTY_SESSION_ID", result.getMessage());
     }
 
     @Test
@@ -92,10 +91,10 @@ public class CustomerServiceControllerTest {
         request.put("sessionId", null);
         request.put("message", "Test message");
 
-        ResponseEntity<Map<String, Object>> response = customerServiceController.chatWithCustomerService(request);
+        Result<Map<String, Object>> result = customerServiceController.chatWithCustomerService(request);
 
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertEquals("EMPTY_SESSION_ID", response.getBody().get("error"));
+        assertEquals(400, result.getCode());
+        assertEquals("EMPTY_SESSION_ID", result.getMessage());
     }
 
     @Test
@@ -104,10 +103,10 @@ public class CustomerServiceControllerTest {
         request.put("sessionId", "session123");
         request.put("message", "");
 
-        ResponseEntity<Map<String, Object>> response = customerServiceController.chatWithCustomerService(request);
+        Result<Map<String, Object>> result = customerServiceController.chatWithCustomerService(request);
 
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertEquals("EMPTY_MESSAGE", response.getBody().get("error"));
+        assertEquals(400, result.getCode());
+        assertEquals("EMPTY_MESSAGE", result.getMessage());
     }
 
     @Test
@@ -116,10 +115,10 @@ public class CustomerServiceControllerTest {
         request.put("sessionId", "session123");
         request.put("message", null);
 
-        ResponseEntity<Map<String, Object>> response = customerServiceController.chatWithCustomerService(request);
+        Result<Map<String, Object>> result = customerServiceController.chatWithCustomerService(request);
 
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertEquals("EMPTY_MESSAGE", response.getBody().get("error"));
+        assertEquals(400, result.getCode());
+        assertEquals("EMPTY_MESSAGE", result.getMessage());
     }
 
     @Test
@@ -134,11 +133,10 @@ public class CustomerServiceControllerTest {
         request.put("sessionId", sessionId);
         request.put("message", message);
 
-        ResponseEntity<Map<String, Object>> response = customerServiceController.chatWithCustomerService(request);
+        Result<Map<String, Object>> result = customerServiceController.chatWithCustomerService(request);
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertEquals("INTERNAL_ERROR", response.getBody().get("error"));
-        assertTrue(response.getBody().get("detail").toString().contains("Service error"));
+        assertEquals(500, result.getCode());
+        assertEquals("INTERNAL_ERROR", result.getMessage());
     }
 
     @Test
@@ -207,7 +205,7 @@ public class CustomerServiceControllerTest {
     public void testGetSessionHistory() {
         String sessionId = "session123";
         List<CustomerServiceMessage> expectedMessages = new ArrayList<>();
-        
+
         CustomerServiceMessage message1 = new CustomerServiceMessage();
         message1.setId("1");
         message1.setSessionId(sessionId);
@@ -226,11 +224,11 @@ public class CustomerServiceControllerTest {
 
         when(customerServiceService.getSessionHistory(sessionId)).thenReturn(expectedMessages);
 
-        ResponseEntity<Map<String, Object>> response = customerServiceController.getSessionHistory(sessionId);
+        Result<Map<String, Object>> result = customerServiceController.getSessionHistory(sessionId);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(expectedMessages, response.getBody().get("messages"));
+        assertEquals(200, result.getCode());
+        assertNotNull(result.getData());
+        assertEquals(expectedMessages, result.getData().get("messages"));
         verify(customerServiceService, times(1)).getSessionHistory(sessionId);
     }
 
@@ -241,11 +239,11 @@ public class CustomerServiceControllerTest {
 
         when(customerServiceService.getSessionHistory(sessionId)).thenReturn(expectedMessages);
 
-        ResponseEntity<Map<String, Object>> response = customerServiceController.getSessionHistory(sessionId);
+        Result<Map<String, Object>> result = customerServiceController.getSessionHistory(sessionId);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(expectedMessages, response.getBody().get("messages"));
+        assertEquals(200, result.getCode());
+        assertNotNull(result.getData());
+        assertEquals(expectedMessages, result.getData().get("messages"));
         verify(customerServiceService, times(1)).getSessionHistory(sessionId);
     }
 
@@ -273,10 +271,10 @@ public class CustomerServiceControllerTest {
         request.put("sessionId", sessionId);
         request.put("message", message);
 
-        ResponseEntity<Map<String, Object>> response = customerServiceController.chatWithCustomerService(request);
+        Result<Map<String, Object>> result = customerServiceController.chatWithCustomerService(request);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(expectedResponse, response.getBody().get("response"));
+        assertEquals(200, result.getCode());
+        assertEquals(expectedResponse, result.getData().get("response"));
     }
 
     @Test
@@ -291,9 +289,9 @@ public class CustomerServiceControllerTest {
         request.put("sessionId", sessionId);
         request.put("message", longMessage);
 
-        ResponseEntity<Map<String, Object>> response = customerServiceController.chatWithCustomerService(request);
+        Result<Map<String, Object>> result = customerServiceController.chatWithCustomerService(request);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(expectedResponse, response.getBody().get("response"));
+        assertEquals(200, result.getCode());
+        assertEquals(expectedResponse, result.getData().get("response"));
     }
 }

@@ -55,6 +55,8 @@ paths = [
     '''^frontend/Android/app/src/test/.*$''',
     '''^frontend/Android/app/src/androidTest/.*$''',
     '''^frontend/Android/docs/.*$''',
+    '''^test_token\.txt$''',
+    '''^backend/istudyspot-backend/test-result\.txt$''',
 ]
 regexes = [
     '''BUILD_CONFIG_.*''',
