@@ -281,6 +281,10 @@ public class DeepSeekServiceImpl implements DeepSeekService {
 
     @Override
     public String chat(String model, List<Map<String, String>> messages) {
+        if (messages == null || messages.isEmpty()) {
+            return "Error: messages cannot be null or empty";
+        }
+        
         String url = apiUrl + "/chat/completions";
 
         HttpHeaders headers = new HttpHeaders();
@@ -301,20 +305,41 @@ public class DeepSeekServiceImpl implements DeepSeekService {
             if (response.getStatusCode() == HttpStatus.OK) {
                 String responseBody = response.getBody();
                 JsonNode root = objectMapper.readTree(responseBody);
+                
+                JsonNode error = root.get("error");
+                if (error != null) {
+                    String errorMessage = error.get("message").asText();
+                    return "Error from DeepSeek API: " + errorMessage;
+                }
+                
                 JsonNode choices = root.get("choices");
                 
-                if (choices != null && !choices.isEmpty()) {
-                    JsonNode message = choices.get(0).get("message");
-                    if (message != null) {
-                        return message.get("content").asText().trim();
-                    }
+                if (choices == null || choices.isEmpty()) {
+                    return "No response from DeepSeek API";
                 }
+                
+                JsonNode message = choices.get(0).get("message");
+                if (message == null) {
+                    return "No response from DeepSeek API";
+                }
+                
+                JsonNode content = message.get("content");
+                if (content == null) {
+                    return "No response from DeepSeek API";
+                }
+                
+                String contentText = content.asText().trim();
+                if (contentText.isEmpty() || contentText.matches("[?？]+")) {
+                    return "Sorry, I can't understand the response";
+                }
+                
+                return contentText;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            return "Error calling DeepSeek API: " + e.getMessage();
         }
         
-        return "抱歉，我现在无法回答您的问题，请稍后再试。";
+        return "No response from DeepSeek API";
     }
 
     @Override
@@ -359,12 +384,24 @@ public class DeepSeekServiceImpl implements DeepSeekService {
                                 if (!"[DONE]".equals(data)) {
                                     try {
                                         JsonNode root = objectMapper.readTree(data);
+                                        
+                                        JsonNode error = root.get("error");
+                                        if (error != null) {
+                                            String errorMessage = error.get("message").asText();
+                                            onMessage.accept("{\"type\": \"error\", \"content\": \"Error from DeepSeek API: " + errorMessage + "\"}");
+                                            continue;
+                                        }
+                                        
                                         JsonNode choices = root.get("choices");
                                         if (choices != null && !choices.isEmpty()) {
                                             JsonNode delta = choices.get(0).get("delta");
                                             if (delta != null && delta.has("content")) {
                                                 String content = delta.get("content").asText();
-                                                onMessage.accept(content);
+                                                if (content.matches("[?？]+")) {
+                                                    onMessage.accept("{\"type\": \"error\", \"content\": \"Sorry, I can't understand the response\"}");
+                                                } else {
+                                                    onMessage.accept("{\"type\": \"delta\", \"content\": \"" + content + "\"}");
+                                                }
                                             }
                                         }
                                     } catch (Exception e) {
@@ -373,6 +410,7 @@ public class DeepSeekServiceImpl implements DeepSeekService {
                                 }
                             }
                         }
+                        onMessage.accept("{\"type\": \"end\"}");
                         onComplete.run();
                     }
                 } else {

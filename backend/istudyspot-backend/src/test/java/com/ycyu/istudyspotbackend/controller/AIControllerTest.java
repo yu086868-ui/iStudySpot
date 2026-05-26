@@ -1,6 +1,6 @@
 package com.ycyu.istudyspotbackend.controller;
 
-import com.ycyu.istudyspotbackend.entity.AIAICharacter;
+import com.ycyu.istudyspotbackend.entity.AICharacter;
 import com.ycyu.istudyspotbackend.entity.Result;
 import com.ycyu.istudyspotbackend.service.AIService;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,13 +39,13 @@ public class AIControllerTest {
         character.setName("Test AICharacter");
         characters.add(character);
 
-        when(aiService.getAICharacters()).thenReturn(characters);
+        when(aiService.getCharacters()).thenReturn(characters);
 
-        Result<List<AICharacter>> result = aiController.getAICharacters();
+        Result<List<AICharacter>> result = aiController.getCharacters();
 
         assertEquals(200, result.getCode());
         assertEquals(characters, result.getData());
-        verify(aiService, times(1)).getAICharacters();
+        verify(aiService, times(1)).getCharacters();
     }
 
     @Test

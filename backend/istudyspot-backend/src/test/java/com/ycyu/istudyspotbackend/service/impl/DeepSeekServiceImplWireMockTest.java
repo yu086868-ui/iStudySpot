@@ -22,28 +22,29 @@ public class DeepSeekServiceImplWireMockTest {
 
     private WireMockServer wireMockServer;
     private DeepSeekServiceImpl deepSeekService;
-    private DeepSeekConfig deepSeekConfig;
 
     @BeforeEach
     public void setUp() throws Exception {
         wireMockServer = new WireMockServer(0);
         wireMockServer.start();
         
-        deepSeekConfig = new DeepSeekConfig();
-        
-        java.lang.reflect.Field apiKeyField = DeepSeekConfig.class.getDeclaredField("apiKey");
-        apiKeyField.setAccessible(true);
-        apiKeyField.set(deepSeekConfig, "test-api-key");
-        
-        java.lang.reflect.Field apiUrlField = DeepSeekConfig.class.getDeclaredField("apiUrl");
-        apiUrlField.setAccessible(true);
-        apiUrlField.set(deepSeekConfig, "http://localhost:" + wireMockServer.port() + "/v1");
-        
         deepSeekService = new DeepSeekServiceImpl();
         
-        java.lang.reflect.Field configField = DeepSeekServiceImpl.class.getDeclaredField("deepSeekConfig");
-        configField.setAccessible(true);
-        configField.set(deepSeekService, deepSeekConfig);
+        java.lang.reflect.Field apiKeyField = DeepSeekServiceImpl.class.getDeclaredField("apiKey");
+        apiKeyField.setAccessible(true);
+        apiKeyField.set(deepSeekService, "test-api-key");
+        
+        java.lang.reflect.Field apiUrlField = DeepSeekServiceImpl.class.getDeclaredField("apiUrl");
+        apiUrlField.setAccessible(true);
+        apiUrlField.set(deepSeekService, "http://localhost:" + wireMockServer.port() + "/v1");
+        
+        java.lang.reflect.Field modelField = DeepSeekServiceImpl.class.getDeclaredField("model");
+        modelField.setAccessible(true);
+        modelField.set(deepSeekService, "deepseek-chat");
+        
+        java.lang.reflect.Field timeoutField = DeepSeekServiceImpl.class.getDeclaredField("timeout");
+        timeoutField.setAccessible(true);
+        timeoutField.set(deepSeekService, 60000);
     }
 
     @AfterEach

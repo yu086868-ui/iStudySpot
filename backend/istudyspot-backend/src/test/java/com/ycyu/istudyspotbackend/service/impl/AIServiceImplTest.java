@@ -1,6 +1,6 @@
 package com.ycyu.istudyspotbackend.service.impl;
 
-import com.ycyu.istudyspotbackend.entity.AIAICharacter;
+import com.ycyu.istudyspotbackend.entity.AICharacter;
 import com.ycyu.istudyspotbackend.entity.Message;
 import com.ycyu.istudyspotbackend.entity.Session;
 import com.ycyu.istudyspotbackend.service.DeepSeekService;
@@ -31,19 +31,19 @@ public class AIServiceImplTest {
 
     @Test
     void testGetAICharacters() {
-        List<AICharacter> characters = aiService.getAICharacters();
+        List<AICharacter> characters = aiService.getCharacters();
         assertNotNull(characters);
         assertFalse(characters.isEmpty());
         assertEquals(7, characters.size());
     }
 
     @Test
-    void testGetAICharacter() {
-        AICharacter scientist = aiService.getAICharacter("scientist");
+    void testGetCharacter() {
+        AICharacter scientist = aiService.getCharacter("scientist");
         assertNotNull(scientist);
         assertEquals("scientist", scientist.getId());
 
-        AICharacter nonExistent = aiService.getAICharacter("non-existent");
+        AICharacter nonExistent = aiService.getCharacter("non-existent");
         assertNotNull(nonExistent);
     }
 
@@ -215,14 +215,14 @@ public class AIServiceImplTest {
     }
 
     @Test
-    void testGetAICharacterReturnsCorrectPersona() {
-        AICharacter scientist = aiService.getAICharacter("scientist");
+    void testGetCharacterReturnsCorrectPersona() {
+        AICharacter scientist = aiService.getCharacter("scientist");
         assertEquals("理性严谨，喜欢解释原理", scientist.getPersona());
     }
 
     @Test
-    void testGetAICharacterReturnsCorrectSpeakingStyle() {
-        AICharacter scientist = aiService.getAICharacter("scientist");
+    void testGetCharacterReturnsCorrectSpeakingStyle() {
+        AICharacter scientist = aiService.getCharacter("scientist");
         assertEquals("逻辑清晰，偏长句", scientist.getSpeaking_style());
     }
 
@@ -294,8 +294,8 @@ public class AIServiceImplTest {
     }
 
     @Test
-    void testAICharacterListImmutability() {
-        List<AICharacter> characters = aiService.getAICharacters();
+    void testCharacterListImmutability() {
+        List<AICharacter> characters = aiService.getCharacters();
 
         assertThrows(UnsupportedOperationException.class, () -> {
             characters.add(new AICharacter("new-char", "新角色", "性格", "风格"));
@@ -315,8 +315,8 @@ public class AIServiceImplTest {
     }
 
     @Test
-    void testBuildSystemPromptAllAICharacters() {
-        List<AICharacter> characters = aiService.getAICharacters();
+    void testBuildSystemPromptAllCharacters() {
+        List<AICharacter> characters = aiService.getCharacters();
         for (AICharacter character : characters) {
             String prompt = buildSystemPrompt(character);
             assertNotNull(prompt);
