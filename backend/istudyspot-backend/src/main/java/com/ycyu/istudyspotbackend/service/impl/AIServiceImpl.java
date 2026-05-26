@@ -1,6 +1,6 @@
 package com.ycyu.istudyspotbackend.service.impl;
 
-import com.ycyu.istudyspotbackend.entity.Character;
+import com.ycyu.istudyspotbackend.entity.AICharacter;
 import com.ycyu.istudyspotbackend.entity.Message;
 import com.ycyu.istudyspotbackend.entity.Session;
 import com.ycyu.istudyspotbackend.service.AIService;
@@ -24,31 +24,31 @@ public class AIServiceImpl implements AIService {
     @Autowired
     private DeepSeekService deepSeekService;
 
-    private final List<Character> characters;
+    private final List<AICharacter> characters;
     private final Map<String, Session> sessions;
     private final ExecutorService executorService;
 
     public AIServiceImpl() {
         this.characters = new ArrayList<>();
-        characters.add(new Character("scientist", "科学家", "理性严谨，喜欢解释原理", "逻辑清晰，偏长句"));
-        characters.add(new Character("teacher", "老师", "耐心细致，善于引导", "温和亲切，鼓励式"));
-        characters.add(new Character("artist", "艺术家", "富有创意，情感丰富", "感性表达，富有想象力"));
-        characters.add(new Character("customer_service", "小i", "热情友好，专业细致", "亲切自然，简洁明了"));
-        characters.add(new Character("xuemaomao", "学霸猫", "擅长学习规划和方法论", "轻松活泼"));
-        characters.add(new Character("wenrouxuejie", "温柔学姐", "耐心解答你的每一个问题", "温柔细致"));
-        characters.add(new Character("yanlidaooshi", "严厉导师", "帮你养成高效学习习惯", "简洁有力"));
+        characters.add(new AICharacter("scientist", "科学家", "理性严谨，喜欢解释原理", "逻辑清晰，偏长句"));
+        characters.add(new AICharacter("teacher", "老师", "耐心细致，善于引导", "温和亲切，鼓励式"));
+        characters.add(new AICharacter("artist", "艺术家", "富有创意，情感丰富", "感性表达，富有想象力"));
+        characters.add(new AICharacter("customer_service", "小i", "热情友好，专业细致", "亲切自然，简洁明了"));
+        characters.add(new AICharacter("xuemaomao", "学霸猫", "擅长学习规划和方法论", "轻松活泼"));
+        characters.add(new AICharacter("wenrouxuejie", "温柔学姐", "耐心解答你的每一个问题", "温柔细致"));
+        characters.add(new AICharacter("yanlidaooshi", "严厉导师", "帮你养成高效学习习惯", "简洁有力"));
 
         this.sessions = new HashMap<>();
         this.executorService = Executors.newFixedThreadPool(10);
     }
 
     @Override
-    public List<Character> getCharacters() {
+    public List<AICharacter> getCharacters() {
         return Collections.unmodifiableList(characters);
     }
 
     @Override
-    public Character getCharacter(String characterId) {
+    public AICharacter getCharacter(String characterId) {
         return characters.stream()
                 .filter(character -> character.getId().equals(characterId))
                 .findFirst()
@@ -64,7 +64,7 @@ public class AIServiceImpl implements AIService {
     public String chat(String sessionId, String characterId, String message) {
         Session session = getOrCreateSession(sessionId, characterId);
 
-        Character character = getCharacter(characterId);
+        AICharacter character = getCharacter(characterId);
         if (character == null) {
             throw new IllegalArgumentException("Invalid character ID");
         }
@@ -103,7 +103,7 @@ public class AIServiceImpl implements AIService {
             try {
                 Session session = getOrCreateSession(sessionId, characterId);
 
-                Character character = getCharacter(characterId);
+                AICharacter character = getCharacter(characterId);
                 if (character == null) {
                     emitter.send(SseEmitter.event().data("{\"type\": \"error\", \"message\": \"INVALID_CHARACTER\"}"));
                     emitter.complete();
@@ -166,7 +166,7 @@ public class AIServiceImpl implements AIService {
         return emitter;
     }
 
-    private String buildSystemPrompt(Character character) {
+    private String buildSystemPrompt(AICharacter character) {
         return "你正在扮演一个角色，请严格遵守以下设定：\n" +
                 "\n" +
                 "角色名称：" + character.getName() + "\n" +

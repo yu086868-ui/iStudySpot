@@ -6,7 +6,7 @@ spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/iseatspace?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai}
     username: ${SPRING_DATASOURCE_USERNAME:root}
-    password: ${SPRING_DATASOURCE_PASSWORD:}
+    password: ${SPRING_DATASOURCE_PASSWORD:123456}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   data:
@@ -27,7 +27,7 @@ spring:
 
 mybatis:
   mapper-locations: classpath:mapper/*.xml
-  type-aliases-package: com.iseatspace.entity
+  type-aliases-package: com.ycyu.istudyspotbackend.entity
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
@@ -39,5 +39,13 @@ jwt:
 # DeepSeek API 配置
 deepseek:
   api:
-    key: ${DEEPSEEK_API_KEY:}
+    key: ${DEEPSEEK_API_KEY:sk-xxx}
     url: https://api.deepseek.com/v1
+    model: deepseek-chat
+    timeout: 60000
+
+logging:
+  level:
+    com.ycyu.istudyspotbackend: DEBUG
+    org.mybatis: DEBUG
+    org.springframework.jdbc: DEBUG
