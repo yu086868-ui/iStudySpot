@@ -1,14 +1,14 @@
 package com.ycyu.istudyspotbackend.entity;
 
-public class Character {
+public class AICharacter {
     private String id;
     private String name;
     private String persona;
     private String speaking_style;
 
-    public Character() {}
+    public AICharacter() {}
 
-    public Character(String id, String name, String persona, String speaking_style) {
+    public AICharacter(String id, String name, String persona, String speaking_style) {
         this.id = id;
         this.name = name;
         this.persona = persona;

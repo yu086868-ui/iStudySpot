@@ -1,6 +1,6 @@
 package com.ycyu.istudyspotbackend.controller;
 
-import com.ycyu.istudyspotbackend.entity.Character;
+import com.ycyu.istudyspotbackend.entity.AICharacter;
 import com.ycyu.istudyspotbackend.entity.Result;
 import com.ycyu.istudyspotbackend.service.AIService;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,16 +32,16 @@ public class AIControllerTest {
     }
 
     @Test
-    public void testGetCharacters() {
-        List<Character> characters = new ArrayList<>();
-        Character character = new Character();
+    public void testGetAICharacters() {
+        List<AICharacter> characters = new ArrayList<>();
+        AICharacter character = new AICharacter();
         character.setId("1");
-        character.setName("Test Character");
+        character.setName("Test AICharacter");
         characters.add(character);
 
         when(aiService.getCharacters()).thenReturn(characters);
 
-        Result<List<Character>> result = aiController.getCharacters();
+        Result<List<AICharacter>> result = aiController.getCharacters();
 
         assertEquals(200, result.getCode());
         assertEquals(characters, result.getData());
@@ -84,7 +84,7 @@ public class AIControllerTest {
     }
 
     @Test
-    public void testChatWithEmptyCharacterId() {
+    public void testChatWithEmptyAICharacterId() {
         Map<String, String> request = Map.of(
                 "session_id", "session123",
                 "message", "Hello"
@@ -180,7 +180,7 @@ public class AIControllerTest {
     }
 
     @Test
-    public void testStreamChatWithEmptyCharacterId() {
+    public void testStreamChatWithEmptyAICharacterId() {
         Map<String, String> request = Map.of(
                 "session_id", "session123",
                 "message", "Hello"
@@ -222,7 +222,7 @@ public class AIControllerTest {
     }
 
     @Test
-    public void testStreamChatWithNullSessionAndCharacterId() {
+    public void testStreamChatWithNullSessionAndAICharacterId() {
         Map<String, String> request = Map.of(
                 "message", "Hello"
         );
@@ -234,7 +234,7 @@ public class AIControllerTest {
     }
 
     @Test
-    public void testChatWithNullSessionAndCharacterId() {
+    public void testChatWithNullSessionAndAICharacterId() {
         Map<String, String> request = Map.of(
                 "message", "Hello"
         );

@@ -1,6 +1,6 @@
 package com.ycyu.istudyspotbackend.controller;
 
-import com.ycyu.istudyspotbackend.entity.Character;
+import com.ycyu.istudyspotbackend.entity.AICharacter;
 import com.ycyu.istudyspotbackend.entity.Result;
 import com.ycyu.istudyspotbackend.service.AIService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,8 +20,8 @@ public class AIController {
 
     // 获取角色列表
     @GetMapping("/characters")
-    public Result<List<Character>> getCharacters() {
-        List<Character> characters = aiService.getCharacters();
+    public Result<List<AICharacter>> getCharacters() {
+        List<AICharacter> characters = aiService.getCharacters();
         return Result.success(characters);
     }
 

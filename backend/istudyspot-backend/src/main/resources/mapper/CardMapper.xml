@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ycyu.istudyspotbackend.mapper.CardMapper">
+
+    <insert id="insertCard" parameterType="com.ycyu.istudyspotbackend.entity.Card">
+        INSERT INTO card (
+            uuid, user_id, card_id, create_time, study_duration,
+            rarity, border_theme, card_theme, theme_category, markdown, image_url
+        ) VALUES (
+            #{uuid}, #{userId}, #{cardId}, #{createTime}, #{studyDuration},
+            #{rarity}, #{borderTheme}, #{cardTheme}, #{themeCategory}, #{markdown}, #{imageUrl}
+        )
+    </insert>
+
+    <select id="selectCardByUuid" parameterType="String" resultType="com.ycyu.istudyspotbackend.entity.Card">
+        SELECT
+            uuid, user_id as userId, card_id as cardId, create_time as createTime,
+            study_duration as studyDuration, rarity, border_theme as borderTheme,
+            card_theme as cardTheme, theme_category as themeCategory, markdown, image_url as imageUrl
+        FROM card
+        WHERE uuid = #{uuid}
+    </select>
+
+    <select id="selectCardsByUserId" parameterType="String" resultType="com.ycyu.istudyspotbackend.entity.Card">
+        SELECT
+            uuid, user_id as userId, card_id as cardId, create_time as createTime,
+            study_duration as studyDuration, rarity, border_theme as borderTheme,
+            card_theme as cardTheme, theme_category as themeCategory, markdown, image_url as imageUrl
+        FROM card
+        WHERE user_id = #{userId}
+        ORDER BY create_time DESC
+    </select>
+
+    <update id="updateCard" parameterType="com.ycyu.istudyspotbackend.entity.Card">
+        UPDATE card
+        SET
+            user_id = #{userId},
+            card_id = #{cardId},
+            create_time = #{createTime},
+            study_duration = #{studyDuration},
+            rarity = #{rarity},
+            border_theme = #{borderTheme},
+            card_theme = #{cardTheme},
+            theme_category = #{themeCategory},
+            markdown = #{markdown},
+            image_url = #{imageUrl}
+        WHERE uuid = #{uuid}
+    </update>
+
+    <delete id="deleteCard" parameterType="String">
+        DELETE FROM card WHERE uuid = #{uuid}
+    </delete>
+
+</mapper>

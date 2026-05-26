@@ -1,6 +1,6 @@
 package com.ycyu.istudyspotbackend.service.impl;
 
-import com.ycyu.istudyspotbackend.entity.Character;
+import com.ycyu.istudyspotbackend.entity.AICharacter;
 import com.ycyu.istudyspotbackend.entity.Message;
 import com.ycyu.istudyspotbackend.entity.Session;
 import com.ycyu.istudyspotbackend.service.DeepSeekService;
@@ -30,8 +30,8 @@ public class AIServiceImplTest {
     private AIServiceImpl aiService;
 
     @Test
-    void testGetCharacters() {
-        List<Character> characters = aiService.getCharacters();
+    void testGetAICharacters() {
+        List<AICharacter> characters = aiService.getCharacters();
         assertNotNull(characters);
         assertFalse(characters.isEmpty());
         assertEquals(7, characters.size());
@@ -39,11 +39,11 @@ public class AIServiceImplTest {
 
     @Test
     void testGetCharacter() {
-        Character scientist = aiService.getCharacter("scientist");
+        AICharacter scientist = aiService.getCharacter("scientist");
         assertNotNull(scientist);
         assertEquals("scientist", scientist.getId());
 
-        Character nonExistent = aiService.getCharacter("non-existent");
+        AICharacter nonExistent = aiService.getCharacter("non-existent");
         assertNotNull(nonExistent);
     }
 
@@ -65,7 +65,7 @@ public class AIServiceImplTest {
     }
 
     @Test
-    void testChatWithInvalidCharacter() {
+    void testChatWithInvalidAICharacter() {
         when(deepSeekService.chat(anyString(), anyList())).thenReturn("回复");
 
         String response = aiService.chat("test-session-123", "non-existent", "你好");
@@ -103,7 +103,7 @@ public class AIServiceImplTest {
     }
 
     @Test
-    void testStreamChatWithInvalidCharacter() {
+    void testStreamChatWithInvalidAICharacter() {
         SseEmitter emitter = aiService.streamChat("test-stream-invalid", "invalid-char", "你好");
         assertNotNull(emitter);
     }
@@ -216,13 +216,13 @@ public class AIServiceImplTest {
 
     @Test
     void testGetCharacterReturnsCorrectPersona() {
-        Character scientist = aiService.getCharacter("scientist");
+        AICharacter scientist = aiService.getCharacter("scientist");
         assertEquals("理性严谨，喜欢解释原理", scientist.getPersona());
     }
 
     @Test
     void testGetCharacterReturnsCorrectSpeakingStyle() {
-        Character scientist = aiService.getCharacter("scientist");
+        AICharacter scientist = aiService.getCharacter("scientist");
         assertEquals("逻辑清晰，偏长句", scientist.getSpeaking_style());
     }
 
@@ -283,7 +283,7 @@ public class AIServiceImplTest {
     }
 
     @Test
-    void testStreamChatWithAllCharacters() {
+    void testStreamChatWithAllAICharacters() {
         String[] characterIds = {"scientist", "teacher", "artist", "customer_service",
                 "xuemaomao", "wenrouxuejie", "yanlidaooshi"};
 
@@ -295,16 +295,16 @@ public class AIServiceImplTest {
 
     @Test
     void testCharacterListImmutability() {
-        List<Character> characters = aiService.getCharacters();
+        List<AICharacter> characters = aiService.getCharacters();
 
         assertThrows(UnsupportedOperationException.class, () -> {
-            characters.add(new Character("new-char", "新角色", "性格", "风格"));
+            characters.add(new AICharacter("new-char", "新角色", "性格", "风格"));
         });
     }
 
     @Test
     void testBuildSystemPrompt() {
-        Character scientist = new Character("scientist", "科学家", "理性严谨", "逻辑清晰");
+        AICharacter scientist = new AICharacter("scientist", "科学家", "理性严谨", "逻辑清晰");
         String prompt = buildSystemPrompt(scientist);
 
         assertNotNull(prompt);
@@ -316,8 +316,8 @@ public class AIServiceImplTest {
 
     @Test
     void testBuildSystemPromptAllCharacters() {
-        List<Character> characters = aiService.getCharacters();
-        for (Character character : characters) {
+        List<AICharacter> characters = aiService.getCharacters();
+        for (AICharacter character : characters) {
             String prompt = buildSystemPrompt(character);
             assertNotNull(prompt);
             assertTrue(prompt.contains(character.getName()));
@@ -326,7 +326,7 @@ public class AIServiceImplTest {
         }
     }
 
-    private String buildSystemPrompt(Character character) {
+    private String buildSystemPrompt(AICharacter character) {
         return "你正在扮演一个角色，请严格遵守以下设定：\n" +
                 "\n" +
                 "角色名称：" + character.getName() + "\n" +
@@ -390,13 +390,13 @@ public class AIServiceImplTest {
     }
 
     @Test
-    void testStreamChatWithNullCharacterId() {
+    void testStreamChatWithNullAICharacterId() {
         SseEmitter emitter = aiService.streamChat("test-null-char", null, "你好");
         assertNotNull(emitter);
     }
 
     @Test
-    void testStreamChatWithEmptyCharacterId() {
+    void testStreamChatWithEmptyAICharacterId() {
         SseEmitter emitter = aiService.streamChat("test-empty-char", "", "你好");
         assertNotNull(emitter);
     }
