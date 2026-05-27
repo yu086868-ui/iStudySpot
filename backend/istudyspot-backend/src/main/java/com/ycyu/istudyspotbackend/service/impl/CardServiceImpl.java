@@ -17,6 +17,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.function.Consumer;
 
 @Service
 public class CardServiceImpl implements CardService {
@@ -113,6 +114,225 @@ public class CardServiceImpl implements CardService {
         result.put("markdown", deepSeekService.generateCardContent(rarity, themeCategory));
         result.put("imageUrl", downloadAndSaveImage(rarity, themeCategory));
         return result;
+    }
+
+    @Override
+    public void generateCardStream(String userId, Integer studyDuration,
+                                   Consumer<Map<String, Object>> onData,
+                                   Consumer<Map<String, Object>> onComplete,
+                                   Consumer<Throwable> onError) {
+        try {
+            String rarity = calculateRarity(studyDuration);
+            String themeCategory = selectThemeCategory(rarity);
+            StringBuilder markdownBuilder = new StringBuilder();
+            String[] imageUrlHolder = new String[1];
+            java.util.concurrent.atomic.AtomicBoolean textCompleted = new java.util.concurrent.atomic.AtomicBoolean(false);
+            java.util.concurrent.atomic.AtomicBoolean imageCompleted = new java.util.concurrent.atomic.AtomicBoolean(false);
+            java.util.concurrent.atomic.AtomicReference<Card> cardRef = new java.util.concurrent.atomic.AtomicReference<>(null);
+
+            Map<String, Object> initData = new HashMap<>();
+            initData.put("type", "init");
+            initData.put("rarity", rarity);
+            initData.put("themeCategory", themeCategory);
+            initData.put("borderTheme", RARITY_BORDER_THEME.get(rarity));
+            initData.put("cardTheme", RARITY_CARD_THEME.get(rarity));
+            onData.accept(initData);
+
+            final String finalRarity = rarity;
+            new Thread(() -> {
+                try {
+                    String imgUrl = downloadAndSaveImage(finalRarity, themeCategory);
+                    imageUrlHolder[0] = imgUrl;
+                    imageCompleted.set(true);
+                    checkComplete(onData, onComplete, cardRef, markdownBuilder, imageUrlHolder, textCompleted, imageCompleted);
+                } catch (Exception e) {
+                    imageUrlHolder[0] = "https://via.placeholder.com/512x512?text=Image+Unavailable";
+                    imageCompleted.set(true);
+                    checkComplete(onData, onComplete, cardRef, markdownBuilder, imageUrlHolder, textCompleted, imageCompleted);
+                }
+            }).start();
+
+            List<Map<String, String>> messages = buildPromptMessages(rarity, themeCategory);
+            
+            deepSeekService.streamChat("deepseek-chat", messages,
+                chunk -> {
+                    markdownBuilder.append(chunk);
+                    Map<String, Object> textData = new HashMap<>();
+                    textData.put("type", "text");
+                    textData.put("content", chunk);
+                    onData.accept(textData);
+                },
+                () -> {
+                    textCompleted.set(true);
+                    
+                    String uuid = UUID.randomUUID().toString();
+                    Card card = new Card();
+                    card.setUuid(uuid);
+                    card.setUserId(userId);
+                    card.setCardId(UUID.randomUUID().toString().substring(0, 8));
+                    card.setCreateTime(LocalDateTime.now());
+                    card.setStudyDuration(studyDuration);
+                    card.setRarity(rarity);
+                    card.setBorderTheme(RARITY_BORDER_THEME.get(rarity));
+                    card.setCardTheme(RARITY_CARD_THEME.get(rarity));
+                    card.setThemeCategory(themeCategory);
+                    cardRef.set(card);
+                    
+                    checkComplete(onData, onComplete, cardRef, markdownBuilder, imageUrlHolder, textCompleted, imageCompleted);
+                },
+                onError
+            );
+        } catch (Exception e) {
+            onError.accept(e);
+        }
+    }
+
+    private void checkComplete(Consumer<Map<String, Object>> onData, Consumer<Map<String, Object>> onComplete,
+                              java.util.concurrent.atomic.AtomicReference<Card> cardRef, 
+                              StringBuilder markdownBuilder, String[] imageUrlHolder,
+                              java.util.concurrent.atomic.AtomicBoolean textCompleted,
+                              java.util.concurrent.atomic.AtomicBoolean imageCompleted) {
+        if (textCompleted.get() && imageCompleted.get() && cardRef.get() != null && imageUrlHolder[0] != null) {
+            Card card = cardRef.get();
+            String markdown = markdownBuilder.toString();
+            String imageUrl = imageUrlHolder[0];
+            
+            card.setMarkdown(markdown);
+            card.setImageUrl(imageUrl);
+            cardMapper.insertCard(card);
+            
+            Map<String, Object> cardData = new HashMap<>();
+            cardData.put("uuid", card.getUuid());
+            cardData.put("rarity", card.getRarity());
+            cardData.put("borderTheme", card.getBorderTheme());
+            cardData.put("cardTheme", card.getCardTheme());
+            cardData.put("themeCategory", card.getThemeCategory());
+            cardData.put("markdown", card.getMarkdown());
+            cardData.put("imageURL", card.getImageUrl());
+            cardData.put("createTime", card.getCreateTime() != null ? 
+                card.getCreateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) : null);
+            cardData.put("studyDuration", card.getStudyDuration());
+            
+            Map<String, Object> completeData = new HashMap<>();
+            completeData.put("success", true);
+            completeData.put("message", "generate success");
+            completeData.put("card", cardData);
+            onComplete.accept(completeData);
+        }
+    }
+
+    private static final Map<String, String> RARITY_STYLE_MAP = new HashMap<>();
+    static {
+        RARITY_STYLE_MAP.put("N", "简洁、基础、鼓励性");
+        RARITY_STYLE_MAP.put("R", "积极、成长、向上");
+        RARITY_STYLE_MAP.put("SR", "深度、思考、智慧");
+        RARITY_STYLE_MAP.put("SSR", "哲学、审美、意境");
+        RARITY_STYLE_MAP.put("UR", "史诗、未来、宏大");
+        RARITY_STYLE_MAP.put("LR", "神话、梦境、超现实");
+    }
+
+    private static final Map<String, String> THEME_DESCRIPTION_MAP = new HashMap<>();
+    static {
+        THEME_DESCRIPTION_MAP.put("励志成长", "关于自律、努力、学习意义、坚持的内容");
+        THEME_DESCRIPTION_MAP.put("名人与历史", "引用历史人物、科学家、文学作品的智慧");
+        THEME_DESCRIPTION_MAP.put("哲思感悟", "微型思考、具有余味的表达、生活哲理");
+        THEME_DESCRIPTION_MAP.put("自然意象", "用星海、雨夜、山川、四季等自然景象做隐喻");
+        THEME_DESCRIPTION_MAP.put("科技未来", "关于AI、太空、科幻、未来感的内容");
+        THEME_DESCRIPTION_MAP.put("温柔陪伴", "理解、缓慢成长、轻陪伴的温暖内容");
+        THEME_DESCRIPTION_MAP.put("隐藏主题", "神话、梦境、史诗感、超现实、宇宙诗意");
+    }
+
+    private static final List<String> TONE_VARIATIONS = Arrays.asList(
+            "温暖而有力量", "冷静而深刻", "诗意而优雅", "理性而睿智",
+            "温柔而坚定", "深邃而富有哲理", "幽默而睿智", "感性而细腻",
+            "冷峻而犀利", "浪漫而唯美", "朴实而真诚", "灵动而俏皮"
+    );
+
+    private static final List<String> METAPHOR_TOPICS = Arrays.asList(
+            "自然现象", "四季更迭", "植物生长", "天文宇宙", "音乐艺术",
+            "旅途航行", "建筑构造", "烹饪烘焙", "书法绘画", "品茶品酒",
+            "园艺种植", "星座神话", "海洋探索", "森林秘境", "古镇街巷", "云雾山川"
+    );
+
+    private static final List<String> NARRATIVE_PERSPECTIVES = Arrays.asList(
+            "第一人称内心独白", "第三人称观察者视角", "自然景物拟人化",
+            "时间旅行者的回忆", "来自未来的寄语", "历史人物的对话",
+            "梦境中的启示", "书中精灵的低语"
+    );
+
+    private static final List<String> CREATIVE_APPROACHES = Arrays.asList(
+            "使用对比手法", "采用逆向思维", "运用象征手法", "创造独特比喻",
+            "讲述微型故事", "提出开放性问题", "引用小众知识", "融合跨界概念"
+    );
+
+    private List<Map<String, String>> buildPromptMessages(String rarity, String themeCategory) {
+        String rarityName = "";
+        for (int i = 0; i < RARITIES.length; i++) {
+            if (RARITIES[i].equals(rarity)) {
+                rarityName = RARITY_NAMES[i];
+                break;
+            }
+        }
+
+        String style = RARITY_STYLE_MAP.getOrDefault(rarity, "简洁、鼓励性");
+        String themeDesc = THEME_DESCRIPTION_MAP.getOrDefault(themeCategory, "学习成长");
+        
+        Random random = new Random();
+        String tone = TONE_VARIATIONS.get(random.nextInt(TONE_VARIATIONS.size()));
+        String metaphor = METAPHOR_TOPICS.get(random.nextInt(METAPHOR_TOPICS.size()));
+        String perspective = NARRATIVE_PERSPECTIVES.get(random.nextInt(NARRATIVE_PERSPECTIVES.size()));
+        String approach = CREATIVE_APPROACHES.get(random.nextInt(CREATIVE_APPROACHES.size()));
+
+        String systemPrompt = """
+                你是一位资深的学习激励卡片文案创作专家。请按照以下严格的结构和要求生成精简的卡片内容：
+                
+                ## 核心要求：
+                1. **简洁精炼**：内容必须精简，适合卡片展示
+                2. **主题明确**：所有内容围绕核心主题展开
+                3. **深度思考**：避免鸡汤，要有独特见解
+                4. **语言优美**：使用恰当的修辞手法
+                
+                ## 格式规范：
+                - 标题：# 开头，4-6字，概括核心思想
+                - 引用：> 开头，15-20字，与主题紧密相关
+                - 分隔线：--- 
+                - 正文：50-80字，一段或两段，言简意赅
+                - 结尾：有余味，引人深思
+                
+                ## 结构示例：
+                # 标题
+                > 引用
+                ---
+                正文内容...
+                
+                请直接输出完整的卡片内容，无需额外说明。
+                """;
+
+        String userPrompt = String.format("""
+                请为学习卡片创作一段精简的文案：
+                
+                - 核心主题：%s
+                - 风格调性：%s
+                - 语气基调：%s
+                - 表现手法：%s
+                - 意象素材：%s
+                
+                要求：简洁精炼，富有哲理，适合卡片展示。
+                """, themeDesc, style, tone, approach, metaphor);
+
+        List<Map<String, String>> messages = new ArrayList<>();
+        
+        Map<String, String> systemMsg = new HashMap<>();
+        systemMsg.put("role", "system");
+        systemMsg.put("content", systemPrompt);
+        messages.add(systemMsg);
+        
+        Map<String, String> userMsg = new HashMap<>();
+        userMsg.put("role", "user");
+        userMsg.put("content", userPrompt);
+        messages.add(userMsg);
+        
+        return messages;
     }
 
     private String downloadAndSaveImage(String rarity, String themeCategory) {

@@ -388,8 +388,8 @@ public class DeepSeekServiceImpl implements DeepSeekService {
                                         JsonNode error = root.get("error");
                                         if (error != null) {
                                             String errorMessage = error.get("message").asText();
-                                            onMessage.accept("{\"type\": \"error\", \"content\": \"Error from DeepSeek API: " + errorMessage + "\"}");
-                                            continue;
+                                            onError.accept(new RuntimeException("Error from DeepSeek API: " + errorMessage));
+                                            return;
                                         }
                                         
                                         JsonNode choices = root.get("choices");
@@ -397,10 +397,8 @@ public class DeepSeekServiceImpl implements DeepSeekService {
                                             JsonNode delta = choices.get(0).get("delta");
                                             if (delta != null && delta.has("content")) {
                                                 String content = delta.get("content").asText();
-                                                if (content.matches("[?？]+")) {
-                                                    onMessage.accept("{\"type\": \"error\", \"content\": \"Sorry, I can't understand the response\"}");
-                                                } else {
-                                                    onMessage.accept("{\"type\": \"delta\", \"content\": \"" + content + "\"}");
+                                                if (!content.isEmpty() && !content.matches("[?？]+")) {
+                                                    onMessage.accept(content);
                                                 }
                                             }
                                         }
@@ -410,7 +408,6 @@ public class DeepSeekServiceImpl implements DeepSeekService {
                                 }
                             }
                         }
-                        onMessage.accept("{\"type\": \"end\"}");
                         onComplete.run();
                     }
                 } else {
