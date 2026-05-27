@@ -10,10 +10,12 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.io.File;
+import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
@@ -64,6 +66,72 @@ public class CardController {
             response.put("message", "generate failed: " + e.getMessage());
             return ResponseEntity.internalServerError().body(response);
         }
+    }
+
+    @PostMapping("/generate/stream")
+    public SseEmitter generateCardStream(@RequestBody Map<String, Object> request) {
+        SseEmitter emitter = new SseEmitter(120000L);
+        
+        String userId = (String) request.get("userID");
+        Integer studyDuration = (Integer) request.get("studyDuration");
+        
+        if (userId == null || userId.isEmpty()) {
+            try {
+                emitter.send(SseEmitter.event()
+                    .name("error")
+                    .data("{\"success\":false,\"message\":\"userID is required\"}"));
+                emitter.complete();
+            } catch (IOException e) {
+                emitter.completeWithError(e);
+            }
+            return emitter;
+        }
+        
+        if (studyDuration == null || studyDuration <= 0) {
+            try {
+                emitter.send(SseEmitter.event()
+                    .name("error")
+                    .data("{\"success\":false,\"message\":\"studyDuration must be positive\"}"));
+                emitter.complete();
+            } catch (IOException e) {
+                emitter.completeWithError(e);
+            }
+            return emitter;
+        }
+        
+        cardService.generateCardStream(userId, studyDuration,
+            data -> {
+                try {
+                    emitter.send(SseEmitter.event()
+                        .name("data")
+                        .data(data));
+                } catch (IOException e) {
+                    emitter.completeWithError(e);
+                }
+            },
+            completeData -> {
+                try {
+                    emitter.send(SseEmitter.event()
+                        .name("complete")
+                        .data(completeData));
+                    emitter.complete();
+                } catch (IOException e) {
+                    emitter.completeWithError(e);
+                }
+            },
+            error -> {
+                try {
+                    emitter.send(SseEmitter.event()
+                        .name("error")
+                        .data("{\"success\":false,\"message\":\"" + error.getMessage() + "\"}"));
+                    emitter.completeWithError(error);
+                } catch (IOException e) {
+                    emitter.completeWithError(e);
+                }
+            }
+        );
+        
+        return emitter;
     }
 
     @GetMapping("/detail")
