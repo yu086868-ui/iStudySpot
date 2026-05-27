@@ -1,5 +1,5 @@
 import type { ApiResponse } from '../typings/api';
-import mockData from './data';
+import mockData, { generateCard } from './data';
 
 const ENABLE_MOCK = true;
 
@@ -763,6 +763,107 @@ class MockManager {
         code: 70001,
         message: '规则不存在',
         data: null,
+        timestamp
+      };
+    }
+
+    // ==================== 卡片系统路由 ====================
+
+    if (url === '/card/generate' && method === 'POST') {
+      const params = (data || {}) as { userID?: string; studyDuration?: number };
+      const users = (mockData && mockData.users) ? mockData.users : [];
+
+      if (!params.userID) {
+        return {
+          code: 80001,
+          message: '参数错误：缺少userID',
+          data: null,
+          timestamp
+        };
+      }
+
+      if (!params.studyDuration || params.studyDuration <= 0) {
+        return {
+          code: 80001,
+          message: '参数错误：studyDuration必须大于0',
+          data: null,
+          timestamp
+        };
+      }
+
+      const user = users.find(u => u.id === params.userID);
+      if (!user) {
+        return {
+          code: 50001,
+          message: '用户数据不存在',
+          data: null,
+          timestamp
+        };
+      }
+
+      const card = generateCard(params.userID, params.studyDuration);
+
+      if (mockData && mockData.cards) {
+        mockData.cards.unshift(card);
+      }
+
+      return {
+        code: 200,
+        message: 'generate success',
+        data: card as T,
+        timestamp
+      };
+    }
+
+    if (url.startsWith('/card/detail') && method === 'GET') {
+      const urlParams = new URLSearchParams(url.split('?')[1] || '');
+      const cardUuid = urlParams.get('id');
+      const cards = (mockData && mockData.cards) ? mockData.cards : [];
+
+      if (!cardUuid) {
+        return {
+          code: 80001,
+          message: '参数错误：缺少id',
+          data: null,
+          timestamp
+        };
+      }
+
+      const card = cards.find(c => c.uuid === cardUuid);
+      if (card) {
+        return {
+          code: 200,
+          message: 'success',
+          data: card as T,
+          timestamp
+        };
+      }
+
+      return {
+        code: 80002,
+        message: '卡片不存在',
+        data: null,
+        timestamp
+      };
+    }
+
+    if (url.startsWith('/card/list') && method === 'GET') {
+      const urlParams = new URLSearchParams(url.split('?')[1] || '');
+      const userID = urlParams.get('userID');
+      const cards = (mockData && mockData.cards) ? mockData.cards : [];
+
+      let filteredCards = userID
+        ? cards.filter(c => c.userID === userID)
+        : cards;
+
+      filteredCards = filteredCards.sort((a, b) =>
+        new Date(b.createTime).getTime() - new Date(a.createTime).getTime()
+      );
+
+      return {
+        code: 200,
+        message: 'success',
+        data: filteredCards as T,
         timestamp
       };
     }

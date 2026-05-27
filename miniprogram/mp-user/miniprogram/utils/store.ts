@@ -7,7 +7,8 @@ import type {
   CheckInRecord,
   Announcement,
   Rule,
-  ReservationRules
+  ReservationRules,
+  Card
 } from '../typings/api';
 import cache from './cache';
 
@@ -18,7 +19,8 @@ enum StoreEvent {
   STUDY_ROOMS_CHANGED = 'study_rooms_changed',
   RESERVATIONS_CHANGED = 'reservations_changed',
   CHECKIN_CHANGED = 'checkin_changed',
-  ANNOUNCEMENTS_CHANGED = 'announcements_changed'
+  ANNOUNCEMENTS_CHANGED = 'announcements_changed',
+  CARDS_CHANGED = 'cards_changed'
 }
 
 interface StoreState {
@@ -33,6 +35,7 @@ interface StoreState {
   announcements: Announcement[];
   rules: Rule[];
   reservationRules: ReservationRules | null;
+  cards: Card[];
 }
 
 class Store {
@@ -51,7 +54,8 @@ class Store {
       checkInRecords: [],
       announcements: [],
       rules: [],
-      reservationRules: null
+      reservationRules: null,
+      cards: []
     };
     this.events = new Map();
     this.loadFromCache();
@@ -97,6 +101,11 @@ class Store {
     const reservationRules = cache.getReservationRules();
     if (reservationRules) {
       this.state.reservationRules = reservationRules;
+    }
+
+    const cards = cache.getCards();
+    if (cards) {
+      this.state.cards = cards;
     }
   }
 
@@ -255,6 +264,26 @@ class Store {
     cache.setReservationRules(rules);
   }
 
+  getCards(): Card[] {
+    return this.state.cards;
+  }
+
+  setCards(cards: Card[]): void {
+    this.state.cards = cards;
+    cache.setCards(cards);
+    this.emit(StoreEvent.CARDS_CHANGED, cards);
+  }
+
+  addCard(card: Card): void {
+    this.state.cards.unshift(card);
+    cache.setCards(this.state.cards);
+    this.emit(StoreEvent.CARDS_CHANGED, this.state.cards);
+  }
+
+  getCardById(uuid: string): Card | null {
+    return this.state.cards.find(c => c.uuid === uuid) || null;
+  }
+
   clearAll(): void {
     this.state = {
       user: null,
@@ -267,7 +296,8 @@ class Store {
       checkInRecords: [],
       announcements: [],
       rules: [],
-      reservationRules: null
+      reservationRules: null,
+      cards: []
     };
     cache.clearAll();
   }
