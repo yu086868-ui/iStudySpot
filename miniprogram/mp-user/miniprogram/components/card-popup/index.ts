@@ -69,6 +69,19 @@ Component({
     },
     'visible': function(visible: boolean) {
       if (visible) {
+        var card = this.properties.card as Record<string, unknown>
+        if (card && card.uuid) {
+          var cardData = card as unknown as Card
+          this.setData({
+            html: renderMarkdown(cardData.markdown),
+            rarity: cardData.rarity,
+            imageURL: cardData.imageURL,
+            createTime: cardData.createTime,
+            studyDuration: cardData.studyDuration,
+            themeCategory: cardData.themeCategory || '',
+            themeLabel: THEME_LABEL[cardData.themeCategory] || ''
+          })
+        }
         setTimeout(() => {
           this.setData({ animating: true })
         }, 50)

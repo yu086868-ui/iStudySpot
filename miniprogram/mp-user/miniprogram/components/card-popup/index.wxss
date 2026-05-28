@@ -82,12 +82,10 @@
   height: 400rpx;
 }
 
-.popup-md-scroll {
-  max-height: 400rpx;
-}
-
 .popup-md-area {
   padding: 24rpx 28rpx;
+  max-height: 400rpx;
+  overflow: hidden;
 }
 
 .popup-md-area .markdown-card {

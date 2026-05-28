@@ -15,11 +15,9 @@
         mode="aspectFill"
       />
 
-      <scroll-view class="popup-md-scroll" scroll-y>
-        <view class="popup-md-area">
-          <markdown-card content="{{html}}" />
-        </view>
-      </scroll-view>
+      <view class="popup-md-area">
+        <markdown-card content="{{html}}" />
+      </view>
 
       <view class="popup-footer">
         <view class="popup-meta-row">
