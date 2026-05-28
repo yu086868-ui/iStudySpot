@@ -1,0 +1,6 @@
+{
+  "component": true,
+  "usingComponents": {
+    "markdown-card": "/components/markdown-card/index"
+  }
+}

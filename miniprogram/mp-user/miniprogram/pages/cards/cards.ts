@@ -65,7 +65,9 @@ Page({
     showSortPicker: false,
     loading: false,
     rarityLabel: RARITY_LABEL,
-    rarityBorderColor: RARITY_BORDER_COLOR
+    rarityBorderColor: RARITY_BORDER_COLOR,
+    showCardPopup: false,
+    selectedCard: null as Card | null
   },
 
   unsubscribeCards: null as (() => void) | null,
@@ -145,9 +147,17 @@ Page({
 
   onCardTap(e: WechatMiniprogram.TouchEvent) {
     const uuid = e.currentTarget.dataset.uuid as string
-    wx.navigateTo({
-      url: `/pages/card-detail/card-detail?uuid=${uuid}`
-    })
+    const card = this.data.cards.find(function(c) { return c.uuid === uuid })
+    if (card) {
+      this.setData({
+        showCardPopup: true,
+        selectedCard: card
+      })
+    }
+  },
+
+  onCardPopupClose() {
+    this.setData({ showCardPopup: false, selectedCard: null })
   },
 
   async onRefresh() {

@@ -15,3 +15,12 @@
 
   <text class="footer-hint">长按图标或点击上方按钮以结束本次自习</text>
 </view>
+
+<card-popup
+  visible="{{showCardPopup}}"
+  card="{{newCard}}"
+  showAction="{{true}}"
+  actionText="收下卡片"
+  bind:close="onCardPopupClose"
+  bind:action="onCardPopupAction"
+/>

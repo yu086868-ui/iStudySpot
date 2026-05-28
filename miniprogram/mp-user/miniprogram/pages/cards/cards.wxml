@@ -82,3 +82,9 @@
 </view>
 
 <tab-bar currentTab="cards"></tab-bar>
+
+<card-popup
+  visible="{{showCardPopup}}"
+  card="{{selectedCard}}"
+  bind:close="onCardPopupClose"
+/>

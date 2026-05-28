@@ -1,0 +1,41 @@
+<view class="popup-mask {{visible ? 'mask-show' : ''}}" bindtap="onMaskTap" wx:if="{{visible}}">
+  <view class="popup-container {{animating ? 'popup-show' : ''}}" catchtap="">
+    <view class="popup-close" bindtap="onClose">
+      <text class="close-text">✕</text>
+    </view>
+
+    <view class="popup-card" style="border-color: {{rarityBorderColor[rarity]}}">
+      <view class="popup-rarity-badge" style="background: {{rarityBorderColor[rarity]}}">
+        <text class="popup-badge-text">{{rarity}}</text>
+      </view>
+
+      <image
+        class="popup-image"
+        src="{{imageURL}}"
+        mode="aspectFill"
+      />
+
+      <scroll-view class="popup-md-scroll" scroll-y>
+        <view class="popup-md-area">
+          <markdown-card content="{{html}}" />
+        </view>
+      </scroll-view>
+
+      <view class="popup-footer">
+        <view class="popup-meta-row">
+          <text class="popup-meta-text">{{createTime}}</text>
+          <text class="popup-meta-text">{{studyDuration}}min</text>
+        </view>
+        <view class="popup-theme-row" wx:if="{{themeCategory}}">
+          <text class="popup-theme-text">{{themeLabel}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="popup-action" wx:if="{{showAction}}">
+      <view class="action-btn" bindtap="onAction">
+        <text class="action-btn-text">{{actionText}}</text>
+      </view>
+    </view>
+  </view>
+</view>

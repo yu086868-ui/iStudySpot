@@ -1,5 +1,6 @@
-import { checkInApi, store, StoreEvent } from '../../services/index'
+import { checkInApi, cardApi, store, StoreEvent } from '../../services/index'
 import { navigationManager } from '../../utils/navigation'
+import type { Card } from '../../typings/api'
 
 Page({
   data: {
@@ -10,7 +11,10 @@ Page({
     motto: '我们的一生皆是征途',
     checkInRecordId: '' as string,
     roomName: '' as string,
-    seatNumber: '' as string
+    seatNumber: '' as string,
+    showCardPopup: false,
+    newCard: null as Card | null,
+    studyDurationMin: 0
   },
 
   unsubscribeCheckIn: null as (() => void) | null,
@@ -161,6 +165,8 @@ Page({
           this.stopTimer()
           this.setData({ isStudying: false })
 
+          const studyDurationMin = this.calcStudyDuration()
+
           try {
             console.log('[签退] 调用签退API', { checkInRecordId })
             const result = await checkInApi.checkOut({ checkInRecordId })
@@ -169,19 +175,60 @@ Page({
             console.error('[签退] 签退失败', error)
           }
 
-          wx.showToast({
-            title: '本次学习已结束',
-            icon: 'success',
-            duration: 2000
-          })
-
-          setTimeout(() => {
-            navigationManager.navigateFromStudyToHome()
-          }, 2000)
+          await this.tryGenerateCard(studyDurationMin)
         } else {
           console.log('[签退] 用户取消结束学习')
         }
       }
     })
+  },
+
+  calcStudyDuration(): number {
+    const now = Date.now()
+    const diff = now - this.data.startTime
+    return Math.max(1, Math.floor(diff / (1000 * 60)))
+  },
+
+  async tryGenerateCard(studyDurationMin: number) {
+    this.setData({ studyDurationMin })
+
+    try {
+      const user = store.getUser()
+      const userID = user ? user.id : 'user_001'
+      const res = await cardApi.generateCard({ userID, studyDuration: studyDurationMin })
+
+      if (res.code === 200 && res.data) {
+        this.setData({
+          showCardPopup: true,
+          newCard: res.data
+        })
+        return
+      }
+    } catch (error) {
+      console.error('[卡片] 生成卡片失败', error)
+    }
+
+    this.navigateBack()
+  },
+
+  onCardPopupClose() {
+    this.setData({ showCardPopup: false, newCard: null })
+    this.navigateBack()
+  },
+
+  onCardPopupAction() {
+    this.setData({ showCardPopup: false, newCard: null })
+    this.navigateBack()
+  },
+
+  navigateBack() {
+    wx.showToast({
+      title: '本次学习已结束',
+      icon: 'success',
+      duration: 1500
+    })
+    setTimeout(() => {
+      navigationManager.navigateFromStudyToHome()
+    }, 1500)
   }
 })
