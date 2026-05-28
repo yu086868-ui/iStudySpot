@@ -3,6 +3,18 @@ import mockData, { generateCard } from './data';
 
 const ENABLE_MOCK = true;
 
+function parseQueryParam(queryStr: string, key: string): string {
+  if (!queryStr) return '';
+  const pairs = queryStr.split('&');
+  for (let i = 0; i < pairs.length; i++) {
+    const kv = pairs[i].split('=');
+    if (kv[0] === key) {
+      return decodeURIComponent(kv[1] || '');
+    }
+  }
+  return '';
+}
+
 interface MockRequest {
   url: string;
   method: string;
@@ -816,11 +828,11 @@ class MockManager {
     }
 
     if (url.startsWith('/card/detail') && method === 'GET') {
-      const urlParams = new URLSearchParams(url.split('?')[1] || '');
-      const cardUuid = urlParams.get('id');
+      const queryStr = url.indexOf('?') !== -1 ? url.split('?')[1] : '';
+      const idParam = parseQueryParam(queryStr, 'id');
       const cards = (mockData && mockData.cards) ? mockData.cards : [];
 
-      if (!cardUuid) {
+      if (!idParam) {
         return {
           code: 80001,
           message: '参数错误：缺少id',
@@ -829,7 +841,7 @@ class MockManager {
         };
       }
 
-      const card = cards.find(c => c.uuid === cardUuid);
+      const card = cards.find(c => c.uuid === idParam);
       if (card) {
         return {
           code: 200,
@@ -848,8 +860,8 @@ class MockManager {
     }
 
     if (url.startsWith('/card/list') && method === 'GET') {
-      const urlParams = new URLSearchParams(url.split('?')[1] || '');
-      const userID = urlParams.get('userID');
+      const params = (data || {}) as { userID?: string };
+      const userID = params.userID || '';
       const cards = (mockData && mockData.cards) ? mockData.cards : [];
 
       let filteredCards = userID

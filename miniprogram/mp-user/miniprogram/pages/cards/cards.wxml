@@ -49,8 +49,8 @@
               src="{{item.imageURL}}"
               mode="aspectFill"
             />
-            <view class="card-content">
-              <text class="card-title">{{item.markdown}}</text>
+            <view class="card-md-area">
+              <markdown-card content="{{item.html}}" />
             </view>
             <view class="card-footer">
               <text class="card-meta">{{item.createTime}}</text>

@@ -1,7 +1,12 @@
 import { cardApi, store, StoreEvent } from '../../services/index'
 import type { Card, CardRarity } from '../../typings/api'
+import { render as renderMarkdown } from '../../utils/markdown-engine'
 
 type SortMode = 'id' | 'rarity' | 'time'
+
+interface DisplayCard extends Card {
+  html: string
+}
 
 const RARITY_ORDER: CardRarity[] = ['N', 'R', 'SR', 'SSR', 'UR', 'LR']
 
@@ -29,7 +34,7 @@ const SORT_OPTIONS: { key: SortMode; label: string }[] = [
   { key: 'time', label: '获取时间' }
 ]
 
-function sortCards(cards: Card[], mode: SortMode): Card[] {
+function sortCards(cards: Card[], mode: SortMode): DisplayCard[] {
   const sorted = [...cards]
   switch (mode) {
     case 'id':
@@ -46,13 +51,15 @@ function sortCards(cards: Card[], mode: SortMode): Card[] {
       sorted.sort((a, b) => new Date(b.createTime).getTime() - new Date(a.createTime).getTime())
       break
   }
-  return sorted
+  return sorted.map(function(card) {
+    return Object.assign({}, card, { html: renderMarkdown(card.markdown) })
+  })
 }
 
 Page({
   data: {
     cards: [] as Card[],
-    sortedCards: [] as Card[],
+    sortedCards: [] as DisplayCard[],
     sortMode: 'id' as SortMode,
     sortOptions: SORT_OPTIONS,
     showSortPicker: false,
