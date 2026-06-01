@@ -9,9 +9,10 @@ import retrofit2.Response
 import java.io.IOException
 import java.net.SocketTimeoutException
 
-class ApiManager {
-    private val apiService = ApiClient.apiService
-    private val useMockData = BuildConfig.USE_MOCK
+class ApiManager(
+    private val apiService: ApiService = ApiClient.apiService,
+    private val useMockData: Boolean = BuildConfig.USE_MOCK
+) {
 
     suspend fun <T> executeRequest(request: suspend () -> Response<BaseResponse<T>>): ApiResponse<T> {
         return withContext(Dispatchers.IO) {

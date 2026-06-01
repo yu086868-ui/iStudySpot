@@ -8,7 +8,7 @@ import org.junit.Test
 
 class ApiManagerTest {
 
-    private val apiManager = ApiManager()
+    private val apiManager = ApiManager(useMockData = true)
 
     @Test
     fun testLogin_success() = runBlocking {
@@ -285,7 +285,7 @@ class ApiManagerTest {
     @Test
     fun testApiManager_withToken() = runBlocking {
         ApiClient.currentToken = "test_token"
-        val apiManagerWithToken = ApiManager()
+        val apiManagerWithToken = ApiManager(useMockData = true)
         val response = apiManagerWithToken.getStudyRooms()
 
         assertTrue(response is com.example.scylier.istudyspot.models.ApiResponse.Success)

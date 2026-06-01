@@ -8,7 +8,7 @@ import org.junit.Test
 
 class ApiManagerComprehensiveTest {
 
-    private val apiManager = ApiManager()
+    private val apiManager = ApiManager(useMockData = true)
 
     @Test
     fun testLogin_returnsSuccessResponse() = runBlocking {

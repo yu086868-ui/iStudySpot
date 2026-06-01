@@ -7,7 +7,7 @@ import org.junit.Test
 
 
 class ApiTest {
-    private val apiManager = ApiManager()
+    private val apiManager = ApiManager(useMockData = true)
 
     @Test
     fun testLogin() = runBlocking {
