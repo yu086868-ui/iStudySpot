@@ -17,9 +17,15 @@ spring:
       host: localhost
       port: 6379
       database: 0
-      timeout: 5000ms
+      timeout: 1000ms
       lettuce:
         shutdown-timeout: 100ms
+      client-type: lettuce
+      connect-timeout: 1000ms
+  
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
   
   flyway:
     enabled: false
