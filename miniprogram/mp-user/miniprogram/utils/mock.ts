@@ -64,7 +64,7 @@ class MockManager {
       return {
         code: 10001,
         message: '用户名或密码错误',
-        data: null,
+        data: null as unknown as T,
         timestamp
       };
     }
@@ -78,7 +78,7 @@ class MockManager {
         return {
           code: 10002,
           message: '用户已存在',
-          data: null,
+          data: null as unknown as T,
           timestamp
         };
       }
@@ -125,7 +125,7 @@ class MockManager {
       return {
         code: 200,
         message: '登出成功',
-        data: null,
+        data: null as unknown as T,
         timestamp
       };
     }
@@ -138,7 +138,7 @@ class MockManager {
         return {
           code: 50001,
           message: '用户数据不存在',
-          data: null,
+          data: null as unknown as T,
           timestamp
         };
       }
@@ -160,7 +160,7 @@ class MockManager {
         return {
           code: 50001,
           message: '用户数据不存在',
-          data: null,
+          data: null as unknown as T,
           timestamp
         };
       }
@@ -182,7 +182,7 @@ class MockManager {
       return {
         code: 200,
         message: '密码修改成功',
-        data: null,
+        data: null as unknown as T,
         timestamp
       };
     }
@@ -278,7 +278,7 @@ class MockManager {
       return {
         code: 20001,
         message: '自习室不存在',
-        data: null,
+        data: null as unknown as T,
         timestamp
       };
     }
@@ -300,7 +300,7 @@ class MockManager {
       return {
         code: 30001,
         message: '座位不存在',
-        data: null,
+        data: null as unknown as T,
         timestamp
       };
     }
@@ -316,7 +316,7 @@ class MockManager {
         return {
           code: 50001,
           message: '用户数据不存在',
-          data: null,
+          data: null as unknown as T,
           timestamp
         };
       }
@@ -330,7 +330,7 @@ class MockManager {
         return {
           code: 40001,
           message: '您已有进行中的预约，请先取消或完成',
-          data: null,
+          data: null as unknown as T,
           timestamp
         };
       }
@@ -340,7 +340,7 @@ class MockManager {
         return {
           code: 30002,
           message: '该座位已被占用或预约',
-          data: null,
+          data: null as unknown as T,
           timestamp
         };
       }
@@ -426,7 +426,7 @@ class MockManager {
           return {
             code: 40007,
             message: '预约已签到，无法取消',
-            data: null,
+            data: null as unknown as T,
             timestamp
           };
         }
@@ -443,7 +443,7 @@ class MockManager {
         return {
           code: 200,
           message: '预约已取消',
-          data: null,
+          data: null as unknown as T,
           timestamp
         };
       }
@@ -451,7 +451,7 @@ class MockManager {
       return {
         code: 40004,
         message: '预约不存在',
-        data: null,
+        data: null as unknown as T,
         timestamp
       };
     }
@@ -487,7 +487,7 @@ class MockManager {
         return {
           code: 50001,
           message: '用户数据不存在',
-          data: null,
+          data: null as unknown as T,
           timestamp
         };
       }
@@ -501,7 +501,7 @@ class MockManager {
         return {
           code: 50002,
           message: '已经签到，无需重复签到',
-          data: null,
+          data: null as unknown as T,
           timestamp
         };
       }
@@ -569,7 +569,7 @@ class MockManager {
           return {
             code: 50004,
             message: '已经签退',
-            data: null,
+            data: null as unknown as T,
             timestamp
           };
         }
@@ -613,7 +613,7 @@ class MockManager {
       return {
         code: 50003,
         message: '签到记录不存在',
-        data: null,
+        data: null as unknown as T,
         timestamp
       };
     }
@@ -720,7 +720,7 @@ class MockManager {
       return {
         code: 60001,
         message: '公告不存在',
-        data: null,
+        data: null as unknown as T,
         timestamp
       };
     }
@@ -762,7 +762,7 @@ class MockManager {
       return {
         code: 70001,
         message: '规则不存在',
-        data: null,
+        data: null as unknown as T,
         timestamp
       };
     }
@@ -770,7 +770,7 @@ class MockManager {
     return {
       code: 404,
       message: '接口未找到',
-      data: null,
+      data: null as unknown as T,
       timestamp
     };
   }
