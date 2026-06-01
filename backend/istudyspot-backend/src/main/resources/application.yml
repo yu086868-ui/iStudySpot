@@ -49,3 +49,21 @@ logging:
     com.ycyu.istudyspotbackend: DEBUG
     org.mybatis: DEBUG
     org.springframework.jdbc: DEBUG
+
+sentry:
+  dsn: https://78e5166eaf016435f9cd19f34efdc5bb@o4511490021326848.ingest.us.sentry.io/4511490036269056
+  auth-token: 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
+  traces-sample-rate: 1.0
+  enabled: true
+
+alert:
+  error-rate:
+    enabled: true
+    threshold: 5.0
+    window-seconds: 60
+  response-time:
+    enabled: true
+    threshold-ms: 500
+  service-unavailable:
+    enabled: true
+    consecutive-failures: 3
