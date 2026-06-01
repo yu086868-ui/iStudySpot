@@ -92,7 +92,7 @@ export const checkInApi = {
           checkInRecord: null
         });
 
-        if (currentCheckIn.checkInRecord) {
+        if (currentCheckIn && currentCheckIn.checkInRecord) {
           const reservation = reservations.find(r => r.id === currentCheckIn.checkInRecord.reservationId);
           if (reservation) {
             store.updateReservation({
@@ -114,7 +114,7 @@ export const checkInApi = {
         checkInRecord: null
       });
 
-      if (currentCheckIn.checkInRecord) {
+      if (currentCheckIn && currentCheckIn.checkInRecord) {
         const reservation = reservations.find(r => r.id === currentCheckIn.checkInRecord.reservationId);
         if (reservation) {
           store.updateReservation({

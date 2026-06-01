@@ -49,3 +49,21 @@ logging:
     com.ycyu.istudyspotbackend: DEBUG
     org.mybatis: DEBUG
     org.springframework.jdbc: DEBUG
+
+sentry:
+  dsn: ${SENTRY_DSN:}
+  auth-token: ${SENTRY_AUTH_TOKEN:}
+  traces-sample-rate: 1.0
+  enabled: ${SENTRY_ENABLED:false}
+
+alert:
+  error-rate:
+    enabled: true
+    threshold: 5.0
+    window-seconds: 60
+  response-time:
+    enabled: true
+    threshold-ms: 500
+  service-unavailable:
+    enabled: true
+    consecutive-failures: 3
