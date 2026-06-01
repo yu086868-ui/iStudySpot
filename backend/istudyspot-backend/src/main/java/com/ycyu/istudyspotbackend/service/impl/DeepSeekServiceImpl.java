@@ -388,8 +388,8 @@ public class DeepSeekServiceImpl implements DeepSeekService {
                                         JsonNode error = root.get("error");
                                         if (error != null) {
                                             String errorMessage = error.get("message").asText();
-                                            onError.accept(new RuntimeException("Error from DeepSeek API: " + errorMessage));
-                                            return;
+                                            onMessage.accept("Error from DeepSeek API: " + errorMessage);
+                                            continue;
                                         }
                                         
                                         JsonNode choices = root.get("choices");
@@ -397,8 +397,12 @@ public class DeepSeekServiceImpl implements DeepSeekService {
                                             JsonNode delta = choices.get(0).get("delta");
                                             if (delta != null && delta.has("content")) {
                                                 String content = delta.get("content").asText();
-                                                if (!content.isEmpty() && !content.matches("[?？]+")) {
-                                                    onMessage.accept(content);
+                                                if (!content.isEmpty()) {
+                                                    if (content.matches("[?？]+")) {
+                                                        onMessage.accept("Sorry, I can't understand the response");
+                                                    } else {
+                                                        onMessage.accept("{\"type\": \"delta\", \"content\": \"" + content + "\"}");
+                                                    }
                                                 }
                                             }
                                         }
@@ -408,6 +412,7 @@ public class DeepSeekServiceImpl implements DeepSeekService {
                                 }
                             }
                         }
+                        onMessage.accept("{\"type\": \"end\"}");
                         onComplete.run();
                     }
                 } else {
