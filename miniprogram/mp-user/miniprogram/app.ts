@@ -41,7 +41,7 @@ App<IAppOption>({
   onError(err: string) {
     errorMonitor.handleJsError(err);
   },
-  onUnhandledRejection(rejection: WechatMiniprogram.OnUnhandledRejectionListenerResult) {
+  onUnhandledRejection(rejection: WechatMiniprogram.OnUnhandledRejectionCallbackResult) {
     errorMonitor.handlePromiseRejection(rejection);
   },
   onPageNotFound() {

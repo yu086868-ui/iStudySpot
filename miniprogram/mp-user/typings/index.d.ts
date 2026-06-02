@@ -6,6 +6,6 @@ interface IAppOption {
   }
   userInfoReadyCallback?: WechatMiniprogram.GetUserInfoSuccessCallback,
   onError?: (err: string) => void,
-  onUnhandledRejection?: (rejection: WechatMiniprogram.OnUnhandledRejectionListenerResult) => void,
+  onUnhandledRejection?: (rejection: WechatMiniprogram.OnUnhandledRejectionCallbackResult) => void,
   onPageNotFound?: () => void,
 }

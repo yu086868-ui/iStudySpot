@@ -32,19 +32,10 @@ class ErrorMonitor {
     this.addError(record);
   }
 
-  handlePromiseRejection(rejection: WechatMiniprogram.OnUnhandledRejectionListenerResult): void {
+  handlePromiseRejection(rejection: WechatMiniprogram.OnUnhandledRejectionCallbackResult): void {
     var reason = rejection.reason;
-    var message = '';
+    var message = typeof reason === 'string' ? reason : JSON.stringify(reason);
     var stack = '';
-
-    if (reason instanceof Error) {
-      message = reason.message;
-      stack = reason.stack || '';
-    } else if (typeof reason === 'string') {
-      message = reason;
-    } else {
-      message = JSON.stringify(reason);
-    }
 
     logger.error('ErrorMonitor', 'Promise 未处理拒绝', { message: message, stack: stack });
 

@@ -92,7 +92,7 @@ class Request {
       wx.request({
         url: `${this.baseURL}${url}`,
         method,
-        data,
+        data: data as WechatMiniprogram.IAnyObject,
         header: requestHeader,
         success: async (res: WechatMiniprogram.RequestSuccessCallbackResult) => {
           const response = res.data as ApiResponse<T>;
