@@ -1,0 +1,7 @@
+{
+  "component": true,
+  "styleIsolation": "apply-shared",
+  "usingComponents": {
+    "markdown-card": "/components/markdown-card/index"
+  }
+}

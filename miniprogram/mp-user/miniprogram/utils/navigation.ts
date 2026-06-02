@@ -43,16 +43,13 @@ class NavigationManager {
 
     wx.navigateTo({
       url: path,
-      fail: (err) => {
-        console.error('[导航] navigateTo 失败', err)
+      fail: () => {
         this.redirectTo(path)
       }
     })
   }
 
   navigateFromReservationToStudy(params?: Record<string, string | number | boolean>): void {
-    console.log('[导航] 从预约页面跳转到学习状态页面')
-    
     const pages = getCurrentPages()
     const currentPage = pages[pages.length - 1]
     
@@ -64,8 +61,7 @@ class NavigationManager {
     
     wx.redirectTo({
       url: studyPath,
-      fail: (err) => {
-        console.error('[导航] redirectTo 失败，尝试 navigateTo', err)
+      fail: () => {
         wx.navigateTo({
           url: studyPath
         })
@@ -74,14 +70,12 @@ class NavigationManager {
   }
 
   navigateFromReservationToHome(): void {
-    console.log('[导航] 从预约页面返回首页')
     wx.switchTab({
       url: PAGE_PATHS.home
     })
   }
 
   navigateFromStudyToHome(): void {
-    console.log('[导航] 从学习状态页面返回首页')
     wx.switchTab({
       url: PAGE_PATHS.home
     })
@@ -115,10 +109,7 @@ class NavigationManager {
 
   private redirectTo(path: string): void {
     wx.redirectTo({
-      url: path,
-      fail: (err) => {
-        console.error('[导航] redirectTo 失败', err)
-      }
+      url: path
     })
   }
 

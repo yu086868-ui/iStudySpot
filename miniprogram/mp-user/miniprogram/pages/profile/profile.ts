@@ -1,5 +1,7 @@
 import { userApi } from '../../services/user'
 
+const DEFAULT_MOTTO = '我们的一生皆是征途'
+
 Page({
   data: {
     userInfo: {
@@ -14,10 +16,12 @@ Page({
       status: 'active'
     } as any,
     totalStudyHours: 624,
-    rankPercent: 82
+    rankPercent: 82,
+    motto: DEFAULT_MOTTO
   },
 
   onLoad() {
+    this.loadMotto()
     this.loadUserInfo()
   },
 
@@ -48,21 +52,45 @@ Page({
         })
       }
     } catch (error) {
-      console.error('获取用户信息失败', error)
     }
   },
 
-  handleRecharge() {
-    wx.showToast({
-      title: '账户充值功能开发中',
-      icon: 'none'
-    })
+  loadMotto() {
+    const motto = wx.getStorageSync('user_motto') || DEFAULT_MOTTO
+    this.setData({ motto })
   },
 
-  handleSettings() {
-    wx.showToast({
-      title: '设置功能开发中',
-      icon: 'none'
+  handleEditMotto() {
+    wx.showModal({
+      title: '修改座右铭',
+      editable: true,
+      placeholderText: '请输入新的座右铭',
+      content: this.data.motto,
+      success: (res) => {
+        if (res.confirm) {
+          const newMotto = (res.content || '').trim()
+          if (newMotto.length === 0) {
+            wx.showToast({
+              title: '座右铭不能为空',
+              icon: 'none'
+            })
+            return
+          }
+          if (newMotto.length > 20) {
+            wx.showToast({
+              title: '座右铭最多20个字',
+              icon: 'none'
+            })
+            return
+          }
+          wx.setStorageSync('user_motto', newMotto)
+          this.setData({ motto: newMotto })
+          wx.showToast({
+            title: '修改成功',
+            icon: 'success'
+          })
+        }
+      }
     })
   }
 })

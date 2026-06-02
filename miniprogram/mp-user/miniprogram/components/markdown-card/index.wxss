@@ -1,0 +1,66 @@
+.markdown-card {
+  margin: 24rpx 0;
+  padding: 32rpx;
+  background: #ffffff;
+  border-radius: 16rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 16rpx;
+}
+
+.card-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40rpx;
+  height: 40rpx;
+  padding: 0 12rpx;
+  background: #4a7af5;
+  border-radius: 20rpx;
+  font-size: 22rpx;
+  color: #ffffff;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.card-warnings {
+  margin-left: 16rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.warning-item {
+  display: flex;
+  align-items: center;
+  padding: 6rpx 16rpx;
+  background: #fff8e1;
+  border-radius: 8rpx;
+  border-left: 4rpx solid #ffb300;
+}
+
+.warning-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28rpx;
+  height: 28rpx;
+  background: #ffb300;
+  border-radius: 14rpx;
+  color: #ffffff;
+  font-size: 20rpx;
+  font-weight: 700;
+  margin-right: 10rpx;
+  flex-shrink: 0;
+}
+
+.warning-text {
+  font-size: 22rpx;
+  color: #795548;
+  line-height: 1.4;
+}

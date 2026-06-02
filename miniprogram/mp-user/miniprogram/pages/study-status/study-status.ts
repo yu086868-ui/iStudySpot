@@ -1,5 +1,6 @@
-import { checkInApi, store, StoreEvent } from '../../services/index'
+import { checkInApi, cardApi, store, StoreEvent } from '../../services/index'
 import { navigationManager } from '../../utils/navigation'
+import type { Card } from '../../typings/api'
 
 Page({
   data: {
@@ -10,19 +11,20 @@ Page({
     motto: '我们的一生皆是征途',
     checkInRecordId: '' as string,
     roomName: '' as string,
-    seatNumber: '' as string
+    seatNumber: '' as string,
+    showCardPopup: false,
+    newCard: null as Card | null,
+    studyDurationMin: 0
   },
 
   unsubscribeCheckIn: null as (() => void) | null,
 
   onLoad() {
-    console.log('[学习状态] 页面加载')
     this.loadCurrentCheckIn()
     this.subscribeStoreEvents()
   },
 
   onUnload() {
-    console.log('[学习状态] 页面卸载')
     this.stopTimer()
     if (this.unsubscribeCheckIn) {
       this.unsubscribeCheckIn()
@@ -31,39 +33,30 @@ Page({
 
   subscribeStoreEvents() {
     this.unsubscribeCheckIn = store.on(StoreEvent.CHECKIN_CHANGED, (data) => {
-      console.log('[学习状态] 收到签到状态变化事件', data)
       const checkInData = data as { isCheckedIn: boolean; checkInRecord: any }
       if (!checkInData.isCheckedIn) {
-        console.log('[学习状态] 签到已结束，停止计时器')
         this.stopTimer()
       }
     })
   },
 
   async loadCurrentCheckIn() {
-    console.log('[学习状态] 获取当前签到状态')
-    
     const cachedCheckIn = store.getCurrentCheckIn()
     if (cachedCheckIn.isCheckedIn && cachedCheckIn.checkInRecord) {
-      console.log('[学习状态] 使用缓存的签到记录', cachedCheckIn.checkInRecord)
       await this.initWithCheckInRecord(cachedCheckIn.checkInRecord)
       return
     }
 
     try {
       const res = await checkInApi.getCurrentCheckInStatus(true)
-      console.log('[学习状态] 签到状态结果', res)
       
       if (res.code === 200 && res.data && res.data.isCheckedIn && res.data.checkInRecord) {
         const record = res.data.checkInRecord
-        console.log('[学习状态] 找到活跃签到记录', record)
         await this.initWithCheckInRecord(record)
       } else {
-        console.log('[学习状态] 没有活跃签到记录')
         this.showNoActiveSession()
       }
     } catch (error) {
-      console.error('[学习状态] 获取签到状态失败', error)
       this.showNoActiveSession()
     }
   },
@@ -107,7 +100,6 @@ Page({
   },
 
   startTimer() {
-    console.log('[学习状态] 启动计时器')
     this.setData({ isStudying: true })
 
     const timer = setInterval(() => {
@@ -126,7 +118,6 @@ Page({
   },
 
   stopTimer() {
-    console.log('[学习状态] 停止计时器')
     if (this.data.timer) {
       clearInterval(this.data.timer)
       this.setData({ timer: null })
@@ -134,21 +125,16 @@ Page({
   },
 
   async endStudySession() {
-    console.log('[签退] 触发结束学习')
-    
     const currentCheckIn = store.getCurrentCheckIn()
     const checkInRecordId = this.data.checkInRecordId || (currentCheckIn.checkInRecord && currentCheckIn.checkInRecord.id)
     
     if (!checkInRecordId) {
-      console.error('[签退] 未找到签到记录ID')
       wx.showToast({
         title: '未找到签到记录',
         icon: 'none'
       })
       return
     }
-
-    console.log('[签退] 签到记录ID:', checkInRecordId)
 
     wx.showModal({
       title: '结束学习',
@@ -157,31 +143,67 @@ Page({
       cancelText: '继续',
       success: async (res) => {
         if (res.confirm) {
-          console.log('[签退] 用户确认结束学习')
           this.stopTimer()
           this.setData({ isStudying: false })
 
+          const studyDurationMin = this.calcStudyDuration()
+
           try {
-            console.log('[签退] 调用签退API', { checkInRecordId })
-            const result = await checkInApi.checkOut({ checkInRecordId })
-            console.log('[签退] 签退成功', result)
+            await checkInApi.checkOut({ checkInRecordId })
           } catch (error) {
-            console.error('[签退] 签退失败', error)
           }
 
-          wx.showToast({
-            title: '本次学习已结束',
-            icon: 'success',
-            duration: 2000
-          })
-
-          setTimeout(() => {
-            navigationManager.navigateFromStudyToHome()
-          }, 2000)
-        } else {
-          console.log('[签退] 用户取消结束学习')
+          await this.tryGenerateCard(studyDurationMin)
         }
       }
     })
+  },
+
+  calcStudyDuration(): number {
+    const now = Date.now()
+    const diff = now - this.data.startTime
+    return Math.max(1, Math.floor(diff / (1000 * 60)))
+  },
+
+  async tryGenerateCard(studyDurationMin: number) {
+    this.setData({ studyDurationMin })
+
+    try {
+      const user = store.getUser()
+      const userID = user ? user.id : 'user_001'
+      const res = await cardApi.generateCard({ userID, studyDuration: studyDurationMin })
+
+      if (res.code === 200 && res.data) {
+        this.setData({
+          showCardPopup: true,
+          newCard: res.data
+        })
+        return
+      }
+    } catch (error) {
+    }
+
+    this.navigateBack()
+  },
+
+  onCardPopupClose() {
+    this.setData({ showCardPopup: false, newCard: null })
+    this.navigateBack()
+  },
+
+  onCardPopupAction() {
+    this.setData({ showCardPopup: false, newCard: null })
+    this.navigateBack()
+  },
+
+  navigateBack() {
+    wx.showToast({
+      title: '本次学习已结束',
+      icon: 'success',
+      duration: 1500
+    })
+    setTimeout(() => {
+      navigationManager.navigateFromStudyToHome()
+    }, 1500)
   }
 })

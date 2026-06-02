@@ -1,348 +1,376 @@
-import { SeatLayoutUtil } from '../miniprogram/utils/seat-layout';
+import { SeatLayoutUtil } from '../../../miniprogram/utils/seat-layout';
+import type { Seat } from '../../../miniprogram/typings/api';
+
+function createSeat(overrides: Partial<Seat> = {}): Seat {
+  return {
+    id: 'seat-1',
+    studyRoomId: 'room-1',
+    row: 1,
+    col: 1,
+    seatNumber: 'A1',
+    type: 'normal',
+    status: 'available',
+    facilities: [],
+    lastUsedAt: '',
+    ...overrides,
+  };
+}
 
 describe('SeatLayoutUtil', () => {
   describe('createSeatLayout', () => {
-    it('should create layout from empty seats', () => {
+    it('returns empty layout for empty array', () => {
       const result = SeatLayoutUtil.createSeatLayout([]);
-      expect(result).toEqual({
-        rows: [],
-        totalRows: 0,
-        totalCols: 0
-      });
+      expect(result).toEqual({ rows: [], totalRows: 0, totalCols: 0 });
     });
 
-    it('should create layout from single seat', () => {
-      const seats = [{
-        id: 'seat_001',
-        studyRoomId: 'room_001',
-        row: 1,
-        col: 1,
-        seatNumber: 'A1',
-        type: 'normal' as const,
-        status: 'available' as const,
-        facilities: ['插座']
-      }];
+    it('returns empty layout for undefined input', () => {
+      const result = SeatLayoutUtil.createSeatLayout(undefined as any);
+      expect(result).toEqual({ rows: [], totalRows: 0, totalCols: 0 });
+    });
+
+    it('creates layout from flat seat array grouped by row', () => {
+      const seats = [
+        createSeat({ id: '1', row: 2, col: 2, seatNumber: 'B2' }),
+        createSeat({ id: '2', row: 1, col: 1, seatNumber: 'A1' }),
+        createSeat({ id: '3', row: 1, col: 2, seatNumber: 'A2' }),
+        createSeat({ id: '4', row: 2, col: 1, seatNumber: 'B1' }),
+      ];
       const result = SeatLayoutUtil.createSeatLayout(seats);
-      
+      expect(result.totalRows).toBe(2);
+      expect(result.totalCols).toBe(2);
+      expect(result.rows).toHaveLength(2);
+      expect(result.rows[0].rowNumber).toBe(1);
+      expect(result.rows[0].seats.map(s => s.id)).toEqual(['2', '3']);
+      expect(result.rows[1].rowNumber).toBe(2);
+      expect(result.rows[1].seats.map(s => s.id)).toEqual(['4', '1']);
+    });
+
+    it('sorts seats within each row by col', () => {
+      const seats = [
+        createSeat({ id: 'a', row: 1, col: 3 }),
+        createSeat({ id: 'b', row: 1, col: 1 }),
+        createSeat({ id: 'c', row: 1, col: 2 }),
+      ];
+      const result = SeatLayoutUtil.createSeatLayout(seats);
+      expect(result.rows[0].seats.map(s => s.id)).toEqual(['b', 'c', 'a']);
+    });
+
+    it('sorts rows by rowNumber', () => {
+      const seats = [
+        createSeat({ id: 'x', row: 3, col: 1 }),
+        createSeat({ id: 'y', row: 1, col: 1 }),
+      ];
+      const result = SeatLayoutUtil.createSeatLayout(seats);
+      expect(result.rows[0].rowNumber).toBe(1);
+      expect(result.rows[1].rowNumber).toBe(3);
+    });
+
+    it('skips empty rows when seats have gaps in row numbers', () => {
+      const seats = [
+        createSeat({ id: '1', row: 1, col: 1 }),
+        createSeat({ id: '2', row: 3, col: 1 }),
+      ];
+      const result = SeatLayoutUtil.createSeatLayout(seats);
+      expect(result.rows).toHaveLength(2);
+      expect(result.totalRows).toBe(3);
+    });
+
+    it('handles single seat', () => {
+      const seats = [createSeat({ row: 1, col: 1 })];
+      const result = SeatLayoutUtil.createSeatLayout(seats);
+      expect(result.rows).toHaveLength(1);
       expect(result.totalRows).toBe(1);
       expect(result.totalCols).toBe(1);
-      expect(result.rows).toHaveLength(1);
-      expect(result.rows[0].rowNumber).toBe(1);
-      expect(result.rows[0].seats).toHaveLength(1);
-    });
-
-    it('should create layout with multiple rows and columns', () => {
-      const seats = [];
-      for (let i = 1; i <= 12; i++) {
-        const row = Math.ceil(i / 6);
-        const col = ((i - 1) % 6) + 1;
-        seats.push({
-          id: `seat_${i}`,
-          studyRoomId: 'room_001',
-          row,
-          col,
-          seatNumber: `${String.fromCharCode(64 + row)}${col}`,
-          type: 'normal' as const,
-          status: 'available' as const,
-          facilities: ['插座']
-        });
-      }
-      const result = SeatLayoutUtil.createSeatLayout(seats);
-      
-      expect(result.totalRows).toBe(2);
-      expect(result.totalCols).toBe(6);
-      expect(result.rows).toHaveLength(2);
-    });
-
-    it('should sort rows by row number', () => {
-      const seats = [
-        { id: 'seat_1', studyRoomId: 'room_001', row: 3, col: 1, seatNumber: 'C1', type: 'normal' as const, status: 'available' as const, facilities: ['插座'] },
-        { id: 'seat_2', studyRoomId: 'room_001', row: 1, col: 1, seatNumber: 'A1', type: 'normal' as const, status: 'available' as const, facilities: ['插座'] },
-        { id: 'seat_3', studyRoomId: 'room_001', row: 2, col: 1, seatNumber: 'B1', type: 'normal' as const, status: 'available' as const, facilities: ['插座'] }
-      ];
-      const result = SeatLayoutUtil.createSeatLayout(seats);
-      
-      expect(result.rows[0].rowNumber).toBe(1);
-      expect(result.rows[1].rowNumber).toBe(2);
-      expect(result.rows[2].rowNumber).toBe(3);
-    });
-
-    it('should sort seats by column number within row', () => {
-      const seats = [
-        { id: 'seat_1', studyRoomId: 'room_001', row: 1, col: 3, seatNumber: 'A3', type: 'normal' as const, status: 'available' as const, facilities: ['插座'] },
-        { id: 'seat_2', studyRoomId: 'room_001', row: 1, col: 1, seatNumber: 'A1', type: 'normal' as const, status: 'available' as const, facilities: ['插座'] },
-        { id: 'seat_3', studyRoomId: 'room_001', row: 1, col: 2, seatNumber: 'A2', type: 'normal' as const, status: 'available' as const, facilities: ['插座'] }
-      ];
-      const result = SeatLayoutUtil.createSeatLayout(seats);
-      
-      expect(result.rows[0].seats[0].col).toBe(1);
-      expect(result.rows[0].seats[1].col).toBe(2);
-      expect(result.rows[0].seats[2].col).toBe(3);
     });
   });
 
   describe('splitIntoGroups', () => {
-    it('should split seats into groups based on config', () => {
-      const seats = [];
-      for (let i = 1; i <= 12; i++) {
-        const row = Math.ceil(i / 6);
-        const col = ((i - 1) % 6) + 1;
-        seats.push({
-          id: `seat_${i}`,
-          studyRoomId: 'room_001',
-          row,
-          col,
-          seatNumber: `${String.fromCharCode(64 + row)}${col}`,
-          type: 'normal' as const,
-          status: 'available' as const,
-          facilities: ['插座']
-        });
-      }
-      const groupConfig = [
-        { startCol: 1, endCol: 3, name: 'left' },
-        { startCol: 4, endCol: 6, name: 'right' }
+    it('splits layout into named column groups', () => {
+      const seats = [
+        createSeat({ id: '1', row: 1, col: 1 }),
+        createSeat({ id: '2', row: 1, col: 2 }),
+        createSeat({ id: '3', row: 1, col: 3 }),
+        createSeat({ id: '4', row: 1, col: 4 }),
       ];
-      
-      const result = SeatLayoutUtil.splitIntoGroups(seats, groupConfig);
-      
+      const config = [
+        { startCol: 1, endCol: 2, name: 'left' },
+        { startCol: 3, endCol: 4, name: 'right' },
+      ];
+      const result = SeatLayoutUtil.splitIntoGroups(seats, config);
       expect(result).toHaveLength(2);
       expect(result[0].name).toBe('left');
+      expect(result[0].startCol).toBe(1);
+      expect(result[0].endCol).toBe(2);
+      expect(result[0].rows[0].seats.map(s => s.id)).toEqual(['1', '2']);
       expect(result[1].name).toBe('right');
+      expect(result[1].rows[0].seats.map(s => s.id)).toEqual(['3', '4']);
     });
 
-    it('should handle overlapping groups', () => {
-      const seats = [];
-      for (let i = 1; i <= 6; i++) {
-        seats.push({
-          id: `seat_${i}`,
-          studyRoomId: 'room_001',
-          row: 1,
-          col: i,
-          seatNumber: `A${i}`,
-          type: 'normal' as const,
-          status: 'available' as const,
-          facilities: ['插座']
-        });
-      }
-      const groupConfig = [
-        { startCol: 1, endCol: 4, name: 'group1' },
-        { startCol: 3, endCol: 6, name: 'group2' }
+    it('returns empty rows for groups with no matching seats', () => {
+      const seats = [createSeat({ row: 1, col: 1 })];
+      const config = [
+        { startCol: 1, endCol: 1, name: 'left' },
+        { startCol: 2, endCol: 3, name: 'right' },
       ];
-      
-      const result = SeatLayoutUtil.splitIntoGroups(seats, groupConfig);
-      
-      expect(result).toHaveLength(2);
-      expect(result[0].rows.length).toBeGreaterThan(0);
-      expect(result[1].rows.length).toBeGreaterThan(0);
+      const result = SeatLayoutUtil.splitIntoGroups(seats, config);
+      expect(result[0].rows).toHaveLength(1);
+      expect(result[1].rows).toHaveLength(0);
+    });
+
+    it('handles empty seats array', () => {
+      const config = [{ startCol: 1, endCol: 2, name: 'main' }];
+      const result = SeatLayoutUtil.splitIntoGroups([], config);
+      expect(result).toHaveLength(1);
+      expect(result[0].rows).toHaveLength(0);
     });
   });
 
   describe('getSeatStatus', () => {
-    it('should return empty for undefined seat', () => {
+    it('returns seat status for a valid seat', () => {
+      const seat = createSeat({ status: 'occupied' });
+      expect(SeatLayoutUtil.getSeatStatus(seat)).toBe('occupied');
+    });
+
+    it('returns "empty" for undefined seat', () => {
       expect(SeatLayoutUtil.getSeatStatus(undefined)).toBe('empty');
     });
 
-    it('should return seat status', () => {
-      const seat = { id: 'seat_001', studyRoomId: 'room_001', row: 1, col: 1, seatNumber: 'A1', type: 'normal' as const, status: 'available' as const, facilities: ['插座'] };
-      expect(SeatLayoutUtil.getSeatStatus(seat)).toBe('available');
+    it('returns "empty" for null seat', () => {
+      expect(SeatLayoutUtil.getSeatStatus(null as any)).toBe('empty');
     });
 
-    it('should return occupied status', () => {
-      const seat = { id: 'seat_001', studyRoomId: 'room_001', row: 1, col: 1, seatNumber: 'A1', type: 'normal' as const, status: 'occupied' as const, facilities: ['插座'] };
-      expect(SeatLayoutUtil.getSeatStatus(seat)).toBe('occupied');
+    it('returns correct status for each possible status', () => {
+      expect(SeatLayoutUtil.getSeatStatus(createSeat({ status: 'available' }))).toBe('available');
+      expect(SeatLayoutUtil.getSeatStatus(createSeat({ status: 'occupied' }))).toBe('occupied');
+      expect(SeatLayoutUtil.getSeatStatus(createSeat({ status: 'reserved' }))).toBe('reserved');
+      expect(SeatLayoutUtil.getSeatStatus(createSeat({ status: 'maintenance' }))).toBe('maintenance');
     });
   });
 
   describe('isSeatSelectable', () => {
-    it('should return false for undefined seat', () => {
+    it('returns true when status is "available"', () => {
+      expect(SeatLayoutUtil.isSeatSelectable(createSeat({ status: 'available' }))).toBe(true);
+    });
+
+    it('returns false for other statuses', () => {
+      expect(SeatLayoutUtil.isSeatSelectable(createSeat({ status: 'occupied' }))).toBe(false);
+      expect(SeatLayoutUtil.isSeatSelectable(createSeat({ status: 'reserved' }))).toBe(false);
+      expect(SeatLayoutUtil.isSeatSelectable(createSeat({ status: 'maintenance' }))).toBe(false);
+    });
+
+    it('returns false for undefined seat', () => {
       expect(SeatLayoutUtil.isSeatSelectable(undefined)).toBe(false);
     });
 
-    it('should return true for available seat', () => {
-      const seat = { id: 'seat_001', studyRoomId: 'room_001', row: 1, col: 1, seatNumber: 'A1', type: 'normal' as const, status: 'available' as const, facilities: ['插座'] };
-      expect(SeatLayoutUtil.isSeatSelectable(seat)).toBe(true);
-    });
-
-    it('should return false for occupied seat', () => {
-      const seat = { id: 'seat_001', studyRoomId: 'room_001', row: 1, col: 1, seatNumber: 'A1', type: 'normal' as const, status: 'occupied' as const, facilities: ['插座'] };
-      expect(SeatLayoutUtil.isSeatSelectable(seat)).toBe(false);
-    });
-
-    it('should return false for reserved seat', () => {
-      const seat = { id: 'seat_001', studyRoomId: 'room_001', row: 1, col: 1, seatNumber: 'A1', type: 'normal' as const, status: 'reserved' as const, facilities: ['插座'] };
-      expect(SeatLayoutUtil.isSeatSelectable(seat)).toBe(false);
-    });
-
-    it('should return false for maintenance seat', () => {
-      const seat = { id: 'seat_001', studyRoomId: 'room_001', row: 1, col: 1, seatNumber: 'A1', type: 'normal' as const, status: 'maintenance' as const, facilities: ['插座'] };
-      expect(SeatLayoutUtil.isSeatSelectable(seat)).toBe(false);
+    it('returns false for null seat', () => {
+      expect(SeatLayoutUtil.isSeatSelectable(null as any)).toBe(false);
     });
   });
 
   describe('getSeatType', () => {
-    it('should return none for undefined seat', () => {
+    it('returns seat type for a valid seat', () => {
+      expect(SeatLayoutUtil.getSeatType(createSeat({ type: 'vip' }))).toBe('vip');
+    });
+
+    it('returns "none" for undefined seat', () => {
       expect(SeatLayoutUtil.getSeatType(undefined)).toBe('none');
     });
 
-    it('should return seat type', () => {
-      const seat = { id: 'seat_001', studyRoomId: 'room_001', row: 1, col: 1, seatNumber: 'A1', type: 'vip' as const, status: 'available' as const, facilities: ['插座'] };
-      expect(SeatLayoutUtil.getSeatType(seat)).toBe('vip');
+    it('returns "none" for null seat', () => {
+      expect(SeatLayoutUtil.getSeatType(null as any)).toBe('none');
     });
 
-    it('should return normal type', () => {
-      const seat = { id: 'seat_001', studyRoomId: 'room_001', row: 1, col: 1, seatNumber: 'A1', type: 'normal' as const, status: 'available' as const, facilities: ['插座'] };
-      expect(SeatLayoutUtil.getSeatType(seat)).toBe('normal');
-    });
-
-    it('should return quiet type', () => {
-      const seat = { id: 'seat_001', studyRoomId: 'room_001', row: 1, col: 1, seatNumber: 'A1', type: 'quiet' as const, status: 'available' as const, facilities: ['插座'] };
-      expect(SeatLayoutUtil.getSeatType(seat)).toBe('quiet');
+    it('returns correct type for each possible type', () => {
+      expect(SeatLayoutUtil.getSeatType(createSeat({ type: 'normal' }))).toBe('normal');
+      expect(SeatLayoutUtil.getSeatType(createSeat({ type: 'vip' }))).toBe('vip');
+      expect(SeatLayoutUtil.getSeatType(createSeat({ type: 'quiet' }))).toBe('quiet');
     });
   });
 
   describe('generateSeatNumber', () => {
-    it('should generate seat number for row 1', () => {
-      expect(SeatLayoutUtil.generateSeatNumber(1, 5)).toBe('A5');
+    it('generates "A1" for row 1, col 1', () => {
+      expect(SeatLayoutUtil.generateSeatNumber(1, 1)).toBe('A1');
     });
 
-    it('should generate seat number for row 26', () => {
+    it('generates "B3" for row 2, col 3', () => {
+      expect(SeatLayoutUtil.generateSeatNumber(2, 3)).toBe('B3');
+    });
+
+    it('generates "Z10" for row 26, col 10', () => {
       expect(SeatLayoutUtil.generateSeatNumber(26, 10)).toBe('Z10');
     });
 
-    it('should generate seat number for row 2', () => {
-      expect(SeatLayoutUtil.generateSeatNumber(2, 3)).toBe('B3');
+    it('generates "C1" for row 3, col 1', () => {
+      expect(SeatLayoutUtil.generateSeatNumber(3, 1)).toBe('C1');
     });
   });
 
   describe('getAvailableSeats', () => {
-    it('should filter available seats', () => {
+    it('filters only available seats', () => {
       const seats = [
-        { id: '1', studyRoomId: 'room_001', row: 1, col: 1, seatNumber: 'A1', type: 'normal' as const, status: 'available' as const, facilities: ['插座'] },
-        { id: '2', studyRoomId: 'room_001', row: 1, col: 2, seatNumber: 'A2', type: 'normal' as const, status: 'occupied' as const, facilities: ['插座'] },
-        { id: '3', studyRoomId: 'room_001', row: 1, col: 3, seatNumber: 'A3', type: 'normal' as const, status: 'available' as const, facilities: ['插座'] }
+        createSeat({ id: '1', status: 'available' }),
+        createSeat({ id: '2', status: 'occupied' }),
+        createSeat({ id: '3', status: 'available' }),
       ];
-      
       const result = SeatLayoutUtil.getAvailableSeats(seats);
-      
       expect(result).toHaveLength(2);
-      expect(result[0].id).toBe('1');
-      expect(result[1].id).toBe('3');
+      expect(result.map(s => s.id)).toEqual(['1', '3']);
     });
 
-    it('should return empty array if no available seats', () => {
+    it('returns empty array when no seats are available', () => {
       const seats = [
-        { id: '1', studyRoomId: 'room_001', row: 1, col: 1, seatNumber: 'A1', type: 'normal' as const, status: 'occupied' as const, facilities: ['插座'] },
-        { id: '2', studyRoomId: 'room_001', row: 1, col: 2, seatNumber: 'A2', type: 'normal' as const, status: 'reserved' as const, facilities: ['插座'] }
+        createSeat({ status: 'occupied' }),
+        createSeat({ status: 'reserved' }),
       ];
-      
-      const result = SeatLayoutUtil.getAvailableSeats(seats);
-      
-      expect(result).toHaveLength(0);
+      expect(SeatLayoutUtil.getAvailableSeats(seats)).toHaveLength(0);
+    });
+
+    it('returns empty array for empty input', () => {
+      expect(SeatLayoutUtil.getAvailableSeats([])).toEqual([]);
     });
   });
 
   describe('getSeatsByType', () => {
-    it('should filter seats by type', () => {
+    it('filters seats by type', () => {
       const seats = [
-        { id: '1', studyRoomId: 'room_001', row: 1, col: 1, seatNumber: 'A1', type: 'normal' as const, status: 'available' as const, facilities: ['插座'] },
-        { id: '2', studyRoomId: 'room_001', row: 1, col: 2, seatNumber: 'A2', type: 'vip' as const, status: 'available' as const, facilities: ['插座'] },
-        { id: '3', studyRoomId: 'room_001', row: 1, col: 3, seatNumber: 'A3', type: 'normal' as const, status: 'available' as const, facilities: ['插座'] }
+        createSeat({ id: '1', type: 'normal' }),
+        createSeat({ id: '2', type: 'vip' }),
+        createSeat({ id: '3', type: 'normal' }),
       ];
-      
       const result = SeatLayoutUtil.getSeatsByType(seats, 'normal');
-      
       expect(result).toHaveLength(2);
-      expect(result[0].id).toBe('1');
-      expect(result[1].id).toBe('3');
+      expect(result.map(s => s.id)).toEqual(['1', '3']);
     });
 
-    it('should return empty array if no matching type', () => {
-      const seats = [
-        { id: '1', studyRoomId: 'room_001', row: 1, col: 1, seatNumber: 'A1', type: 'normal' as const, status: 'available' as const, facilities: ['插座'] },
-        { id: '2', studyRoomId: 'room_001', row: 1, col: 2, seatNumber: 'A2', type: 'normal' as const, status: 'available' as const, facilities: ['插座'] }
-      ];
-      
-      const result = SeatLayoutUtil.getSeatsByType(seats, 'vip');
-      
-      expect(result).toHaveLength(0);
+    it('returns empty array when no seats match type', () => {
+      const seats = [createSeat({ type: 'normal' })];
+      expect(SeatLayoutUtil.getSeatsByType(seats, 'vip')).toHaveLength(0);
+    });
+
+    it('returns empty array for empty input', () => {
+      expect(SeatLayoutUtil.getSeatsByType([], 'normal')).toEqual([]);
     });
   });
 
   describe('getSeatsByStatus', () => {
-    it('should filter seats by status', () => {
+    it('filters seats by status', () => {
       const seats = [
-        { id: '1', studyRoomId: 'room_001', row: 1, col: 1, seatNumber: 'A1', type: 'normal' as const, status: 'available' as const, facilities: ['插座'] },
-        { id: '2', studyRoomId: 'room_001', row: 1, col: 2, seatNumber: 'A2', type: 'normal' as const, status: 'occupied' as const, facilities: ['插座'] },
-        { id: '3', studyRoomId: 'room_001', row: 1, col: 3, seatNumber: 'A3', type: 'normal' as const, status: 'reserved' as const, facilities: ['插座'] }
+        createSeat({ id: '1', status: 'reserved' }),
+        createSeat({ id: '2', status: 'occupied' }),
+        createSeat({ id: '3', status: 'reserved' }),
       ];
-      
-      const result = SeatLayoutUtil.getSeatsByStatus(seats, 'occupied');
-      
-      expect(result).toHaveLength(1);
-      expect(result[0].id).toBe('2');
+      const result = SeatLayoutUtil.getSeatsByStatus(seats, 'reserved');
+      expect(result).toHaveLength(2);
+      expect(result.map(s => s.id)).toEqual(['1', '3']);
+    });
+
+    it('returns empty array when no seats match status', () => {
+      const seats = [createSeat({ status: 'available' })];
+      expect(SeatLayoutUtil.getSeatsByStatus(seats, 'maintenance')).toHaveLength(0);
+    });
+
+    it('returns empty array for empty input', () => {
+      expect(SeatLayoutUtil.getSeatsByStatus([], 'available')).toEqual([]);
     });
   });
 
   describe('calculateSeatStats', () => {
-    it('should calculate correct statistics', () => {
+    it('calculates stats for mixed seat statuses', () => {
       const seats = [
-        { id: '1', studyRoomId: 'room_001', row: 1, col: 1, seatNumber: 'A1', type: 'normal' as const, status: 'available' as const, facilities: ['插座'] },
-        { id: '2', studyRoomId: 'room_001', row: 1, col: 2, seatNumber: 'A2', type: 'normal' as const, status: 'available' as const, facilities: ['插座'] },
-        { id: '3', studyRoomId: 'room_001', row: 1, col: 3, seatNumber: 'A3', type: 'normal' as const, status: 'occupied' as const, facilities: ['插座'] },
-        { id: '4', studyRoomId: 'room_001', row: 1, col: 4, seatNumber: 'A4', type: 'normal' as const, status: 'reserved' as const, facilities: ['插座'] },
-        { id: '5', studyRoomId: 'room_001', row: 1, col: 5, seatNumber: 'A5', type: 'normal' as const, status: 'maintenance' as const, facilities: ['插座'] }
+        createSeat({ status: 'available' }),
+        createSeat({ status: 'available' }),
+        createSeat({ status: 'occupied' }),
+        createSeat({ status: 'reserved' }),
+        createSeat({ status: 'maintenance' }),
       ];
-      
       const result = SeatLayoutUtil.calculateSeatStats(seats);
-      
-      expect(result.total).toBe(5);
-      expect(result.available).toBe(2);
-      expect(result.occupied).toBe(1);
-      expect(result.reserved).toBe(1);
-      expect(result.maintenance).toBe(1);
+      expect(result).toEqual({
+        total: 5,
+        available: 2,
+        occupied: 1,
+        reserved: 1,
+        maintenance: 1,
+      });
     });
 
-    it('should handle empty array', () => {
+    it('returns all zeros for empty array', () => {
       const result = SeatLayoutUtil.calculateSeatStats([]);
-      
-      expect(result.total).toBe(0);
-      expect(result.available).toBe(0);
-      expect(result.occupied).toBe(0);
-      expect(result.reserved).toBe(0);
-      expect(result.maintenance).toBe(0);
+      expect(result).toEqual({
+        total: 0,
+        available: 0,
+        occupied: 0,
+        reserved: 0,
+        maintenance: 0,
+      });
     });
 
-    it('should handle non-array input', () => {
+    it('returns all zeros for non-array input', () => {
       const result = SeatLayoutUtil.calculateSeatStats(null as any);
-      
-      expect(result.total).toBe(0);
-      expect(result.available).toBe(0);
+      expect(result).toEqual({
+        total: 0,
+        available: 0,
+        occupied: 0,
+        reserved: 0,
+        maintenance: 0,
+      });
+    });
+
+    it('returns all zeros for undefined input', () => {
+      const result = SeatLayoutUtil.calculateSeatStats(undefined as any);
+      expect(result).toEqual({
+        total: 0,
+        available: 0,
+        occupied: 0,
+        reserved: 0,
+        maintenance: 0,
+      });
+    });
+
+    it('returns all zeros for a string input', () => {
+      const result = SeatLayoutUtil.calculateSeatStats('not an array' as any);
+      expect(result).toEqual({
+        total: 0,
+        available: 0,
+        occupied: 0,
+        reserved: 0,
+        maintenance: 0,
+      });
     });
   });
 
   describe('createDefaultGroupConfig', () => {
-    it('should create single group for small total columns', () => {
+    it('returns single "main" group for totalCols <= 6', () => {
       const result = SeatLayoutUtil.createDefaultGroupConfig(6);
-      
-      expect(result).toHaveLength(1);
-      expect(result[0].name).toBe('main');
-      expect(result[0].startCol).toBe(1);
-      expect(result[0].endCol).toBe(6);
+      expect(result).toEqual([{ startCol: 1, endCol: 6, name: 'main' }]);
     });
 
-    it('should create two groups for large total columns', () => {
-      const result = SeatLayoutUtil.createDefaultGroupConfig(10);
-      
-      expect(result).toHaveLength(2);
-      expect(result[0].name).toBe('left');
-      expect(result[1].name).toBe('right');
+    it('returns single "main" group for totalCols = 1', () => {
+      const result = SeatLayoutUtil.createDefaultGroupConfig(1);
+      expect(result).toEqual([{ startCol: 1, endCol: 1, name: 'main' }]);
     });
 
-    it('should split columns evenly', () => {
+    it('returns left/right split for totalCols > 6', () => {
       const result = SeatLayoutUtil.createDefaultGroupConfig(10);
-      
-      expect(result[0].endCol).toBe(5);
-      expect(result[1].startCol).toBe(6);
+      expect(result).toEqual([
+        { startCol: 1, endCol: 5, name: 'left' },
+        { startCol: 6, endCol: 10, name: 'right' },
+      ]);
+    });
+
+    it('returns left/right split for totalCols = 7', () => {
+      const result = SeatLayoutUtil.createDefaultGroupConfig(7);
+      expect(result).toEqual([
+        { startCol: 1, endCol: 3, name: 'left' },
+        { startCol: 4, endCol: 7, name: 'right' },
+      ]);
+    });
+
+    it('returns left/right split for even totalCols > 6', () => {
+      const result = SeatLayoutUtil.createDefaultGroupConfig(8);
+      expect(result).toEqual([
+        { startCol: 1, endCol: 4, name: 'left' },
+        { startCol: 5, endCol: 8, name: 'right' },
+      ]);
     });
   });
 });

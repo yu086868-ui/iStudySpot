@@ -116,7 +116,6 @@ export class SeatLayoutUtil {
     maintenance: number;
   } {
     if (!Array.isArray(seats)) {
-      console.error('calculateSeatStats: seats is not an array', seats);
       return {
         total: 0,
         available: 0,

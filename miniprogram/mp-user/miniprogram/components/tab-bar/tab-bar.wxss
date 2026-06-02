@@ -56,6 +56,25 @@
   background: transparent;
 }
 
+.tab-icon.card-icon {
+  width: 40rpx;
+  height: 48rpx;
+  background: #5CB885;
+  border-radius: 6rpx;
+  position: relative;
+}
+
+.tab-icon.card-icon::after {
+  content: '';
+  position: absolute;
+  top: 12rpx;
+  left: 8rpx;
+  right: 8rpx;
+  height: 4rpx;
+  background: #FFFFFF;
+  border-radius: 2rpx;
+}
+
 .tab-text {
   font-size: 24rpx;
   color: #999999;

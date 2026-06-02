@@ -25,6 +25,12 @@ Component({
       wx.switchTab({
         url: '/pages/profile/profile'
       })
+    },
+
+    switchToCards() {
+      wx.switchTab({
+        url: '/pages/cards/cards'
+      })
     }
   }
 })

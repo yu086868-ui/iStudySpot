@@ -4,7 +4,7 @@ module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   roots: ['<rootDir>/tests'],
-  testMatch: ['**/*.test.ts', '**/*.spec.ts'],
+  testMatch: ['**/*.test.ts'],
   collectCoverageFrom: [
     'miniprogram/utils/**/*.ts',
     'miniprogram/services/**/*.ts',
@@ -12,7 +12,8 @@ module.exports = {
     '!miniprogram/utils/mock.ts',
     '!miniprogram/utils/mock-data.ts',
     '!miniprogram/utils/data.ts',
-    '!miniprogram/utils/request.ts'
+    '!miniprogram/utils/request.ts',
+    '!miniprogram/utils/markdown-it.js'
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
@@ -25,14 +26,11 @@ module.exports = {
     }
   },
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/miniprogram/$1',
-    '^../miniprogram/(.*)$': '<rootDir>/miniprogram/$1',
-    '^../tests/(.*)$': '<rootDir>/tests/$1'
+    '^@/(.*)$': '<rootDir>/miniprogram/$1'
   },
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
   moduleDirectories: ['node_modules', '<rootDir>'],
   rootDir: './',
-  modulePathIgnorePatterns: ['<rootDir>/dist/'],
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {
       tsconfig: 'tsconfig.test.json'
@@ -41,8 +39,5 @@ module.exports = {
   testTimeout: isCI ? 15000 : 5000,
   verbose: true,
   detectOpenHandles: isCI,
-  forceExit: isCI,
-  reporters: isCI 
-    ? ['default', ['jest-junit', { outputDirectory: './reports', outputName: 'junit.xml' }]]
-    : ['default']
+  forceExit: isCI
 };
