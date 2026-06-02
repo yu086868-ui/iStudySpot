@@ -33,8 +33,10 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Coffee
 import androidx.compose.material.icons.filled.DirectionsBus
 import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.DirectionsRun
 import androidx.compose.material.icons.filled.DirectionsSubway
 import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.EventSeat
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.GpsFixed
@@ -45,9 +47,12 @@ import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Nightlight
+import androidx.compose.material.icons.filled.NightsStay
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Print
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
@@ -57,12 +62,16 @@ import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.filled.Room
 import androidx.compose.material.icons.filled.WaterDrop
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -72,11 +81,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.scylier.istudyspot.models.RuleItem
 import com.example.scylier.istudyspot.models.RuleType
+import com.example.scylier.istudyspot.viewmodel.AchievementViewModel
 import com.example.scylier.istudyspot.viewmodel.Facility
 import com.example.scylier.istudyspot.viewmodel.NotificationItem
 import com.example.scylier.istudyspot.viewmodel.NotificationType
@@ -1029,147 +1041,142 @@ private fun NotificationCard(
 }
 
 @Composable
-fun AchievementScreen(onBack: () -> Unit = {}) {
-    data class Achievement(
-        val name: String,
-        val description: String,
-        val icon: ImageVector,
-        val color: Color,
-        val isUnlocked: Boolean
-    )
+fun AchievementScreen(
+    viewModel: AchievementViewModel = viewModel(),
+    onBack: () -> Unit = {}
+) {
+    val state by viewModel.state.collectAsState()
+    val context = LocalContext.current
 
-    val achievements = listOf(
-        Achievement("早起鸟", "连续3天在7:00-8:00签到", Icons.Default.WbSunny, MaterialTheme.colorScheme.tertiary, true),
-        Achievement("夜猫子", "连续3天在21:00后仍在学习", Icons.Default.Nightlight, MaterialTheme.colorScheme.primary, false),
-        Achievement("学霸", "累计学习100小时", Icons.Default.School, MaterialTheme.colorScheme.primary, true),
-        Achievement("连击王", "连续打卡7天", Icons.Default.LocalFireDepartment, MaterialTheme.colorScheme.error, true),
-        Achievement("守时达人", "连续30天按时签到", Icons.Default.GpsFixed, MaterialTheme.colorScheme.secondary, false),
-        Achievement("常客", "在同一座位学习10次", Icons.Default.Home, MaterialTheme.colorScheme.tertiary, false),
-        Achievement("社交达人", "推荐3位好友注册", Icons.Default.Group, MaterialTheme.colorScheme.secondary, false),
-        Achievement("马拉松", "单次学习超过6小时", Icons.Default.EmojiEvents, MaterialTheme.colorScheme.error, false)
-    )
+    LaunchedEffect(Unit) {
+        viewModel.loadAchievements()
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp)
     ) {
-        AppTopBar(title = "成就徽章", onBack = onBack)
+        AppTopBar(title = "我的成就", onBack = onBack)
         Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = "成就徽章",
-            style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Card(
-                modifier = Modifier.weight(1f),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = achievements.count { it.isUnlocked }.toString(),
-                        style = MaterialTheme.typography.displaySmall,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Text(
-                        text = "已解锁",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
+
+        if (state.isLoading) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        } else if (state.error != null) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(text = state.error ?: "加载失败", color = MaterialTheme.colorScheme.error)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(onClick = { viewModel.loadAchievements() }) {
+                        Text("重试")
+                    }
                 }
             }
-            Card(
-                modifier = Modifier.weight(1f),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                shape = RoundedCornerShape(16.dp)
+        } else {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = achievements.size.toString(),
-                        style = MaterialTheme.typography.displaySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = "总成就",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
-        Spacer(modifier = Modifier.height(20.dp))
-        achievements.forEach { achievement ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 6.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = if (achievement.isUnlocked)
-                        MaterialTheme.colorScheme.surface
-                    else
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                ),
-                shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = if (achievement.isUnlocked) 1.dp else 0.dp)
-            ) {
-                Row(
+                Text(
+                    text = "已解锁 ${state.unlockedCount}/${state.totalCount}",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                LinearProgressIndicator(
+                    progress = { if (state.totalCount > 0) state.unlockedCount.toFloat() / state.totalCount else 0f },
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(48.dp)
-                            .clip(RoundedCornerShape(14.dp))
-                            .background(
-                                if (achievement.isUnlocked) achievement.color.copy(alpha = 0.15f)
-                                else MaterialTheme.colorScheme.surfaceVariant
-                            ),
-                        contentAlignment = Alignment.Center
+                        .width(120.dp)
+                        .height(8.dp)
+                        .clip(RoundedCornerShape(4.dp)),
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                items(state.achievements) { achievement ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (achievement.isUnlocked)
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                            else
+                                MaterialTheme.colorScheme.surfaceVariant
+                        ),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
-                        Icon(
-                            imageVector = achievement.icon,
-                            contentDescription = null,
-                            modifier = Modifier.size(24.dp),
-                            tint = if (achievement.isUnlocked) achievement.color
-                            else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = achievement.name,
-                            style = MaterialTheme.typography.titleMedium,
-                            color = if (achievement.isUnlocked) MaterialTheme.colorScheme.onSurface
-                            else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = achievement.description,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    if (achievement.isUnlocked) {
-                        Icon(
-                            imageVector = Icons.Default.CheckCircle,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(24.dp)
-                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(CircleShape)
+                                    .background(
+                                        if (achievement.isUnlocked) MaterialTheme.colorScheme.primary
+                                        else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = when (achievement.icon) {
+                                        "wb_sunny" -> Icons.Default.WbSunny
+                                        "nights_stay" -> Icons.Default.NightsStay
+                                        "school" -> Icons.Default.School
+                                        "local_fire_department" -> Icons.Default.LocalFireDepartment
+                                        "schedule" -> Icons.Default.Schedule
+                                        "event_seat" -> Icons.Default.EventSeat
+                                        "people" -> Icons.Default.People
+                                        "directions_run" -> Icons.Default.DirectionsRun
+                                        else -> Icons.Default.EmojiEvents
+                                    },
+                                    contentDescription = achievement.name,
+                                    tint = if (achievement.isUnlocked) Color.White else MaterialTheme.colorScheme.outline,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = achievement.name,
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = if (achievement.isUnlocked) MaterialTheme.colorScheme.onSurface
+                                    else MaterialTheme.colorScheme.outline
+                                )
+                                Text(
+                                    text = achievement.description,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = if (achievement.isUnlocked) MaterialTheme.colorScheme.onSurfaceVariant
+                                    else MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)
+                                )
+                                if (achievement.isUnlocked && achievement.unlockedAt != null) {
+                                    Text(
+                                        text = "解锁于 ${achievement.unlockedAt.take(10)}",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
+                            if (achievement.isUnlocked) {
+                                Icon(
+                                    imageVector = Icons.Default.CheckCircle,
+                                    contentDescription = "已解锁",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                        }
                     }
                 }
             }
         }
-        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 

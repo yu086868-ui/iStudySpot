@@ -24,6 +24,8 @@ import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.HeadsetMic
 import androidx.compose.material.icons.filled.Nightlight
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
@@ -49,7 +51,6 @@ import androidx.compose.ui.unit.dp
 import com.example.scylier.istudyspot.ui.theme.LocalExtendedColors
 import com.example.scylier.istudyspot.ui.theme.LocalThemeMode
 import com.example.scylier.istudyspot.ui.theme.ThemeMode
-import com.example.scylier.istudyspot.ui.theme.ThemeState
 import com.example.scylier.istudyspot.viewmodel.ProfileUiState
 
 @Composable
@@ -57,7 +58,12 @@ fun ProfileScreen(
     uiState: ProfileUiState,
     onAvatarClick: () -> Unit,
     onOrderListClick: () -> Unit,
-    onLogout: () -> Unit = {}
+    onLogout: () -> Unit = {},
+    onEditProfile: () -> Unit = {},
+    onStudyRecord: () -> Unit = {},
+    onCustomerService: () -> Unit = {},
+    onCardCollection: () -> Unit = {},
+    onThemeChange: (Boolean) -> Unit = {}
 ) {
     var showLogoutDialog by remember { mutableStateOf(false) }
     val themeMode = LocalThemeMode.current
@@ -170,13 +176,25 @@ fun ProfileScreen(
                     MenuItemRow(
                         icon = Icons.Default.AccountBalanceWallet,
                         label = "我的钱包",
-                        onClick = {}
+                        onClick = onCardCollection
                     )
                     MenuDivider()
                     MenuItemRow(
                         icon = Icons.AutoMirrored.Filled.TrendingUp,
                         label = "学习报告",
-                        onClick = {}
+                        onClick = onStudyRecord
+                    )
+                    MenuDivider()
+                    MenuItemRow(
+                        icon = Icons.Default.HeadsetMic,
+                        label = "在线客服",
+                        onClick = onCustomerService
+                    )
+                    MenuDivider()
+                    MenuItemRow(
+                        icon = Icons.Default.Edit,
+                        label = "编辑资料",
+                        onClick = onEditProfile
                     )
                 }
             }
@@ -196,9 +214,7 @@ fun ProfileScreen(
                     MenuDivider()
                     ThemeToggleRow(
                         isDark = themeMode == ThemeMode.DARK,
-                        onToggle = { checked ->
-                            ThemeState.themeMode = if (checked) ThemeMode.DARK else ThemeMode.LIGHT
-                        }
+                        onToggle = onThemeChange
                     )
                 }
             }

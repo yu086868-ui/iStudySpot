@@ -1,0 +1,122 @@
+kind: pipeline
+type: docker
+name: istudyspot-backend
+
+trigger:
+  branch:
+    - main
+    - master
+    - develop
+  event:
+    - push
+    - pull_request
+
+steps:
+  - name: restore-cache
+    image: drillster/drone-volume-cache
+    settings:
+      restore: true
+      mount:
+        - /drone/src/.m2/repository
+    volumes:
+      - name: maven-cache
+        path: /cache
+
+  - name: backend-test
+    image: maven:3.9-eclipse-temurin-17
+    environment:
+      MAVEN_OPTS: -Dmaven.repo.local=/drone/src/.m2/repository
+    commands:
+      - cd backend/istudyspot-backend
+      - mvn -B clean test jacoco:report
+    when:
+      event:
+        - push
+        - pull_request
+
+  - name: security-scan
+    image: zricethezav/gitleaks:latest
+    commands:
+      - gitleaks detect --source . --verbose --config .gitleaks.toml
+    failure: ignore
+    when:
+      event:
+        - push
+        - pull_request
+
+  - name: rebuild-cache
+    image: drillster/drone-volume-cache
+    settings:
+      rebuild: true
+      mount:
+        - /drone/src/.m2/repository
+    volumes:
+      - name: maven-cache
+        path: /cache
+
+  - name: deploy
+    image: appleboy/drone-ssh
+    settings:
+      host:
+        from_secret: ssh_host
+      username:
+        from_secret: ssh_user
+      port:
+        from_secret: ssh_port
+      key:
+        from_secret: ssh_key
+      envs:
+        - DRONE_BRANCH
+      script:
+        - cd /opt/istudyspot
+        - bash deploy.sh $DRONE_BRANCH
+      script_stop: true
+      command_timeout: 10m
+    when:
+      branch:
+        - main
+        - master
+        - develop
+      event:
+        - push
+
+volumes:
+  - name: maven-cache
+    host:
+      path: /tmp/drone-cache/istudyspot/maven
+
+---
+kind: pipeline
+type: docker
+name: notification
+
+trigger:
+  status:
+    - failure
+    - success
+  event:
+    - push
+
+depends_on:
+  - istudyspot-backend
+
+steps:
+  - name: notify
+    image: appleboy/drone-telegram
+    settings:
+      token:
+        from_secret: telegram_token
+      to:
+        from_secret: telegram_chat_id
+      message: >
+        {{#success build.status}}
+          ✅ {{repo.name}} / {{build.branch}} — Build #{{build.number}} succeeded
+        {{else}}
+          ❌ {{repo.name}} / {{build.branch}} — Build #{{build.number}} failed
+        {{/success}}
+        {{build.link}}
+    when:
+      branch:
+        - main
+        - master
+        - develop

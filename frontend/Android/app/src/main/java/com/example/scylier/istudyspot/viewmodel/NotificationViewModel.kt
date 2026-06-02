@@ -52,7 +52,7 @@ class NotificationViewModel(private val repository: MainRepository = MainReposit
             try {
                 when (val response = repository.getAnnouncements()) {
                     is ApiResponse.Success -> {
-                        val data = response.data
+                        val data = response.data ?: emptyMap()
                         @Suppress("UNCHECKED_CAST")
                         val items = (data["list"] as? List<Map<String, Any?>>) ?: emptyList()
                         if (items.isNotEmpty()) {

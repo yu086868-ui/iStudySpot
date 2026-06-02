@@ -43,13 +43,13 @@ class StudyRoomViewModel : ViewModel() {
     private val _detailState = MutableStateFlow(StudyRoomDetailUiState())
     val detailState: StateFlow<StudyRoomDetailUiState> = _detailState
 
-    fun loadStudyRooms() {
+    fun loadStudyRooms(keyword: String? = null) {
         _studyRoomState.value = _studyRoomState.value.copy(isLoading = true)
         viewModelScope.launch {
-            when (val response = repository.getStudyRooms()) {
+            when (val response = repository.getStudyRooms(keyword = keyword)) {
                 is ApiResponse.Success -> {
                     _studyRoomState.value = StudyRoomUiState(
-                        studyRooms = response.data.list,
+                        studyRooms = response.data?.list ?: emptyList(),
                         isLoading = false
                     )
                 }
@@ -68,7 +68,7 @@ class StudyRoomViewModel : ViewModel() {
         viewModelScope.launch {
             when (val response = repository.getStudyRoomSeats(studyRoomId)) {
                 is ApiResponse.Success -> {
-                    val seats = response.data
+                    val seats = response.data ?: emptyList()
                     val maxRow = seats.maxOfOrNull { it.row } ?: 0
                     val maxCol = seats.maxOfOrNull { it.col } ?: 0
                     _seatMapState.value = SeatMapUiState(
@@ -97,7 +97,7 @@ class StudyRoomViewModel : ViewModel() {
                         val detail = response.data
                         _detailState.value = StudyRoomDetailUiState(
                             totalSeats = 30,
-                            description = detail.description ?: "",
+                            description = detail?.description ?: "",
                             facilities = emptyList(),
                             isLoading = false
                         )

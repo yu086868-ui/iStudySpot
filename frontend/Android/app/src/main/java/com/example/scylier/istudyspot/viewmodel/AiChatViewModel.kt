@@ -57,13 +57,16 @@ class AiChatViewModel(
 
                 when (response) {
                     is ApiResponse.Success -> {
-                        sessionId = response.data.sessionId
-                        val aiMessage = AiMessage(
-                            id = UUID.randomUUID().toString(),
-                            content = response.data.reply,
-                            type = MessageType.AI
-                        )
-                        _messages.value = _messages.value + aiMessage
+                        val chatData = response.data
+                        if (chatData != null) {
+                            sessionId = chatData.sessionId
+                            val aiMessage = AiMessage(
+                                id = UUID.randomUUID().toString(),
+                                content = chatData.reply,
+                                type = MessageType.AI
+                            )
+                            _messages.value = _messages.value + aiMessage
+                        }
                     }
                     is ApiResponse.Error -> {
                         val errorMessage = AiMessage(

@@ -250,7 +250,7 @@ class ApiManagerTest {
         assertEquals(201, success.code)
         assertNotNull(success.data.id)
         assertEquals(1L, success.data.orderId)
-        assertEquals(20.0, success.data.amount, 0.01)
+        assertEquals(20.0, success.data.amount!!, 0.01)
         assertEquals("wechat", success.data.paymentMethod)
     }
 

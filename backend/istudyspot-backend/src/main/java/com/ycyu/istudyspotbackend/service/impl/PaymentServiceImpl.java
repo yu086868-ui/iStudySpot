@@ -14,7 +14,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 @Service
 public class PaymentServiceImpl implements PaymentService {
@@ -47,17 +46,21 @@ public class PaymentServiceImpl implements PaymentService {
         payment.setUserId(userId);
         payment.setAmount(amount);
         payment.setPaymentMethod(paymentMethod);
-        payment.setStatus("pending");
-        payment.setPaymentUrl("https://example.com/pay/" + payment.getPaymentNo());
+        payment.setStatus("success");
+        payment.setPayTime(LocalDateTime.now());
 
         paymentMapper.insert(payment);
+        paymentMapper.markAsSuccess(payment.getId());
+
+        orderMapper.updateStatus(orderId, "paid");
 
         Map<String, Object> result = new HashMap<>();
         result.put("paymentId", payment.getId().toString());
         result.put("orderId", orderId.toString());
         result.put("amount", amount);
         result.put("paymentMethod", paymentMethod);
-        result.put("paymentUrl", payment.getPaymentUrl());
+        result.put("status", "success");
+        result.put("payTime", LocalDateTime.now().format(formatter));
         result.put("createdAt", LocalDateTime.now().format(formatter));
         return result;
     }
@@ -74,8 +77,10 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public Map<String, Object> payCallback(String paymentNo, boolean success) {
-        // 实际应该根据 paymentNo 查询支付记录
-        // 这里简化处理
-        return new HashMap<>();
+        Map<String, Object> result = new HashMap<>();
+        result.put("paymentNo", paymentNo);
+        result.put("success", success);
+        result.put("message", success ? "支付成功" : "支付失败");
+        return result;
     }
 }

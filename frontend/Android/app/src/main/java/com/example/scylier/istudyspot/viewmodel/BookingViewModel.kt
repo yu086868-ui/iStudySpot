@@ -28,7 +28,7 @@ class BookingViewModel : ViewModel() {
                 is ApiResponse.Success -> {
                     _state.value = BookingUiState(
                         isSuccess = true,
-                        orderId = response.data.id
+                        orderId = response.data?.id
                     )
                 }
                 is ApiResponse.Error -> {

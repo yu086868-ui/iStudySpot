@@ -1,13 +1,14 @@
 package com.example.scylier.istudyspot.repository
 
 import com.example.scylier.istudyspot.infra.network.ApiManager
+import com.example.scylier.istudyspot.models.ApiResponse
 
 class MainRepository {
     private val apiManager = ApiManager()
 
     suspend fun login(username: String, password: String) = apiManager.login(username, password)
     suspend fun register(username: String, password: String, nickname: String, phone: String? = null, studentId: String? = null) =
-        apiManager.register(username, password, nickname)
+        apiManager.register(username, password, nickname, phone, studentId)
     suspend fun refreshToken(refreshToken: String) = apiManager.refreshToken(refreshToken)
     suspend fun logout() = apiManager.logout()
 
@@ -28,6 +29,13 @@ class MainRepository {
     suspend fun getOrderDetail(id: Long) = apiManager.getOrderDetail(id)
     suspend fun cancelOrder(id: Long) = apiManager.cancelOrder(id)
     suspend fun payOrder(id: Long) = apiManager.payOrder(id)
+    suspend fun renewOrder(orderId: Long, newEndTime: String): ApiResponse<Map<String, Any?>> {
+        return try {
+            apiManager.renewOrder(orderId, newEndTime)
+        } catch (e: Exception) {
+            ApiResponse.Error(500, "续时失败: ${e.message}")
+        }
+    }
     suspend fun getReservationRules() = apiManager.getReservationRules()
 
     suspend fun checkin(reservationId: Long, seatId: Long) = apiManager.checkin(reservationId, seatId)
@@ -66,4 +74,36 @@ class MainRepository {
         apiManager.customerServiceChat(sessionId, message)
     suspend fun getCustomerServiceHistory(sessionId: String) =
         apiManager.getCustomerServiceHistory(sessionId)
+
+    suspend fun getAchievements() = apiManager.getAchievements()
+
+    suspend fun getViolations() = apiManager.getViolations()
+    suspend fun appealViolation(id: Long, reason: String) = apiManager.appealViolation(id, reason)
+
+    suspend fun getCardList(userId: String): ApiResponse<List<com.example.scylier.istudyspot.models.card.CardItem>> {
+        return try {
+            when (val response = apiManager.getCardList(userId)) {
+                is ApiResponse.Success -> {
+                    val rawList = response.data ?: emptyList()
+                    val cards = rawList.map { map ->
+                        com.example.scylier.istudyspot.models.card.CardItem(
+                            uuid = map["uuid"] as? String ?: "",
+                            rarity = map["rarity"] as? String ?: "N",
+                            borderTheme = map["borderTheme"] as? String ?: "",
+                            cardTheme = map["cardTheme"] as? String ?: "",
+                            themeCategory = map["themeCategory"] as? String ?: "",
+                            markdown = map["markdown"] as? String ?: "",
+                            studyDuration = (map["studyDuration"] as? Number)?.toInt() ?: 0,
+                            createTime = map["createTime"] as? String,
+                            imageURL = map["imageURL"] as? String
+                        )
+                    }
+                    ApiResponse.Success(response.code, response.message, cards)
+                }
+                is ApiResponse.Error -> response
+            }
+        } catch (e: Exception) {
+            ApiResponse.Error(500, "获取卡片列表失败: ${e.message}")
+        }
+    }
 }
