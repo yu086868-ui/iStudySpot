@@ -32,7 +32,7 @@
 
 ## GitHub PR 链接
 
-- PR #X：xxx
+- PR #116：[12作业 by kiraTheresa · Pull Request #116 · yu086868-ui/iStudySpot](https://github.com/yu086868-ui/iStudySpot/pull/116)
 
 ## 项目运行方式
 

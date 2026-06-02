@@ -1,4 +1,6 @@
 import type { ApiResponse } from '../typings/api';
+import logger from './logger';
+import metrics from '../services/metrics';
 
 const BASE_URL = 'https://192.168.21.3:8080/api';
 const TOKEN_KEY = 'access_token';
@@ -81,11 +83,16 @@ class Request {
       requestHeader['Authorization'] = `Bearer ${this.token}`;
     }
 
+    var traceId = metrics.startRequest(url, method || 'GET');
+    var requestStartTime = Date.now();
+
+    logger.info('Request', '发送请求 [' + traceId + '] ' + (method || 'GET') + ' ' + url);
+
     return new Promise((resolve, reject) => {
       wx.request({
         url: `${this.baseURL}${url}`,
         method,
-        data,
+        data: data as WechatMiniprogram.IAnyObject,
         header: requestHeader,
         success: async (res: WechatMiniprogram.RequestSuccessCallbackResult) => {
           const response = res.data as ApiResponse<T>;
@@ -95,11 +102,14 @@ class Request {
             if (refreshSuccess) {
               try {
                 const retryResponse = await this.request<T>(config);
+                metrics.endRequest(traceId, url, method || 'GET', true, response.code, '', requestStartTime);
                 resolve(retryResponse);
               } catch (error) {
+                metrics.endRequest(traceId, url, method || 'GET', false, 401, 'Token refresh retry failed', requestStartTime);
                 reject(error);
               }
             } else {
+              metrics.endRequest(traceId, url, method || 'GET', false, 401, 'Token expired and refresh failed', requestStartTime);
               wx.showToast({
                 title: '登录已过期，请重新登录',
                 icon: 'none'
@@ -110,10 +120,14 @@ class Request {
               reject(new Error('Token expired'));
             }
           } else {
+            var isSuccess = response.code >= 200 && response.code < 300;
+            metrics.endRequest(traceId, url, method || 'GET', isSuccess, response.code, isSuccess ? '' : 'code: ' + response.code, requestStartTime);
             resolve(response);
           }
         },
         fail: (error: WechatMiniprogram.GeneralCallbackResult) => {
+          metrics.endRequest(traceId, url, method || 'GET', false, 0, error.errMsg || 'network error', requestStartTime);
+          logger.error('Request', '请求失败 [' + traceId + '] ' + url, error);
           wx.showToast({
             title: '网络请求失败',
             icon: 'none'
