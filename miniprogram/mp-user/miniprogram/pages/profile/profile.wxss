@@ -84,15 +84,15 @@ page {
 }
 
 .motto-edit-btn {
-  padding: 12rpx 28rpx;
-  background: #5CB885;
-  border-radius: 24rpx;
-  margin-left: 24rpx;
+  padding: 8rpx 16rpx;
+  background: transparent;
+  border-radius: 8rpx;
+  margin-left: 16rpx;
   flex-shrink: 0;
 }
 
 .motto-edit-text {
-  font-size: 26rpx;
-  color: #FFFFFF;
-  font-weight: bold;
+  font-size: 24rpx;
+  color: #BBBBBB;
+  font-weight: normal;
 }

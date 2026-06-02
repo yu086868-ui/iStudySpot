@@ -15,8 +15,7 @@ page {
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: space-between;
-  padding: 40rpx 32rpx 16rpx;
+  padding: 40rpx 32rpx 8rpx;
 }
 
 .header-left {
@@ -48,33 +47,41 @@ page {
   font-weight: bold;
 }
 
-.sort-btn {
+.filter-bar {
   display: flex;
   flex-direction: row;
   align-items: center;
-  padding: 12rpx 24rpx;
-  background: #FFFFFF;
-  border-radius: 24rpx;
-}
-
-.sort-text {
-  font-size: 26rpx;
-  color: #333333;
-  margin-right: 8rpx;
-}
-
-.sort-arrow {
-  font-size: 20rpx;
-  color: #999999;
+  justify-content: space-between;
+  padding: 8rpx 32rpx 24rpx;
 }
 
 .card-count {
-  padding: 0 32rpx 24rpx;
+  padding: 0;
 }
 
 .count-text {
   font-size: 26rpx;
   color: #999999;
+}
+
+.sort-btn {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 8rpx 20rpx;
+  background: #FFFFFF;
+  border-radius: 20rpx;
+}
+
+.sort-text {
+  font-size: 24rpx;
+  color: #666666;
+  margin-right: 6rpx;
+}
+
+.sort-arrow {
+  font-size: 18rpx;
+  color: #AAAAAA;
 }
 
 .empty-state {

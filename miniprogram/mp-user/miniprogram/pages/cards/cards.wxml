@@ -6,14 +6,16 @@
         <text class="info-icon">ⓘ</text>
       </view>
     </view>
+  </view>
+
+  <view class="filter-bar">
+    <view class="card-count">
+      <text class="count-text">共 {{sortedCards.length}} 张</text>
+    </view>
     <view class="sort-btn" bindtap="onSortTap">
       <text class="sort-text">{{sortOptions[sortMode === 'id' ? 0 : sortMode === 'rarity' ? 1 : 2].label}}</text>
       <text class="sort-arrow">▼</text>
     </view>
-  </view>
-
-  <view class="card-count">
-    <text class="count-text">共 {{sortedCards.length}} 张</text>
   </view>
 
   <block wx:if="{{loading && sortedCards.length === 0}}">
