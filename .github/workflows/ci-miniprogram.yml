@@ -15,7 +15,7 @@ defaults:
     working-directory: miniprogram/mp-user
 
 jobs:
-  lint:
+  lint-and-test:
     runs-on: ubuntu-latest
     
     steps:
@@ -33,3 +33,15 @@ jobs:
     
     - name: Run linting
       run: npm run lint
+    
+    - name: Run tests with coverage
+      run: npm run test:ci
+      env:
+        CI: true
+    
+    - name: Upload coverage reports
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: miniprogram-coverage
+        path: miniprogram/mp-user/coverage/

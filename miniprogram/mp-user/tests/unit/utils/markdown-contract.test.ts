@@ -1,6 +1,6 @@
-import { splitByDivider, validateBlock, processContent } from './markdown-contract'
+import { splitByDivider, validateBlock, processContent } from '../../../miniprogram/utils/markdown-contract'
 
-jest.mock('./markdown-engine', () => ({
+jest.mock('../../../miniprogram/utils/markdown-engine', () => ({
   render: jest.fn().mockReturnValue('<p>rendered</p>')
 }))
 

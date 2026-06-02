@@ -3,7 +3,7 @@ const isCI = process.env.CI === 'true' || process.env.CI === '1';
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  roots: ['<rootDir>/miniprogram'],
+  roots: ['<rootDir>/tests'],
   testMatch: ['**/*.test.ts'],
   collectCoverageFrom: [
     'miniprogram/utils/**/*.ts',
@@ -28,7 +28,7 @@ module.exports = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/miniprogram/$1'
   },
-  setupFilesAfterEnv: ['<rootDir>/miniprogram/tests/setup.ts'],
+  setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
   moduleDirectories: ['node_modules', '<rootDir>'],
   rootDir: './',
   transform: {

@@ -1,4 +1,4 @@
-import { formatTime } from './util'
+import { formatTime } from '../../../miniprogram/utils/util'
 
 describe('formatTime', () => {
   it('formats a normal date correctly', () => {

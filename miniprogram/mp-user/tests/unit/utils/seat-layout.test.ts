@@ -1,5 +1,5 @@
-import { SeatLayoutUtil } from './seat-layout';
-import type { Seat } from '../typings/api';
+import { SeatLayoutUtil } from '../../../miniprogram/utils/seat-layout';
+import type { Seat } from '../../../miniprogram/typings/api';
 
 function createSeat(overrides: Partial<Seat> = {}): Seat {
   return {

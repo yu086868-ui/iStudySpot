@@ -160,6 +160,84 @@ page {
   display: none;
 }
 
+.card-md-area ._h1 {
+  font-size: 28rpx !important;
+  margin-top: 0 !important;
+  margin-bottom: 8rpx !important;
+  padding-bottom: 0 !important;
+  border-bottom: none !important;
+  line-height: 1.3 !important;
+}
+
+.card-md-area ._h2 {
+  font-size: 26rpx !important;
+  margin-top: 0 !important;
+  margin-bottom: 6rpx !important;
+  line-height: 1.3 !important;
+}
+
+.card-md-area ._h3 {
+  font-size: 24rpx !important;
+  margin-top: 0 !important;
+  margin-bottom: 4rpx !important;
+  line-height: 1.3 !important;
+}
+
+.card-md-area ._h4,
+.card-md-area ._h5,
+.card-md-area ._h6 {
+  font-size: 22rpx !important;
+  margin-top: 0 !important;
+  margin-bottom: 4rpx !important;
+  line-height: 1.3 !important;
+}
+
+.card-md-area ._p {
+  margin: 4rpx 0;
+  line-height: 1.5;
+  font-size: 22rpx;
+}
+
+.card-md-area ._blockquote {
+  margin: 8rpx 0;
+  padding: 8rpx 12rpx;
+  border-left-width: 4rpx;
+  font-size: 20rpx;
+  line-height: 1.4;
+}
+
+.card-md-area ._ul,
+.card-md-area ._ol {
+  margin: 6rpx 0;
+  padding-left: 28rpx;
+}
+
+.card-md-area ._li {
+  line-height: 1.4;
+  margin-bottom: 2rpx;
+  font-size: 22rpx;
+}
+
+.card-md-area ._code {
+  font-size: 18rpx;
+  padding: 1rpx 4rpx;
+}
+
+.card-md-area ._pre {
+  margin: 6rpx 0;
+  padding: 8rpx 12rpx;
+  font-size: 18rpx;
+}
+
+.card-md-area ._hr {
+  margin: 8rpx 0;
+}
+
+.card-md-area ._b,
+.card-md-area ._strong {
+  font-size: 22rpx;
+}
+
 .card-footer {
   display: flex;
   flex-direction: row;

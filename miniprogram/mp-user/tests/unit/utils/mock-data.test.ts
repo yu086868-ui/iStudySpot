@@ -1,5 +1,5 @@
-import { rollRarity, rollThemeCategory, generateMarkdown, getImageURL, generateCard } from './mock-data';
-import type { CardRarity, ThemeCategory } from '../typings/api';
+import { rollRarity, rollThemeCategory, generateMarkdown, getImageURL, generateCard } from '../../../miniprogram/utils/mock-data';
+import type { CardRarity, ThemeCategory } from '../../../miniprogram/typings/api';
 
 const ALL_RARITIES: CardRarity[] = ['N', 'R', 'SR', 'SSR', 'UR', 'LR'];
 const ALL_THEMES: ThemeCategory[] = ['growth', 'history', 'philosophy', 'nature', 'tech', 'companion', 'hidden'];
