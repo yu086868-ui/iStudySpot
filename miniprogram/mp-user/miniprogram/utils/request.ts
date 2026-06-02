@@ -1,6 +1,6 @@
 import type { ApiResponse } from '../typings/api';
 
-const BASE_URL = 'http://localhost:3000/api';
+const BASE_URL = 'https://192.168.21.3:8080/api';
 const TOKEN_KEY = 'access_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
 
