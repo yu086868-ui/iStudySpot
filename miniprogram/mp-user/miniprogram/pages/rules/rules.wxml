@@ -1,4 +1,4 @@
-<navigation-bar title="规则与公告" background="#FFFFFF" back="{{false}}" homeButton="{{false}}">
+<navigation-bar title="规则与公告" background="#F5F5F7" back="{{false}}" homeButton="{{false}}">
 </navigation-bar>
 
 <scroll-view scroll-y class="scroll-content" type="list">

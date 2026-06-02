@@ -1,6 +1,6 @@
 page {
   height: 100vh;
-  background: #F5F5F5;
+  background: #F5F5F7;
   display: flex;
   flex-direction: column;
 }
@@ -17,8 +17,9 @@ page {
 
 .page-title {
   font-size: 44rpx;
-  font-weight: bold;
-  color: #000000;
+  font-weight: 700;
+  color: #1D1D1F;
+  letter-spacing: -0.5rpx;
 }
 
 .stats-bar {
@@ -27,21 +28,22 @@ page {
 
 .stats-text {
   font-size: 26rpx;
-  color: #666666;
+  color: #86868B;
 }
 
 .datetime-section {
   background: #FFFFFF;
-  border-radius: 16rpx;
+  border-radius: 20rpx;
   padding: 24rpx;
   margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.03);
 }
 
 .picker-row {
   display: flex;
   align-items: center;
   padding: 16rpx 0;
-  border-bottom: 1rpx solid #F0F0F0;
+  border-bottom: 1rpx solid rgba(0, 0, 0, 0.05);
 }
 
 .picker-row:last-child {
@@ -50,44 +52,48 @@ page {
 
 .picker-label {
   font-size: 28rpx;
-  color: #333333;
+  color: #6E6E73;
   width: 160rpx;
 }
 
 .picker-value {
   font-size: 28rpx;
-  color: #5CB885;
+  color: #6EA88A;
   padding: 8rpx 24rpx;
-  background: #F0F9F4;
-  border-radius: 8rpx;
+  background: #EAF1ED;
+  border-radius: 12rpx;
+  font-weight: 500;
 }
 
 .picker-separator {
   font-size: 28rpx;
-  color: #333333;
+  color: #6E6E73;
   margin: 0 8rpx;
 }
 
 .time-display {
   background: #FFFFFF;
-  border: 2rpx solid #5CB885;
-  border-radius: 12rpx;
+  border: 1rpx solid rgba(110, 168, 138, 0.25);
+  border-radius: 16rpx;
   padding: 24rpx;
   margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.03);
 }
 
 .time-text {
   font-size: 28rpx;
-  color: #333333;
+  color: #1D1D1F;
   text-align: center;
   display: block;
+  font-weight: 500;
 }
 
 .seat-section {
   background: #FFFFFF;
-  border-radius: 16rpx;
+  border-radius: 20rpx;
   padding: 24rpx;
   margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.03);
 }
 
 .seat-map {
@@ -96,7 +102,7 @@ page {
   justify-content: center;
   gap: 32rpx;
   padding: 24rpx;
-  background: #FAFFF8;
+  background: #F9FAFB;
   border-radius: 12rpx;
 }
 
@@ -116,7 +122,7 @@ page {
   width: 64rpx;
   text-align: center;
   font-size: 24rpx;
-  color: #999999;
+  color: #86868B;
 }
 
 .seat-row {
@@ -129,7 +135,7 @@ page {
 .row-label {
   width: 40rpx;
   font-size: 24rpx;
-  color: #999999;
+  color: #86868B;
   text-align: center;
   margin-right: 8rpx;
 }
@@ -145,38 +151,38 @@ page {
 }
 
 .seat-available {
-  background: #C8E6C9;
+  background: #EAF1ED;
 }
 
 .seat-occupied {
-  background: #E0E0E0;
+  background: #E8E8ED;
 }
 
 .seat-reserved {
-  background: #FFF9C4;
+  background: #FFF8EE;
 }
 
 .seat-maintenance {
-  background: #FFCDD2;
+  background: #FEF0F0;
 }
 
 .seat-selected {
-  background: #5CB885 !important;
-  border: 2rpx solid #4A9A6E;
+  background: #6EA88A !important;
+  border: 2rpx solid #5A8A6E;
 }
 
 .seat-vip {
-  border: 2rpx solid #FFD700;
+  border: 2rpx solid rgba(180, 155, 90, 0.5);
 }
 
 .seat-quiet {
-  border: 2rpx solid #90CAF9;
+  border: 2rpx solid rgba(90, 122, 150, 0.4);
 }
 
 .seat-number {
   font-size: 20rpx;
   color: #FFFFFF;
-  font-weight: bold;
+  font-weight: 600;
 }
 
 .corridor {
@@ -188,7 +194,7 @@ page {
 
 .corridor-text {
   font-size: 20rpx;
-  color: #999999;
+  color: #AEAEB2;
   writing-mode: vertical-rl;
 }
 
@@ -199,7 +205,7 @@ page {
   gap: 32rpx;
   margin-top: 24rpx;
   padding-top: 24rpx;
-  border-top: 1rpx solid #EEEEEE;
+  border-top: 1rpx solid rgba(0, 0, 0, 0.05);
 }
 
 .legend-item {
@@ -216,24 +222,24 @@ page {
 }
 
 .legend-color.available {
-  background: #C8E6C9;
+  background: #EAF1ED;
 }
 
 .legend-color.occupied {
-  background: #E0E0E0;
+  background: #E8E8ED;
 }
 
 .legend-color.reserved {
-  background: #FFF9C4;
+  background: #FFF8EE;
 }
 
 .legend-color.selected {
-  background: #5CB885;
+  background: #6EA88A;
 }
 
 .legend-text {
   font-size: 24rpx;
-  color: #666666;
+  color: #6E6E73;
 }
 
 .loading-state {
@@ -242,19 +248,21 @@ page {
   justify-content: center;
   padding: 200rpx 0;
   background: #FFFFFF;
-  border-radius: 16rpx;
+  border-radius: 20rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.03);
 }
 
 .loading-text {
   font-size: 28rpx;
-  color: #999999;
+  color: #86868B;
 }
 
 .selected-info {
   background: #FFFFFF;
-  border-radius: 16rpx;
+  border-radius: 20rpx;
   padding: 24rpx;
   margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.03);
 }
 
 .info-row {
@@ -265,13 +273,13 @@ page {
 
 .info-label {
   font-size: 28rpx;
-  color: #666666;
+  color: #86868B;
   width: 160rpx;
 }
 
 .info-value {
   font-size: 28rpx;
-  color: #333333;
+  color: #1D1D1F;
   flex: 1;
 }
 
@@ -280,15 +288,15 @@ page {
   bottom: 32rpx;
   left: 32rpx;
   right: 32rpx;
-  background: #5CB885;
+  background: #6EA88A;
   border-radius: 48rpx;
   padding: 28rpx 0;
   text-align: center;
-  box-shadow: 0 4rpx 12rpx rgba(92, 184, 133, 0.3);
+  box-shadow: 0 4rpx 20rpx rgba(110, 168, 138, 0.2);
 }
 
 .confirm-text {
   font-size: 32rpx;
-  font-weight: bold;
+  font-weight: 600;
   color: #FFFFFF;
 }
