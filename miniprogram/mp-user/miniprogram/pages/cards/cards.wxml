@@ -47,8 +47,8 @@
           data-uuid="{{item.uuid}}"
           bindtap="onCardTap"
         >
-          <view class="card-border" style="border-color: {{rarityBorderColor[item.rarity]}}">
-            <view class="card-rarity-badge" style="background: {{rarityBorderColor[item.rarity]}}">
+          <view class="card-border card-border-{{item.rarity}}">
+            <view class="card-rarity-badge badge-{{item.rarity}}">
               <text class="badge-text">{{item.rarity}}</text>
             </view>
             <image

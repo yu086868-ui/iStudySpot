@@ -4,8 +4,8 @@
       <text class="close-text">✕</text>
     </view>
 
-    <view class="popup-card" style="border-color: {{rarityBorderColor[rarity]}}">
-      <view class="popup-rarity-badge" style="background: {{rarityBorderColor[rarity]}}">
+    <view class="popup-card popup-card-{{rarity}}">
+      <view class="popup-rarity-badge badge-{{rarity}}">
         <text class="popup-badge-text">{{rarity}}</text>
       </view>
 

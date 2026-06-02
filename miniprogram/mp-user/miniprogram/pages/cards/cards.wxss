@@ -1,6 +1,6 @@
 page {
   height: 100vh;
-  background: #F5F5F5;
+  background: #f5f5f7;
   display: flex;
   flex-direction: column;
 }
@@ -27,7 +27,7 @@ page {
 .title {
   font-size: 48rpx;
   font-weight: bold;
-  color: #000000;
+  color: #1a1a1a;
 }
 
 .info-btn {
@@ -125,24 +125,68 @@ page {
 .card-border {
   background: #FFFFFF;
   border-radius: 16rpx;
-  border-left: 6rpx solid #CCCCCC;
   overflow: hidden;
   position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-border:active {
+  transform: scale(0.98);
 }
 
 .card-rarity-badge {
   position: absolute;
   top: 12rpx;
   right: 12rpx;
-  padding: 2rpx 12rpx;
-  border-radius: 10rpx;
-  z-index: 1;
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  backdrop-filter: blur(4rpx);
 }
 
 .badge-text {
   font-size: 20rpx;
   color: #FFFFFF;
   font-weight: bold;
+  letter-spacing: 1rpx;
+}
+
+.badge-N {
+  background: rgba(176, 176, 176, 0.9);
+}
+
+.badge-R {
+  background: rgba(76, 175, 80, 0.9);
+}
+
+.badge-SR {
+  background: rgba(66, 165, 245, 0.9);
+}
+
+.badge-SSR {
+  background: rgba(171, 71, 188, 0.9);
+}
+
+.badge-UR {
+  background: linear-gradient(135deg, #c9a84c, #f0d78c);
+}
+
+.badge-UR .badge-text {
+  color: #3a2a00;
+}
+
+.badge-LR {
+  background: linear-gradient(135deg, #e53935, #ff6f61);
+  animation: lr-pulse 2s ease-in-out infinite;
+}
+
+@keyframes lr-pulse {
+  0%, 100% { box-shadow: 0 0 8rpx rgba(229, 57, 53, 0.4); }
+  50% { box-shadow: 0 0 20rpx rgba(229, 57, 53, 0.7); }
 }
 
 .card-image {
@@ -251,16 +295,47 @@ page {
   align-items: center;
   justify-content: space-between;
   padding: 8rpx 12rpx 16rpx;
+  border-top: 1rpx solid #f5f5f5;
 }
 
 .card-meta {
   font-size: 20rpx;
-  color: #BBBBBB;
+  color: #999999;
 }
 
 .card-duration {
   font-size: 20rpx;
-  color: #BBBBBB;
+  color: #999999;
+}
+
+.card-border-N {
+  border: 4rpx solid #b0b0b0;
+  box-shadow: 0 4rpx 16rpx rgba(176, 176, 176, 0.15);
+}
+
+.card-border-R {
+  border: 4rpx solid #4caf50;
+  box-shadow: 0 4rpx 20rpx rgba(76, 175, 80, 0.2);
+}
+
+.card-border-SR {
+  border: 4rpx solid #42a5f5;
+  box-shadow: 0 4rpx 20rpx rgba(66, 165, 245, 0.25);
+}
+
+.card-border-SSR {
+  border: 4rpx solid #ab47bc;
+  box-shadow: 0 4rpx 24rpx rgba(171, 71, 188, 0.3);
+}
+
+.card-border-UR {
+  border: 4rpx solid #c9a84c;
+  box-shadow: 0 8rpx 32rpx rgba(201, 168, 76, 0.35);
+}
+
+.card-border-LR {
+  border: 4rpx solid #e53935;
+  box-shadow: 0 8rpx 36rpx rgba(229, 57, 53, 0.4);
 }
 
 .sort-picker-mask {
