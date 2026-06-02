@@ -1,194 +1,258 @@
-import { authApi } from '../miniprogram/services/auth';
-import mockManager from '../miniprogram/utils/mock';
-import request from '../miniprogram/utils/request';
+jest.mock('../../../miniprogram/utils/request', () => ({
+  __esModule: true,
+  default: {
+    get: jest.fn(),
+    post: jest.fn(),
+    put: jest.fn(),
+    delete: jest.fn(),
+    saveTokens: jest.fn(),
+    clearTokens: jest.fn()
+  }
+}));
 
-jest.mock('../miniprogram/utils/mock');
-jest.mock('../miniprogram/utils/request');
+jest.mock('../../../miniprogram/utils/mock', () => ({
+  __esModule: true,
+  default: {
+    isEnabled: jest.fn(),
+    request: jest.fn()
+  }
+}));
 
-describe('authApi', () => {
-  const mockRequest = jest.fn();
+jest.mock('../../../miniprogram/utils/store', () => ({
+  __esModule: true,
+  default: {
+    getUser: jest.fn(),
+    setUser: jest.fn(),
+    clearUser: jest.fn(),
+    getMyReservations: jest.fn().mockReturnValue([]),
+    setMyReservations: jest.fn(),
+    addReservation: jest.fn(),
+    updateReservation: jest.fn(),
+    removeReservation: jest.fn(),
+    getCurrentCheckIn: jest.fn().mockReturnValue({ isCheckedIn: false, checkInRecord: null }),
+    setCurrentCheckIn: jest.fn(),
+    getCheckInRecords: jest.fn().mockReturnValue([]),
+    setCheckInRecords: jest.fn(),
+    getStudyRooms: jest.fn().mockReturnValue([]),
+    setStudyRooms: jest.fn(),
+    getStudyRoomDetail: jest.fn().mockReturnValue(null),
+    setStudyRoomDetail: jest.fn(),
+    getSeats: jest.fn().mockReturnValue(null),
+    setSeats: jest.fn(),
+    getAnnouncements: jest.fn().mockReturnValue([]),
+    setAnnouncements: jest.fn(),
+    getRules: jest.fn().mockReturnValue([]),
+    setRules: jest.fn(),
+    getReservationRules: jest.fn().mockReturnValue(null),
+    setReservationRules: jest.fn(),
+    getCards: jest.fn().mockReturnValue([]),
+    setCards: jest.fn(),
+    addCard: jest.fn(),
+    getCardById: jest.fn().mockReturnValue(null)
+  }
+}));
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-    (mockManager.isEnabled as jest.Mock).mockReturnValue(true);
-    (mockManager.request as jest.Mock) = mockRequest;
-    (request.saveTokens as jest.Mock) = jest.fn();
-    (request.clearTokens as jest.Mock) = jest.fn();
+import { authApi } from '../../../miniprogram/services/auth';
+import request from '../../../miniprogram/utils/request';
+import mockManager from '../../../miniprogram/utils/mock';
+import store from '../../../miniprogram/utils/store';
+
+const mockedRequest = request as jest.Mocked<typeof request>;
+const mockedMock = mockManager as jest.Mocked<typeof mockManager>;
+const mockedStore = store as jest.Mocked<typeof store>;
+
+beforeEach(() => {
+  jest.clearAllMocks();
+});
+
+describe('authApi.login', () => {
+  const params = { username: 'testuser', password: '123456' };
+  const loginResponse = {
+    code: 200,
+    message: 'success',
+    data: {
+      token: 'token123',
+      refreshToken: 'refresh123',
+      user: { id: 'u1', username: 'testuser', nickname: 'Test', avatar: '' }
+    },
+    timestamp: Date.now()
+  };
+
+  it('calls mockManager.request when mock is enabled and stores user + tokens on success', async () => {
+    (mockedMock.isEnabled as jest.Mock).mockReturnValue(true);
+    (mockedMock.request as jest.Mock).mockResolvedValue(loginResponse);
+
+    const result = await authApi.login(params);
+
+    expect(mockedMock.isEnabled).toHaveBeenCalled();
+    expect(mockedMock.request).toHaveBeenCalledWith({
+      url: '/auth/login',
+      method: 'POST',
+      data: params
+    });
+    expect(mockedRequest.saveTokens).toHaveBeenCalledWith('token123', 'refresh123');
+    expect(mockedStore.setUser).toHaveBeenCalled();
+    expect(result).toEqual(loginResponse);
   });
 
-  afterEach(() => {
-    mockRequest.mockReset();
+  it('calls request.post when mock is disabled and stores user + tokens on success', async () => {
+    (mockedMock.isEnabled as jest.Mock).mockReturnValue(false);
+    (mockedRequest.post as jest.Mock).mockResolvedValue(loginResponse);
+
+    const result = await authApi.login(params);
+
+    expect(mockedRequest.post).toHaveBeenCalledWith('/auth/login', params, false);
+    expect(mockedRequest.saveTokens).toHaveBeenCalledWith('token123', 'refresh123');
+    expect(mockedStore.setUser).toHaveBeenCalled();
+    expect(result).toEqual(loginResponse);
   });
 
-  describe('login', () => {
-    it('should login successfully', async () => {
-      const loginResponse = {
-        token: 'test_token_123',
-        refreshToken: 'test_refresh_token_123',
-        user: {
-          id: 'user_001',
-          username: 'testuser',
-          nickname: '测试用户',
-          avatar: 'https://example.com/avatar.jpg'
-        }
-      };
-
-      mockRequest.mockResolvedValueOnce({
-        code: 200,
-        message: '登录成功',
-        data: loginResponse,
-        timestamp: Date.now()
-      });
-
-      const result = await authApi.login({
-        username: 'testuser',
-        password: 'password123'
-      });
-
-      expect(result.code).toBe(200);
-      expect(result.data.token).toBeDefined();
-      expect(result.data.user.username).toBe('testuser');
+  it('does not store user or tokens when mock response code is not 200', async () => {
+    (mockedMock.isEnabled as jest.Mock).mockReturnValue(true);
+    (mockedMock.request as jest.Mock).mockResolvedValue({
+      code: 401,
+      message: 'unauthorized',
+      data: null,
+      timestamp: Date.now()
     });
 
-    it('should handle login failure with wrong credentials', async () => {
-      mockRequest.mockResolvedValueOnce({
-        code: 10001,
-        message: '用户名或密码错误',
-        data: null,
-        timestamp: Date.now()
-      });
+    await authApi.login(params);
 
-      const result = await authApi.login({
-        username: 'wronguser',
-        password: 'wrongpass'
-      });
-
-      expect(result.code).toBe(10001);
-      expect(result.message).toBe('用户名或密码错误');
-    });
-
-    it('should save tokens after successful login', async () => {
-      const loginResponse = {
-        token: 'test_token_123',
-        refreshToken: 'test_refresh_token_123',
-        user: {
-          id: 'user_001',
-          username: 'testuser',
-          nickname: '测试用户',
-          avatar: 'https://example.com/avatar.jpg'
-        }
-      };
-
-      mockRequest.mockResolvedValueOnce({
-        code: 200,
-        message: '登录成功',
-        data: loginResponse,
-        timestamp: Date.now()
-      });
-
-      await authApi.login({
-        username: 'testuser',
-        password: 'password123'
-      });
-
-      expect(request.saveTokens).toHaveBeenCalledWith(loginResponse.token, loginResponse.refreshToken);
-    });
+    expect(mockedRequest.saveTokens).not.toHaveBeenCalled();
+    expect(mockedStore.setUser).not.toHaveBeenCalled();
   });
 
-  describe('register', () => {
-    it('should register successfully', async () => {
-      mockRequest.mockResolvedValueOnce({
-        code: 200,
-        message: '注册成功',
-        data: { userId: 'user_001' },
-        timestamp: Date.now()
-      });
-
-      const result = await authApi.register({
-        username: 'newuser',
-        password: 'password123',
-        nickname: '新用户',
-        phone: '13800138000',
-        studentId: '2020001'
-      });
-
-      expect(result.code).toBe(200);
-      expect(result.data.userId).toBe('user_001');
+  it('does not store user or tokens when real response code is not 200', async () => {
+    (mockedMock.isEnabled as jest.Mock).mockReturnValue(false);
+    (mockedRequest.post as jest.Mock).mockResolvedValue({
+      code: 401,
+      message: 'unauthorized',
+      data: null,
+      timestamp: Date.now()
     });
 
-    it('should handle registration failure with existing username', async () => {
-      mockRequest.mockResolvedValueOnce({
-        code: 10002,
-        message: '用户已存在',
-        data: null,
-        timestamp: Date.now()
-      });
+    await authApi.login(params);
 
-      const result = await authApi.register({
-        username: 'existinguser',
-        password: 'password123',
-        nickname: '新用户',
-        phone: '13800138000',
-        studentId: '2020001'
-      });
+    expect(mockedRequest.saveTokens).not.toHaveBeenCalled();
+    expect(mockedStore.setUser).not.toHaveBeenCalled();
+  });
+});
 
-      expect(result.code).toBe(10002);
-      expect(result.message).toBe('用户已存在');
+describe('authApi.register', () => {
+  const params = { username: 'newuser', password: '123456', nickname: 'New', phone: '13800000000', studentId: 'S001' };
+  const registerResponse = {
+    code: 200,
+    message: 'success',
+    data: { userId: 'u2' },
+    timestamp: Date.now()
+  };
+
+  it('calls mockManager.request when mock is enabled', async () => {
+    (mockedMock.isEnabled as jest.Mock).mockReturnValue(true);
+    (mockedMock.request as jest.Mock).mockResolvedValue(registerResponse);
+
+    const result = await authApi.register(params);
+
+    expect(mockedMock.request).toHaveBeenCalledWith({
+      url: '/auth/register',
+      method: 'POST',
+      data: params
     });
+    expect(result).toEqual(registerResponse);
   });
 
-  describe('refreshToken', () => {
-    it('should refresh token successfully', async () => {
-      const newTokens = {
-        token: 'new_token_123',
-        refreshToken: 'new_refresh_token_123'
-      };
+  it('calls request.post when mock is disabled', async () => {
+    (mockedMock.isEnabled as jest.Mock).mockReturnValue(false);
+    (mockedRequest.post as jest.Mock).mockResolvedValue(registerResponse);
 
-      mockRequest.mockResolvedValueOnce({
-        code: 200,
-        message: '刷新成功',
-        data: newTokens,
-        timestamp: Date.now()
-      });
+    const result = await authApi.register(params);
 
-      const result = await authApi.refreshToken('old_refresh_token');
+    expect(mockedRequest.post).toHaveBeenCalledWith('/auth/register', params, false);
+    expect(result).toEqual(registerResponse);
+  });
+});
 
-      expect(result.code).toBe(200);
-      expect(result.data.token).toBe('new_token_123');
+describe('authApi.refreshToken', () => {
+  const refreshResponse = {
+    code: 200,
+    message: 'success',
+    data: { token: 'newToken', refreshToken: 'newRefresh' },
+    timestamp: Date.now()
+  };
+
+  it('calls mockManager.request when mock is enabled and saves tokens on success', async () => {
+    (mockedMock.isEnabled as jest.Mock).mockReturnValue(true);
+    (mockedMock.request as jest.Mock).mockResolvedValue(refreshResponse);
+
+    const result = await authApi.refreshToken('oldRefresh');
+
+    expect(mockedMock.request).toHaveBeenCalledWith({
+      url: '/auth/refresh',
+      method: 'POST',
+      data: { refreshToken: 'oldRefresh' }
     });
-
-    it('should save new tokens after refresh', async () => {
-      const newTokens = {
-        token: 'new_token_123',
-        refreshToken: 'new_refresh_token_123'
-      };
-
-      mockRequest.mockResolvedValueOnce({
-        code: 200,
-        message: '刷新成功',
-        data: newTokens,
-        timestamp: Date.now()
-      });
-
-      await authApi.refreshToken('old_refresh_token');
-
-      expect(request.saveTokens).toHaveBeenCalledWith('new_token_123', 'new_refresh_token_123');
-    });
+    expect(mockedRequest.saveTokens).toHaveBeenCalledWith('newToken', 'newRefresh');
+    expect(result).toEqual(refreshResponse);
   });
 
-  describe('logout', () => {
-    it('should logout successfully', async () => {
-      mockRequest.mockResolvedValueOnce({
-        code: 200,
-        message: '登出成功',
-        data: null,
-        timestamp: Date.now()
-      });
+  it('calls request.post when mock is disabled and saves tokens on success', async () => {
+    (mockedMock.isEnabled as jest.Mock).mockReturnValue(false);
+    (mockedRequest.post as jest.Mock).mockResolvedValue(refreshResponse);
 
-      const result = await authApi.logout();
+    const result = await authApi.refreshToken('oldRefresh');
 
-      expect(result.code).toBe(200);
-      expect(request.clearTokens).toHaveBeenCalled();
+    expect(mockedRequest.post).toHaveBeenCalledWith('/auth/refresh', { refreshToken: 'oldRefresh' }, false);
+    expect(mockedRequest.saveTokens).toHaveBeenCalledWith('newToken', 'newRefresh');
+    expect(result).toEqual(refreshResponse);
+  });
+
+  it('does not save tokens when mock response code is not 200', async () => {
+    (mockedMock.isEnabled as jest.Mock).mockReturnValue(true);
+    (mockedMock.request as jest.Mock).mockResolvedValue({
+      code: 401,
+      message: 'unauthorized',
+      data: null,
+      timestamp: Date.now()
     });
+
+    await authApi.refreshToken('oldRefresh');
+
+    expect(mockedRequest.saveTokens).not.toHaveBeenCalled();
+  });
+});
+
+describe('authApi.logout', () => {
+  const logoutResponse = {
+    code: 200,
+    message: 'success',
+    data: null,
+    timestamp: Date.now()
+  };
+
+  it('calls mockManager.request when mock is enabled and clears tokens + user', async () => {
+    (mockedMock.isEnabled as jest.Mock).mockReturnValue(true);
+    (mockedMock.request as jest.Mock).mockResolvedValue(logoutResponse);
+
+    const result = await authApi.logout();
+
+    expect(mockedMock.request).toHaveBeenCalledWith({
+      url: '/auth/logout',
+      method: 'POST'
+    });
+    expect(mockedRequest.clearTokens).toHaveBeenCalled();
+    expect(mockedStore.clearUser).toHaveBeenCalled();
+    expect(result).toEqual(logoutResponse);
+  });
+
+  it('calls request.post when mock is disabled and clears tokens + user', async () => {
+    (mockedMock.isEnabled as jest.Mock).mockReturnValue(false);
+    (mockedRequest.post as jest.Mock).mockResolvedValue(logoutResponse);
+
+    const result = await authApi.logout();
+
+    expect(mockedRequest.post).toHaveBeenCalledWith('/auth/logout');
+    expect(mockedRequest.clearTokens).toHaveBeenCalled();
+    expect(mockedStore.clearUser).toHaveBeenCalled();
+    expect(result).toEqual(logoutResponse);
   });
 });

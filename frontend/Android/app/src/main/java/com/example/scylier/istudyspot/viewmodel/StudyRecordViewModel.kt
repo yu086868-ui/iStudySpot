@@ -17,7 +17,8 @@ data class StudyRecordUiState(
     val avgStudyDuration: Double = 0.0,
     val favoriteSeat: String = "",
     val peakTime: String = "",
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val error: String? = null
 )
 
 class StudyRecordViewModel(private val repository: MainRepository = MainRepository()) : ViewModel() {
@@ -25,21 +26,9 @@ class StudyRecordViewModel(private val repository: MainRepository = MainReposito
     private val _state = MutableStateFlow(StudyRecordUiState())
     val state: StateFlow<StudyRecordUiState> = _state
 
-    private fun mockState() = StudyRecordUiState(
-        weekStudyHours = 24,
-        monthStudyHours = 96,
-        totalStudyHours = 328,
-        totalBookings = 45,
-        streakDays = 7,
-        avgStudyDuration = 3.5,
-        favoriteSeat = "A区-12号",
-        peakTime = "14:00-17:00",
-        isLoading = false
-    )
-
     fun loadStudyRecords() {
         viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true)
+            _state.value = _state.value.copy(isLoading = true, error = null)
             try {
                 var weekHours = 0
                 var monthHours = 0
@@ -49,12 +38,12 @@ class StudyRecordViewModel(private val repository: MainRepository = MainReposito
                 var avgDuration = 0.0
                 var favSeat = ""
                 var peak = ""
-                var apiSuccess = false
+                var hasError = false
+                var errorMsg = ""
 
                 when (val response = repository.getCheckinRecords()) {
                     is ApiResponse.Success -> {
-                        apiSuccess = true
-                        val data = response.data
+                        val data = response.data ?: emptyMap()
                         totalHours = (data["totalHours"] as? Number)?.toInt() ?: 0
                         streak = (data["streak"] as? Number)?.toInt() ?: 0
                         avgDuration = (data["avgDuration"] as? Number)?.toDouble() ?: 0.0
@@ -63,33 +52,36 @@ class StudyRecordViewModel(private val repository: MainRepository = MainReposito
                         weekHours = (data["weekHours"] as? Number)?.toInt() ?: 0
                         monthHours = (data["monthHours"] as? Number)?.toInt() ?: 0
                     }
-                    is ApiResponse.Error -> {}
+                    is ApiResponse.Error -> {
+                        hasError = true
+                        errorMsg = response.message
+                    }
                 }
 
                 when (val ordersResponse = repository.getUserOrders()) {
                     is ApiResponse.Success -> {
-                        totalBookings = ordersResponse.data.list.size
+                        totalBookings = ordersResponse.data?.total ?: 0
                     }
                     is ApiResponse.Error -> {}
                 }
 
-                if (apiSuccess) {
-                    _state.value = StudyRecordUiState(
-                        weekStudyHours = weekHours,
-                        monthStudyHours = monthHours,
-                        totalStudyHours = totalHours,
-                        totalBookings = totalBookings,
-                        streakDays = streak,
-                        avgStudyDuration = avgDuration,
-                        favoriteSeat = favSeat,
-                        peakTime = peak,
-                        isLoading = false
-                    )
-                } else {
-                    _state.value = mockState()
-                }
+                _state.value = StudyRecordUiState(
+                    weekStudyHours = weekHours,
+                    monthStudyHours = monthHours,
+                    totalStudyHours = totalHours,
+                    totalBookings = totalBookings,
+                    streakDays = streak,
+                    avgStudyDuration = avgDuration,
+                    favoriteSeat = favSeat,
+                    peakTime = peak,
+                    isLoading = false,
+                    error = if (hasError) errorMsg else null
+                )
             } catch (e: Exception) {
-                _state.value = mockState()
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = "加载学习报告失败: ${e.message}"
+                )
             }
         }
     }

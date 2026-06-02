@@ -1,0 +1,8 @@
+{
+  "usingComponents": {
+    "tab-bar": "/components/tab-bar/tab-bar",
+    "markdown-card": "/components/markdown-card/index",
+    "card-popup": "/components/card-popup/index",
+    "mp-html": "/components/mp-html/index"
+  }
+}

@@ -48,6 +48,8 @@ fun OrderDetailScreen(
     onCheckin: () -> Unit,
     onCheckout: () -> Unit,
     onCancel: () -> Unit,
+    onPay: () -> Unit = {},
+    onRenew: (String) -> Unit = {},
     onBack: () -> Unit = {}
 ) {
     val extendedColors = LocalExtendedColors.current
@@ -126,6 +128,20 @@ fun OrderDetailScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                if (order.status == "pending") {
+                    Button(
+                        onClick = onPay,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(48.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Text("立即支付", style = MaterialTheme.typography.labelLarge)
+                    }
+                }
                 if (order.status == "paid") {
                     Button(
                         onClick = onCheckin,
@@ -152,6 +168,30 @@ fun OrderDetailScreen(
                         )
                     ) {
                         Text("签退", style = MaterialTheme.typography.labelLarge)
+                    }
+                }
+                if (order.status == "in_use") {
+                    Button(
+                        onClick = {
+                            val currentEnd = order.endTime
+                            val newEnd = try {
+                                val formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+                                val endTime = java.time.LocalDateTime.parse(currentEnd, formatter)
+                                endTime.plusHours(1).format(formatter)
+                            } catch (e: Exception) {
+                                (currentEnd ?: "") + " (+1h)"
+                            }
+                            onRenew(newEnd)
+                        },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(48.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.tertiary
+                        )
+                    ) {
+                        Text("续时1小时", style = MaterialTheme.typography.labelLarge)
                     }
                 }
                 if (order.status == "paid" || order.status == "pending") {

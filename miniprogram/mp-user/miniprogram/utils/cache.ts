@@ -7,7 +7,8 @@ import type {
   CheckInRecord,
   Announcement,
   Rule,
-  ReservationRules
+  ReservationRules,
+  Card
 } from '../typings/api';
 
 const CACHE_PREFIX = 'istudyspot_';
@@ -28,7 +29,8 @@ enum CacheKey {
   CHECKIN_RECORDS = 'checkin_records',
   ANNOUNCEMENTS = 'announcements',
   RULES = 'rules',
-  RESERVATION_RULES = 'reservation_rules'
+  RESERVATION_RULES = 'reservation_rules',
+  CARDS = 'cards'
 }
 
 enum CacheExpireTime {
@@ -41,7 +43,8 @@ enum CacheExpireTime {
   CHECKIN_RECORDS = 10 * 60 * 1000,
   ANNOUNCEMENTS = 10 * 60 * 1000,
   RULES = 60 * 60 * 1000,
-  RESERVATION_RULES = 60 * 60 * 1000
+  RESERVATION_RULES = 60 * 60 * 1000,
+  CARDS = 10 * 60 * 1000
 }
 
 class CacheService {
@@ -63,7 +66,6 @@ class CacheService {
       };
       wx.setStorageSync(fullKey, JSON.stringify(item));
     } catch (e) {
-      console.error(`[Cache] Failed to set ${key}:`, e);
     }
   }
 
@@ -83,7 +85,6 @@ class CacheService {
 
       return item.data;
     } catch (e) {
-      console.error(`[Cache] Failed to get ${key}:`, e);
       return null;
     }
   }
@@ -93,7 +94,6 @@ class CacheService {
       const fullKey = this.getFullKey(key, suffix);
       wx.removeStorageSync(fullKey);
     } catch (e) {
-      console.error(`[Cache] Failed to remove ${key}:`, e);
     }
   }
 
@@ -124,7 +124,6 @@ class CacheService {
         }
       });
     } catch (e) {
-      console.error('[Cache] Failed to clear all:', e);
     }
   }
 
@@ -213,6 +212,14 @@ class CacheService {
 
   getReservationRules(): ReservationRules | null {
     return this.get<ReservationRules>(CacheKey.RESERVATION_RULES);
+  }
+
+  setCards(cards: Card[]): void {
+    this.set(CacheKey.CARDS, cards, CacheExpireTime.CARDS);
+  }
+
+  getCards(): Card[] | null {
+    return this.get<Card[]>(CacheKey.CARDS);
   }
 }
 

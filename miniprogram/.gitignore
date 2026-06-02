@@ -1,2 +1,28 @@
 /docs
 # 个人专用文档目录
+
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+miniprogram_npm/
+
+# Test & Coverage
+coverage/
+reports/
+.nyc_output/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*

@@ -1,280 +1,335 @@
-import { reservationApi } from '../miniprogram/services/reservation';
-import mockManager from '../miniprogram/utils/mock';
+jest.mock('../../../miniprogram/utils/request', () => ({
+  __esModule: true,
+  default: {
+    get: jest.fn(),
+    post: jest.fn(),
+    put: jest.fn(),
+    delete: jest.fn(),
+    saveTokens: jest.fn(),
+    clearTokens: jest.fn()
+  }
+}));
 
-jest.mock('../miniprogram/utils/mock');
+jest.mock('../../../miniprogram/utils/mock', () => ({
+  __esModule: true,
+  default: {
+    isEnabled: jest.fn(),
+    request: jest.fn()
+  }
+}));
 
-describe('reservationApi', () => {
-  const mockRequest = jest.fn();
+jest.mock('../../../miniprogram/utils/store', () => ({
+  __esModule: true,
+  default: {
+    getUser: jest.fn(),
+    setUser: jest.fn(),
+    clearUser: jest.fn(),
+    getMyReservations: jest.fn().mockReturnValue([]),
+    setMyReservations: jest.fn(),
+    addReservation: jest.fn(),
+    updateReservation: jest.fn(),
+    removeReservation: jest.fn(),
+    getCurrentCheckIn: jest.fn().mockReturnValue({ isCheckedIn: false, checkInRecord: null }),
+    setCurrentCheckIn: jest.fn(),
+    getCheckInRecords: jest.fn().mockReturnValue([]),
+    setCheckInRecords: jest.fn(),
+    getStudyRooms: jest.fn().mockReturnValue([]),
+    setStudyRooms: jest.fn(),
+    getStudyRoomDetail: jest.fn().mockReturnValue(null),
+    setStudyRoomDetail: jest.fn(),
+    getSeats: jest.fn().mockReturnValue(null),
+    setSeats: jest.fn(),
+    getAnnouncements: jest.fn().mockReturnValue([]),
+    setAnnouncements: jest.fn(),
+    getRules: jest.fn().mockReturnValue([]),
+    setRules: jest.fn(),
+    getReservationRules: jest.fn().mockReturnValue(null),
+    setReservationRules: jest.fn(),
+    getCards: jest.fn().mockReturnValue([]),
+    setCards: jest.fn(),
+    addCard: jest.fn(),
+    getCardById: jest.fn().mockReturnValue(null)
+  }
+}));
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-    (mockManager.isEnabled as jest.Mock).mockReturnValue(true);
-    (mockManager.request as jest.Mock) = mockRequest;
+import { reservationApi } from '../../../miniprogram/services/reservation';
+import request from '../../../miniprogram/utils/request';
+import mockManager from '../../../miniprogram/utils/mock';
+import store from '../../../miniprogram/utils/store';
+
+const mockedRequest = request as jest.Mocked<typeof request>;
+const mockedMock = mockManager as jest.Mocked<typeof mockManager>;
+const mockedStore = store as jest.Mocked<typeof store>;
+
+beforeEach(() => {
+  jest.clearAllMocks();
+});
+
+describe('reservationApi.createReservation', () => {
+  const params = { studyRoomId: 'room1', seatId: 'seat1', startTime: '2024-01-01T09:00:00Z', endTime: '2024-01-01T12:00:00Z' };
+  const reservation = {
+    id: 'res1',
+    userId: 'u1',
+    studyRoomId: 'room1',
+    seatId: 'seat1',
+    startTime: '2024-01-01T09:00:00Z',
+    endTime: '2024-01-01T12:00:00Z',
+    status: 'confirmed' as const,
+    checkInTime: null,
+    checkOutTime: null,
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-01T00:00:00Z'
+  };
+  const apiResponse = { code: 200, message: 'success', data: reservation, timestamp: Date.now() };
+
+  it('calls mockManager.request when mock is enabled and adds reservation to store on success', async () => {
+    (mockedMock.isEnabled as jest.Mock).mockReturnValue(true);
+    (mockedMock.request as jest.Mock).mockResolvedValue(apiResponse);
+
+    const result = await reservationApi.createReservation(params);
+
+    expect(mockedMock.request).toHaveBeenCalledWith({
+      url: '/reservations',
+      method: 'POST',
+      data: params
+    });
+    expect(mockedStore.addReservation).toHaveBeenCalledWith(reservation);
+    expect(result).toEqual(apiResponse);
   });
 
-  afterEach(() => {
-    mockRequest.mockReset();
+  it('calls request.post when mock is disabled and adds reservation to store on success', async () => {
+    (mockedMock.isEnabled as jest.Mock).mockReturnValue(false);
+    (mockedRequest.post as jest.Mock).mockResolvedValue(apiResponse);
+
+    const result = await reservationApi.createReservation(params);
+
+    expect(mockedRequest.post).toHaveBeenCalledWith('/reservations', params);
+    expect(mockedStore.addReservation).toHaveBeenCalledWith(reservation);
+    expect(result).toEqual(apiResponse);
   });
 
-  describe('createReservation', () => {
-    it('should create reservation successfully', async () => {
-      const reservation = {
-        id: 'res_001',
-        userId: 'user_001',
-        studyRoomId: 'room_001',
-        seatId: 'seat_001',
-        startTime: new Date().toISOString(),
-        endTime: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
-        status: 'confirmed' as const,
-        checkInTime: null,
-        checkOutTime: null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-
-      mockRequest.mockResolvedValueOnce({
-        code: 200,
-        message: '预约成功',
-        data: reservation,
-        timestamp: Date.now()
-      });
-
-      const result = await reservationApi.createReservation({
-        studyRoomId: 'room_001',
-        seatId: 'seat_001',
-        startTime: new Date().toISOString(),
-        endTime: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString()
-      });
-
-      expect(result.code).toBe(200);
-      expect(result.data.id).toBeDefined();
-      expect(result.data.status).toBe('confirmed');
+  it('does not add reservation to store when response code is not 200', async () => {
+    (mockedMock.isEnabled as jest.Mock).mockReturnValue(false);
+    (mockedRequest.post as jest.Mock).mockResolvedValue({
+      code: 400,
+      message: 'bad request',
+      data: null,
+      timestamp: Date.now()
     });
 
-    it('should handle reservation creation failure', async () => {
-      mockRequest.mockResolvedValueOnce({
-        code: 30002,
-        message: '该座位已被占用或预约',
-        data: null,
-        timestamp: Date.now()
-      });
+    await reservationApi.createReservation(params);
 
-      const result = await reservationApi.createReservation({
-        studyRoomId: 'room_001',
-        seatId: 'seat_001',
-        startTime: new Date().toISOString(),
-        endTime: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString()
-      });
+    expect(mockedStore.addReservation).not.toHaveBeenCalled();
+  });
+});
 
-      expect(result.code).toBe(30002);
-      expect(result.message).toBe('该座位已被占用或预约');
-    });
+describe('reservationApi.getMyReservations', () => {
+  const cachedReservations = [
+    {
+      id: 'res1',
+      userId: 'u1',
+      studyRoomId: 'room1',
+      seatId: 'seat1',
+      startTime: '2024-01-01T09:00:00Z',
+      endTime: '2024-01-01T12:00:00Z',
+      status: 'confirmed' as const,
+      checkInTime: null,
+      checkOutTime: null,
+      createdAt: '2024-01-01T00:00:00Z',
+      updatedAt: '2024-01-01T00:00:00Z'
+    },
+    {
+      id: 'res2',
+      userId: 'u1',
+      studyRoomId: 'room1',
+      seatId: 'seat2',
+      startTime: '2024-01-02T09:00:00Z',
+      endTime: '2024-01-02T12:00:00Z',
+      status: 'cancelled' as const,
+      checkInTime: null,
+      checkOutTime: null,
+      createdAt: '2024-01-02T00:00:00Z',
+      updatedAt: '2024-01-02T00:00:00Z'
+    }
+  ];
 
-    it('should handle already has active reservation error', async () => {
-      mockRequest.mockResolvedValueOnce({
-        code: 40001,
-        message: '您已有进行中的预约，请先取消或完成',
-        data: null,
-        timestamp: Date.now()
-      });
+  it('returns cached reservations when available and forceRefresh is false', async () => {
+    (mockedStore.getMyReservations as jest.Mock).mockReturnValue(cachedReservations);
 
-      const result = await reservationApi.createReservation({
-        studyRoomId: 'room_001',
-        seatId: 'seat_001',
-        startTime: new Date().toISOString(),
-        endTime: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString()
-      });
+    const result = await reservationApi.getMyReservations();
 
-      expect(result.code).toBe(40001);
-    });
+    expect(result.code).toBe(200);
+    expect(result.data.list).toEqual(cachedReservations);
+    expect(result.data.total).toBe(2);
+    expect(mockedMock.request).not.toHaveBeenCalled();
+    expect(mockedRequest.get).not.toHaveBeenCalled();
   });
 
-  describe('getMyReservations', () => {
-    it('should get user reservations successfully', async () => {
-      const reservations = [
-        {
-          id: 'res_001',
-          userId: 'user_001',
-          studyRoomId: 'room_001',
-          seatId: 'seat_001',
-          startTime: new Date().toISOString(),
-          endTime: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
-          status: 'confirmed' as const,
-          checkInTime: null,
-          checkOutTime: null,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        },
-        {
-          id: 'res_002',
-          userId: 'user_001',
-          studyRoomId: 'room_002',
-          seatId: 'seat_002',
-          startTime: new Date(Date.now() + 86400000).toISOString(),
-          endTime: new Date(Date.now() + 86400000 + 2 * 60 * 60 * 1000).toISOString(),
-          status: 'confirmed' as const,
-          checkInTime: null,
-          checkOutTime: null,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-      ];
+  it('filters cached reservations by status when params.status is provided', async () => {
+    (mockedStore.getMyReservations as jest.Mock).mockReturnValue(cachedReservations);
 
-      mockRequest.mockResolvedValueOnce({
-        code: 200,
-        message: 'success',
-        data: { list: reservations, total: 2, page: 1, pageSize: 20 },
-        timestamp: Date.now()
-      });
+    const result = await reservationApi.getMyReservations({ status: 'confirmed' });
 
-      const result = await reservationApi.getMyReservations({ status: 'confirmed' });
-
-      expect(result.code).toBe(200);
-      expect(result.data.list).toHaveLength(2);
-    });
-
-    it('should filter reservations by status', async () => {
-      const reservations = [
-        {
-          id: 'res_001',
-          userId: 'user_001',
-          studyRoomId: 'room_001',
-          seatId: 'seat_001',
-          startTime: new Date().toISOString(),
-          endTime: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
-          status: 'confirmed' as const,
-          checkInTime: null,
-          checkOutTime: null,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-      ];
-
-      mockRequest.mockResolvedValueOnce({
-        code: 200,
-        message: 'success',
-        data: { list: reservations, total: 1, page: 1, pageSize: 20 },
-        timestamp: Date.now()
-      });
-
-      const result = await reservationApi.getMyReservations({ status: 'confirmed' });
-
-      expect(result.code).toBe(200);
-      expect(result.data.list).toHaveLength(1);
-    });
-
-    it('should return empty list when no reservations', async () => {
-      mockRequest.mockResolvedValueOnce({
-        code: 200,
-        message: 'success',
-        data: { list: [], total: 0, page: 1, pageSize: 20 },
-        timestamp: Date.now()
-      });
-
-      const result = await reservationApi.getMyReservations();
-
-      expect(result.code).toBe(200);
-      expect(result.data.list).toHaveLength(0);
-    });
+    expect(result.data.list).toEqual([cachedReservations[0]]);
+    expect(result.data.total).toBe(1);
   });
 
-  describe('getReservationDetail', () => {
-    it('should get reservation detail successfully', async () => {
-      const reservation = {
-        id: 'res_001',
-        userId: 'user_001',
-        studyRoomId: 'room_001',
-        seatId: 'seat_001',
-        startTime: new Date().toISOString(),
-        endTime: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
-        status: 'confirmed' as const,
-        checkInTime: null,
-        checkOutTime: null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
+  it('fetches from mock when cache is empty and mock is enabled', async () => {
+    (mockedStore.getMyReservations as jest.Mock).mockReturnValue([]);
+    (mockedMock.isEnabled as jest.Mock).mockReturnValue(true);
+    const apiResponse = {
+      code: 200,
+      message: 'success',
+      data: { list: cachedReservations, total: 2, page: 1, pageSize: 2 },
+      timestamp: Date.now()
+    };
+    (mockedMock.request as jest.Mock).mockResolvedValue(apiResponse);
 
-      mockRequest.mockResolvedValueOnce({
-        code: 200,
-        message: 'success',
-        data: reservation,
-        timestamp: Date.now()
-      });
+    const result = await reservationApi.getMyReservations();
 
-      const result = await reservationApi.getReservationDetail('res_001');
-
-      expect(result.code).toBe(200);
-      expect(result.data.id).toBe('res_001');
+    expect(mockedMock.request).toHaveBeenCalledWith({
+      url: '/reservations/my',
+      method: 'GET',
+      data: undefined
     });
-
-    it('should handle reservation not found', async () => {
-      mockRequest.mockResolvedValueOnce({
-        code: 40004,
-        message: '预约不存在',
-        data: null,
-        timestamp: Date.now()
-      });
-
-      const result = await reservationApi.getReservationDetail('nonexistent');
-
-      expect(result.code).toBe(40004);
-      expect(result.message).toBe('预约不存在');
-    });
+    expect(mockedStore.setMyReservations).toHaveBeenCalledWith(cachedReservations);
+    expect(result).toEqual(apiResponse);
   });
 
-  describe('cancelReservation', () => {
-    it('should cancel reservation successfully', async () => {
-      mockRequest.mockResolvedValueOnce({
-        code: 200,
-        message: '预约已取消',
-        data: null,
-        timestamp: Date.now()
-      });
+  it('fetches from real API when cache is empty and mock is disabled', async () => {
+    (mockedStore.getMyReservations as jest.Mock).mockReturnValue([]);
+    (mockedMock.isEnabled as jest.Mock).mockReturnValue(false);
+    const apiResponse = {
+      code: 200,
+      message: 'success',
+      data: { list: cachedReservations, total: 2, page: 1, pageSize: 2 },
+      timestamp: Date.now()
+    };
+    (mockedRequest.get as jest.Mock).mockResolvedValue(apiResponse);
 
-      const result = await reservationApi.cancelReservation('res_001');
+    const result = await reservationApi.getMyReservations();
 
-      expect(result.code).toBe(200);
-      expect(result.message).toBe('预约已取消');
-    });
-
-    it('should handle cancel checked-in reservation error', async () => {
-      mockRequest.mockResolvedValueOnce({
-        code: 40007,
-        message: '预约已签到，无法取消',
-        data: null,
-        timestamp: Date.now()
-      });
-
-      const result = await reservationApi.cancelReservation('res_001');
-
-      expect(result.code).toBe(40007);
-      expect(result.message).toBe('预约已签到，无法取消');
-    });
+    expect(mockedRequest.get).toHaveBeenCalledWith('/reservations/my', undefined);
+    expect(mockedStore.setMyReservations).toHaveBeenCalledWith(cachedReservations);
+    expect(result).toEqual(apiResponse);
   });
 
-  describe('getReservationRules', () => {
-    it('should get reservation rules successfully', async () => {
-      const rules = {
-        maxAdvanceDays: 7,
-        maxDailyReservations: 2,
-        maxDurationHours: 4,
-        minDurationMinutes: 30,
-        cancellationDeadlineMinutes: 15,
-        noShowPenalty: 5
-      };
+  it('bypasses cache when forceRefresh is true', async () => {
+    (mockedStore.getMyReservations as jest.Mock).mockReturnValue(cachedReservations);
+    (mockedMock.isEnabled as jest.Mock).mockReturnValue(false);
+    const apiResponse = {
+      code: 200,
+      message: 'success',
+      data: { list: cachedReservations, total: 2, page: 1, pageSize: 2 },
+      timestamp: Date.now()
+    };
+    (mockedRequest.get as jest.Mock).mockResolvedValue(apiResponse);
 
-      mockRequest.mockResolvedValueOnce({
-        code: 200,
-        message: 'success',
-        data: rules,
-        timestamp: Date.now()
-      });
+    await reservationApi.getMyReservations(undefined, true);
 
-      const result = await reservationApi.getReservationRules();
+    expect(mockedRequest.get).toHaveBeenCalled();
+  });
+});
 
-      expect(result.code).toBe(200);
-      expect(result.data.maxAdvanceDays).toBe(7);
-      expect(result.data.maxDurationHours).toBe(4);
+describe('reservationApi.cancelReservation', () => {
+  const apiResponse = { code: 200, message: 'success', data: null, timestamp: Date.now() };
+
+  it('calls mockManager.request when mock is enabled and removes reservation from store on success', async () => {
+    (mockedMock.isEnabled as jest.Mock).mockReturnValue(true);
+    (mockedMock.request as jest.Mock).mockResolvedValue(apiResponse);
+
+    const result = await reservationApi.cancelReservation('res1');
+
+    expect(mockedMock.request).toHaveBeenCalledWith({
+      url: '/reservations/res1/cancel',
+      method: 'POST'
     });
+    expect(mockedStore.removeReservation).toHaveBeenCalledWith('res1');
+    expect(result).toEqual(apiResponse);
+  });
+
+  it('calls request.post when mock is disabled and removes reservation from store on success', async () => {
+    (mockedMock.isEnabled as jest.Mock).mockReturnValue(false);
+    (mockedRequest.post as jest.Mock).mockResolvedValue(apiResponse);
+
+    const result = await reservationApi.cancelReservation('res1');
+
+    expect(mockedRequest.post).toHaveBeenCalledWith('/reservations/res1/cancel');
+    expect(mockedStore.removeReservation).toHaveBeenCalledWith('res1');
+    expect(result).toEqual(apiResponse);
+  });
+
+  it('does not remove reservation from store when response code is not 200', async () => {
+    (mockedMock.isEnabled as jest.Mock).mockReturnValue(false);
+    (mockedRequest.post as jest.Mock).mockResolvedValue({
+      code: 400,
+      message: 'bad request',
+      data: null,
+      timestamp: Date.now()
+    });
+
+    await reservationApi.cancelReservation('res1');
+
+    expect(mockedStore.removeReservation).not.toHaveBeenCalled();
+  });
+});
+
+describe('reservationApi.getReservationRules', () => {
+  const mockRules = {
+    maxAdvanceDays: 7,
+    maxDailyReservations: 3,
+    maxDurationHours: 4,
+    minDurationMinutes: 30,
+    cancellationDeadlineMinutes: 60,
+    noShowPenalty: 5
+  };
+  const apiResponse = { code: 200, message: 'success', data: mockRules, timestamp: Date.now() };
+
+  it('returns cached rules when available and forceRefresh is false', async () => {
+    (mockedStore.getReservationRules as jest.Mock).mockReturnValue(mockRules);
+
+    const result = await reservationApi.getReservationRules();
+
+    expect(result.code).toBe(200);
+    expect(result.data).toEqual(mockRules);
+    expect(mockedMock.request).not.toHaveBeenCalled();
+    expect(mockedRequest.get).not.toHaveBeenCalled();
+  });
+
+  it('fetches from mock when cache is empty and mock is enabled', async () => {
+    (mockedStore.getReservationRules as jest.Mock).mockReturnValue(null);
+    (mockedMock.isEnabled as jest.Mock).mockReturnValue(true);
+    (mockedMock.request as jest.Mock).mockResolvedValue(apiResponse);
+
+    const result = await reservationApi.getReservationRules();
+
+    expect(mockedMock.request).toHaveBeenCalledWith({
+      url: '/reservations/rules',
+      method: 'GET'
+    });
+    expect(mockedStore.setReservationRules).toHaveBeenCalledWith(mockRules);
+    expect(result).toEqual(apiResponse);
+  });
+
+  it('fetches from real API when cache is empty and mock is disabled', async () => {
+    (mockedStore.getReservationRules as jest.Mock).mockReturnValue(null);
+    (mockedMock.isEnabled as jest.Mock).mockReturnValue(false);
+    (mockedRequest.get as jest.Mock).mockResolvedValue(apiResponse);
+
+    const result = await reservationApi.getReservationRules();
+
+    expect(mockedRequest.get).toHaveBeenCalledWith('/reservations/rules');
+    expect(mockedStore.setReservationRules).toHaveBeenCalledWith(mockRules);
+    expect(result).toEqual(apiResponse);
+  });
+
+  it('bypasses cache when forceRefresh is true', async () => {
+    (mockedStore.getReservationRules as jest.Mock).mockReturnValue(mockRules);
+    (mockedMock.isEnabled as jest.Mock).mockReturnValue(false);
+    (mockedRequest.get as jest.Mock).mockResolvedValue(apiResponse);
+
+    await reservationApi.getReservationRules(true);
+
+    expect(mockedRequest.get).toHaveBeenCalled();
   });
 });

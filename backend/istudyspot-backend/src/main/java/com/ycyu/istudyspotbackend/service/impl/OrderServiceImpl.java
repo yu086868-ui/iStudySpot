@@ -82,6 +82,7 @@ public class OrderServiceImpl implements OrderService {
         result.put("startTime", startTime.format(formatter));
         result.put("endTime", endTime.format(formatter));
         result.put("status", "pending");
+        result.put("totalPrice", totalPrice);
         result.put("checkInTime", null);
         result.put("checkOutTime", null);
         result.put("createdAt", LocalDateTime.now().format(formatter));
@@ -206,7 +207,7 @@ public class OrderServiceImpl implements OrderService {
         order.setEndTime(newEndTime);
         order.setTotalPrice(order.getTotalPrice().add(additionalAmount));
         order.setTotalAmount(order.getTotalAmount().add(additionalAmount));
-        orderMapper.updateStatus(orderId, "in_use");
+        orderMapper.updateRenew(orderId, newEndTime, order.getTotalPrice(), order.getTotalAmount());
 
         Map<String, Object> result = new HashMap<>();
         result.put("orderId", orderId.toString());

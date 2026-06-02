@@ -1,51 +1,16 @@
-import { WxMock } from './mocks/wx-mock';
+const wxMock = {
+  setStorageSync: jest.fn(),
+  getStorageSync: jest.fn().mockReturnValue(''),
+  removeStorageSync: jest.fn(),
+  getStorageInfoSync: jest.fn().mockReturnValue({ keys: [] }),
+  request: jest.fn(),
+  showToast: jest.fn(),
+  reLaunch: jest.fn(),
+  navigateTo: jest.fn(),
+  redirectTo: jest.fn(),
+  switchTab: jest.fn(),
+  navigateBack: jest.fn()
+};
 
-const isCI = process.env.CI === 'true' || process.env.CI === '1';
-
-declare global {
-  namespace NodeJS {
-    interface Global {
-      wx: WxMock;
-    }
-  }
-}
-
-(global as any).wx = new WxMock();
-
-beforeEach(() => {
-  (global as any).wx.clearAllMocks();
-  if (isCI) {
-    jest.setTimeout(15000);
-  }
-});
-
-afterEach(() => {
-  jest.clearAllMocks();
-});
-
-if (isCI) {
-  jest.setTimeout(15000);
-  console.log('Running in CI environment with extended timeouts');
-}
-
-expect.extend({
-  toBeSuccessfulResponse(received: any) {
-    const pass = received && received.code === 200;
-    return {
-      pass,
-      message: () => pass
-        ? `expected ${received} not to be a successful response`
-        : `expected ${received} to be a successful response with code 200`
-    };
-  },
-  toBeErrorResponse(received: any, expectedCode?: number) {
-    const pass = received && received.code !== 200 && 
-      (expectedCode ? received.code === expectedCode : true);
-    return {
-      pass,
-      message: () => pass
-        ? `expected ${received} not to be an error response`
-        : `expected ${received} to be an error response${expectedCode ? ` with code ${expectedCode}` : ''}`
-    };
-  }
-});
+global.wx = wxMock as any;
+global.getCurrentPages = jest.fn().mockReturnValue([]);

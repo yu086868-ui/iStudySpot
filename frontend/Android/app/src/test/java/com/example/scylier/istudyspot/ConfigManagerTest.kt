@@ -153,4 +153,67 @@ class ConfigManagerTest {
         assertEquals("testuser", configManager.getUsername())
         assertEquals("测试用户", configManager.getNickname())
     }
+
+    @Test
+    fun testSaveThemeMode_andGetThemeMode() {
+        configManager.saveThemeMode("DARK")
+
+        assertEquals("DARK", configManager.getThemeMode())
+    }
+
+    @Test
+    fun testGetThemeMode_whenNotSet_returnsNull() {
+        assertNull(configManager.getThemeMode())
+    }
+
+    @Test
+    fun testSaveThemeMode_overwritesExisting() {
+        configManager.saveThemeMode("LIGHT")
+        configManager.saveThemeMode("DARK")
+
+        assertEquals("DARK", configManager.getThemeMode())
+    }
+
+    @Test
+    fun testSaveThemeMode_allModes() {
+        configManager.saveThemeMode("LIGHT")
+        assertEquals("LIGHT", configManager.getThemeMode())
+
+        configManager.saveThemeMode("DARK")
+        assertEquals("DARK", configManager.getThemeMode())
+
+        configManager.saveThemeMode("SYSTEM")
+        assertEquals("SYSTEM", configManager.getThemeMode())
+    }
+
+    @Test
+    fun testClearAll_removesThemeMode() {
+        configManager.saveThemeMode("DARK")
+        configManager.clearAll()
+
+        assertNull(configManager.getThemeMode())
+    }
+
+    @Test
+    fun testThemeMode_doesNotAffectOtherData() {
+        configManager.saveToken("token")
+        configManager.saveThemeMode("DARK")
+
+        assertEquals("token", configManager.getToken())
+        assertEquals("DARK", configManager.getThemeMode())
+
+        configManager.saveThemeMode("LIGHT")
+        assertEquals("token", configManager.getToken())
+        assertEquals("LIGHT", configManager.getThemeMode())
+    }
+
+    @Test
+    fun testRemoveToken_doesNotAffectThemeMode() {
+        configManager.saveToken("token")
+        configManager.saveThemeMode("DARK")
+        configManager.removeToken()
+
+        assertNull(configManager.getToken())
+        assertEquals("DARK", configManager.getThemeMode())
+    }
 }

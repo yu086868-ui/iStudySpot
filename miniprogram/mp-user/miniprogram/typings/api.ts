@@ -205,6 +205,44 @@ export interface AnnouncementListParams {
   pageSize?: number;
 }
 
+// ==================== 卡片系统类型 ====================
+
+export type CardRarity = 'N' | 'R' | 'SR' | 'SSR' | 'UR' | 'LR';
+
+export type ThemeCategory =
+  | 'growth'      // 励志成长
+  | 'history'     // 名人与历史
+  | 'philosophy'  // 哲思感悟
+  | 'nature'      // 自然意象
+  | 'tech'        // 科技未来
+  | 'companion'   // 温柔陪伴
+  | 'hidden';     // 隐藏主题池
+
+export interface Card {
+  uuid: string;
+  userID: string;
+  cardID: string;
+  createTime: string;
+  studyDuration: number;
+  rarity: CardRarity;
+  borderTheme: string;
+  cardTheme: string;
+  themeCategory: ThemeCategory;
+  markdown: string;
+  imageURL: string;
+}
+
+export interface GenerateCardParams {
+  userID: string;
+  studyDuration: number;
+}
+
+export interface CardListParams {
+  userID: string;
+  page?: number;
+  pageSize?: number;
+}
+
 export interface RuleListParams {
   studyRoomId?: string;
   category?: 'booking' | 'usage' | 'penalty' | 'general';

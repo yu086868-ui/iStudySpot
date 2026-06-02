@@ -51,22 +51,48 @@ page {
   line-height: 1.6;
 }
 
-.menu-list {
+.motto-section {
   background: #FFFFFF;
   border-radius: 16rpx;
-  overflow: hidden;
+  padding: 32rpx;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.menu-item {
-  padding: 36rpx 32rpx;
-  border-bottom: 1rpx solid #EEEEEE;
+.motto-row {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
 }
 
-.menu-item:last-child {
-  border-bottom: none;
+.motto-label {
+  font-size: 24rpx;
+  color: #999999;
+  margin-bottom: 8rpx;
 }
 
-.menu-text {
-  font-size: 32rpx;
+.motto-value {
+  font-size: 30rpx;
   color: #333333;
+  font-weight: bold;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.motto-edit-btn {
+  padding: 8rpx 16rpx;
+  background: transparent;
+  border-radius: 8rpx;
+  margin-left: 16rpx;
+  flex-shrink: 0;
+}
+
+.motto-edit-text {
+  font-size: 24rpx;
+  color: #BBBBBB;
+  font-weight: normal;
 }

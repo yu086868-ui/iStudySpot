@@ -1,7 +1,19 @@
 import type { ApiResponse } from '../typings/api';
-import mockData from './data';
+import mockData, { generateCard } from './data';
 
 const ENABLE_MOCK = true;
+
+function parseQueryParam(queryStr: string, key: string): string {
+  if (!queryStr) return '';
+  const pairs = queryStr.split('&');
+  for (let i = 0; i < pairs.length; i++) {
+    const kv = pairs[i].split('=');
+    if (kv[0] === key) {
+      return decodeURIComponent(kv[1] || '');
+    }
+  }
+  return '';
+}
 
 interface MockRequest {
   url: string;
@@ -436,7 +448,6 @@ class MockManager {
 
         const seat = seats.find(s => s.id === reservation.seatId);
         if (seat && (seat.status === 'reserved' || seat.status === 'occupied')) {
-          console.log('[MOCK 取消预约] 更新座位状态为 available', seat.id);
           seat.status = 'available';
         }
 
@@ -474,7 +485,6 @@ class MockManager {
 
     if (url === '/checkin' && method === 'POST') {
       const params = (data || {}) as { reservationId?: string; seatId?: string };
-      console.log('[MOCK 签到] 收到签到请求', params);
       
       const users = (mockData && mockData.users) ? mockData.users : [];
       const currentUser = users[0] || null;
@@ -483,7 +493,6 @@ class MockManager {
       const seats = (mockData && mockData.seats) ? mockData.seats : [];
 
       if (!currentUser) {
-        console.error('[MOCK 签到] 用户不存在');
         return {
           code: 50001,
           message: '用户数据不存在',
@@ -497,7 +506,6 @@ class MockManager {
       );
       
       if (activeCheckIn) {
-        console.warn('[MOCK 签到] 用户已有活跃签到记录', activeCheckIn);
         return {
           code: 50002,
           message: '已经签到，无需重复签到',
@@ -509,17 +517,13 @@ class MockManager {
       const reservation = reservations.find(r => r.id === params.reservationId);
       
       if (reservation) {
-        console.log('[MOCK 签到] 找到预约记录，更新状态', reservation);
         reservation.status = 'checked_in';
         reservation.checkInTime = new Date().toISOString();
         reservation.updatedAt = new Date().toISOString();
-      } else {
-        console.warn('[MOCK 签到] 未找到预约记录', params.reservationId);
       }
 
       const seat = seats.find(s => s.id === params.seatId);
       if (seat) {
-        console.log('[MOCK 签到] 更新座位状态为 occupied', seat.id);
         seat.status = 'occupied';
       }
 
@@ -539,8 +543,6 @@ class MockManager {
         mockData.checkInRecords.push(newCheckInRecord);
       }
 
-      console.log('[MOCK 签到] 签到成功，创建签到记录', newCheckInRecord);
-
       return {
         code: 200,
         message: '签到成功',
@@ -556,7 +558,6 @@ class MockManager {
 
     if (url === '/checkout' && method === 'POST') {
       const params = (data || {}) as { checkInRecordId?: string };
-      console.log('[MOCK 签退] 收到签退请求', params);
       
       const checkInRecords = (mockData && mockData.checkInRecords) ? mockData.checkInRecords : [];
       const reservations = (mockData && mockData.reservations) ? mockData.reservations : [];
@@ -565,7 +566,6 @@ class MockManager {
 
       if (record) {
         if (record.status === 'completed') {
-          console.warn('[MOCK 签退] 该记录已签退', record);
           return {
             code: 50004,
             message: '已经签退',
@@ -574,14 +574,12 @@ class MockManager {
           };
         }
 
-        console.log('[MOCK 签退] 找到签到记录，更新状态', record);
         record.checkOutTime = new Date().toISOString();
         record.duration = Math.floor((new Date(record.checkOutTime).getTime() - new Date(record.checkInTime).getTime()) / 60000);
         record.status = 'completed';
 
         const reservation = reservations.find(r => r.id === record.reservationId);
         if (reservation) {
-          console.log('[MOCK 签退] 找到预约记录，更新状态', reservation);
           reservation.status = 'completed';
           reservation.checkOutTime = record.checkOutTime;
           reservation.updatedAt = new Date().toISOString();
@@ -589,14 +587,8 @@ class MockManager {
 
         const seat = seats.find(s => s.id === record.seatId);
         if (seat) {
-          console.log('[MOCK 签退] 更新座位状态为 available', seat.id);
           seat.status = 'available';
         }
-
-        console.log('[MOCK 签退] 签退成功', { 
-          checkInRecordId: record.id, 
-          duration: record.duration 
-        });
 
         return {
           code: 200,
@@ -609,7 +601,6 @@ class MockManager {
         };
       }
 
-      console.error('[MOCK 签退] 签到记录不存在', params.checkInRecordId);
       return {
         code: 50003,
         message: '签到记录不存在',
@@ -763,6 +754,107 @@ class MockManager {
         code: 70001,
         message: '规则不存在',
         data: null as unknown as T,
+        timestamp
+      };
+    }
+
+    // ==================== 卡片系统路由 ====================
+
+    if (url === '/card/generate' && method === 'POST') {
+      const params = (data || {}) as { userID?: string; studyDuration?: number };
+      const users = (mockData && mockData.users) ? mockData.users : [];
+
+      if (!params.userID) {
+        return {
+          code: 80001,
+          message: '参数错误：缺少userID',
+          data: null,
+          timestamp
+        };
+      }
+
+      if (!params.studyDuration || params.studyDuration <= 0) {
+        return {
+          code: 80001,
+          message: '参数错误：studyDuration必须大于0',
+          data: null,
+          timestamp
+        };
+      }
+
+      const user = users.find(u => u.id === params.userID);
+      if (!user) {
+        return {
+          code: 50001,
+          message: '用户数据不存在',
+          data: null,
+          timestamp
+        };
+      }
+
+      const card = generateCard(params.userID, params.studyDuration);
+
+      if (mockData && mockData.cards) {
+        mockData.cards.unshift(card);
+      }
+
+      return {
+        code: 200,
+        message: 'generate success',
+        data: card as T,
+        timestamp
+      };
+    }
+
+    if (url.startsWith('/card/detail') && method === 'GET') {
+      const queryStr = url.indexOf('?') !== -1 ? url.split('?')[1] : '';
+      const idParam = parseQueryParam(queryStr, 'id');
+      const cards = (mockData && mockData.cards) ? mockData.cards : [];
+
+      if (!idParam) {
+        return {
+          code: 80001,
+          message: '参数错误：缺少id',
+          data: null,
+          timestamp
+        };
+      }
+
+      const card = cards.find(c => c.uuid === idParam);
+      if (card) {
+        return {
+          code: 200,
+          message: 'success',
+          data: card as T,
+          timestamp
+        };
+      }
+
+      return {
+        code: 80002,
+        message: '卡片不存在',
+        data: null,
+        timestamp
+      };
+    }
+
+    if (url.startsWith('/card/list') && method === 'GET') {
+      const params = (data || {}) as { userID?: string };
+      const userID = params.userID || '';
+      const cards = (mockData && mockData.cards) ? mockData.cards : [];
+
+      let filteredCards = userID
+        ? cards.filter(c => c.userID === userID)
+        : cards;
+
+      filteredCards = filteredCards.sort((a, b) =>
+        new Date(b.createTime).getTime() - new Date(a.createTime).getTime()
+      );
+
+      return {
+        code: 200,
+        message: 'success',
+        data: filteredCards as T,
         timestamp
       };
     }

@@ -4,9 +4,11 @@ import com.ycyu.istudyspotbackend.dto.BookingDTO;
 import com.ycyu.istudyspotbackend.entity.Order;
 import com.ycyu.istudyspotbackend.entity.Result;
 import com.ycyu.istudyspotbackend.service.OrderService;
+import com.ycyu.istudyspotbackend.service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.Map;
 
 @RestController
@@ -15,6 +17,9 @@ public class OrderController {
 
     @Autowired
     private OrderService orderService;
+
+    @Autowired
+    private PaymentService paymentService;
 
     @PostMapping
     public Result<Map<String, Object>> createReservation(
@@ -56,15 +61,42 @@ public class OrderController {
     }
 
     @PostMapping("/{id}/pay")
-    public Result<Map<String, Object>> payReservation(@PathVariable Long id) {
-        // 这里可以添加支付逻辑，例如调用支付服务
-        // 简化处理，直接更新订单状态为已支付
-        orderService.markAsPaid(id);
-        Map<String, Object> result = Map.of(
-                "orderId", id,
-                "status", "已支付"
-        );
-        return Result.success("支付成功", result);
+    public Result<Map<String, Object>> payReservation(
+            @PathVariable Long id,
+            @RequestAttribute Long userId) {
+        try {
+            Order order = orderService.getOrderDetail(id);
+            if (!"pending".equals(order.getStatus())) {
+                return Result.error("订单状态不正确，无法支付");
+            }
+            Map<String, Object> paymentResult = paymentService.createPayment(
+                    userId,
+                    id,
+                    order.getTotalPrice(),
+                    "balance"
+            );
+            return Result.success("支付成功", paymentResult);
+        } catch (RuntimeException e) {
+            return Result.error(e.getMessage());
+        }
+    }
+
+    @PostMapping("/{id}/renew")
+    public Result<Map<String, Object>> renewReservation(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> body) {
+        try {
+            String newEndTimeStr = body.get("newEndTime");
+            if (newEndTimeStr == null || newEndTimeStr.isEmpty()) {
+                return Result.error("新结束时间不能为空");
+            }
+            java.time.LocalDateTime newEndTime = java.time.LocalDateTime.parse(newEndTimeStr,
+                    java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            Map<String, Object> result = orderService.renew(id, newEndTime);
+            return Result.success("续时成功", result);
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
+        }
     }
 
     @GetMapping("/rules")

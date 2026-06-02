@@ -72,16 +72,16 @@ class HomeViewModel(private val repository: MainRepository = MainRepository()) :
 
                 when (val ordersResponse = repository.getUserOrders()) {
                     is ApiResponse.Success -> {
-                        todayBookings = ordersResponse.data.list.count {
+                        todayBookings = ordersResponse.data?.list?.count {
                             it.status == "paid" || it.status == "pending"
-                        }
+                        } ?: 0
                     }
                     is ApiResponse.Error -> {}
                 }
 
                 when (val recordsResponse = repository.getCheckinRecords()) {
                     is ApiResponse.Success -> {
-                        val data = recordsResponse.data
+                        val data = recordsResponse.data ?: emptyMap()
                         @Suppress("UNCHECKED_CAST")
                         val records = (data["records"] as? List<Map<String, Any?>>) ?: emptyList()
                         val totalMinutes = records.size * 150

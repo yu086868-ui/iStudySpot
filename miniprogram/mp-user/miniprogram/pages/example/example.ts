@@ -25,7 +25,6 @@ Page({
         this.setData({ userInfo: response.data });
       }
     } catch (error) {
-      console.error('加载用户信息失败', error);
     }
   },
 
@@ -36,7 +35,6 @@ Page({
         this.setData({ studyRooms: response.data.list });
       }
     } catch (error) {
-      console.error('加载自习室列表失败', error);
     }
   },
 
@@ -47,7 +45,6 @@ Page({
         this.setData({ announcements: response.data.list });
       }
     } catch (error) {
-      console.error('加载公告列表失败', error);
     }
   },
 
@@ -71,7 +68,6 @@ Page({
         });
       }
     } catch (error) {
-      console.error('登录失败', error);
     }
   },
 
@@ -86,7 +82,6 @@ Page({
         this.setData({ userInfo: null });
       }
     } catch (error) {
-      console.error('登出失败', error);
     }
   },
 
@@ -112,7 +107,6 @@ Page({
         });
       }
     } catch (error) {
-      console.error('预约失败', error);
     }
   },
 
@@ -123,7 +117,6 @@ Page({
         this.setData({ reservations: response.data.list });
       }
     } catch (error) {
-      console.error('加载预约列表失败', error);
     }
   },
 
@@ -146,7 +139,6 @@ Page({
         });
       }
     } catch (error) {
-      console.error('签到失败', error);
     }
   },
 
@@ -168,7 +160,6 @@ Page({
         });
       }
     } catch (error) {
-      console.error('签退失败', error);
     }
   },
 
@@ -189,7 +180,6 @@ Page({
         });
       }
     } catch (error) {
-      console.error('取消预约失败', error);
     }
   },
 
@@ -213,7 +203,6 @@ Page({
         });
       }
     } catch (error) {
-      console.error('更新用户信息失败', error);
     }
   },
 
@@ -222,10 +211,8 @@ Page({
     try {
       const response = await seatApi.getSeats(studyRoomId, { status: 'available' });
       if (response.code === 200) {
-        console.log('座位列表', response.data);
       }
     } catch (error) {
-      console.error('加载座位列表失败', error);
     }
   },
 
@@ -233,10 +220,8 @@ Page({
     try {
       const response = await ruleApi.getRules({ category: 'booking' });
       if (response.code === 200) {
-        console.log('规则列表', response.data);
       }
     } catch (error) {
-      console.error('加载规则列表失败', error);
     }
   }
 });

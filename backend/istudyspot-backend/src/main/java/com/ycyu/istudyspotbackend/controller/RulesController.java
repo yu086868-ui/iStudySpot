@@ -3,43 +3,64 @@ package com.ycyu.istudyspotbackend.controller;
 import com.ycyu.istudyspotbackend.entity.Result;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/rules")
 public class RulesController {
 
+    private List<Map<String, Object>> buildRules() {
+        List<Map<String, Object>> rules = new ArrayList<>();
+
+        rules.add(buildRule(1L, "booking", "预约规则", "每位用户每天最多可预约2个座位，预约时间段为开馆至闭馆时间。请在预约成功后30分钟内到达座位签到，否则预约将自动取消。", "主要规则", 1));
+        rules.add(buildRule(2L, "checkin", "签到规则", "预约成功后，请在预约时间开始后30分钟内完成签到。签到方式为扫描座位二维码或在APP内点击签到按钮。未按时签到将被记录为违规。", "主要规则", 2));
+        rules.add(buildRule(3L, "leave", "离开规则", "暂时离开座位不超过30分钟无需操作。离开超过30分钟需要在APP内申请暂离，每天最多申请3次暂离，每次暂离不超过2小时。", "主要规则", 3));
+        rules.add(buildRule(4L, "violation", "违规处理", "累计3次违规将被禁止预约7天，累计5次违规将被禁止预约30天。违规行为包括：未按时签到、恶意占座、转让座位等。", "主要规则", 4));
+        rules.add(buildRule(5L, "civilized", "文明使用", "请保持座位及周边环境整洁，不得在学习区域大声喧哗。请勿长时间占用座位而不学习。离开时请带走个人物品。", "主要规则", 5));
+
+        rules.add(buildRule(6L, "faq", "如何预约座位？", "点击首页的【预约座位】功能，选择日期、时间段和座位，确认后即可完成预约。建议提前一天预约。", "常见问题", 6));
+        rules.add(buildRule(7L, "faq", "预约后可以取消吗？", "可以。在预约时间开始前2小时可以免费取消预约。2小时内取消或未签到将被记录为违规。", "常见问题", 7));
+        rules.add(buildRule(8L, "faq", "忘记签到怎么办？", "预约时间开始后30分钟内都可以签到。超过30分钟未签到，系统将自动取消预约并记录为违规。", "常见问题", 8));
+        rules.add(buildRule(9L, "faq", "可以帮朋友预约吗？", "不可以。每个账号只能为本人预约，不得转让或代他人预约。发现此类行为将被记录违规。", "常见问题", 9));
+        rules.add(buildRule(10L, "faq", "座位可以续约吗？", "当天使用的座位可以在APP内申请续约，续约需在当前预约结束前30分钟内操作，续约时长最多4小时。", "常见问题", 10));
+        rules.add(buildRule(11L, "faq", "违规记录可以申诉吗？", "可以。在【更多】页面的【违规记录】中找到对应记录，点击【申诉】按钮提交申诉理由，管理员会在24小时内处理。", "常见问题", 11));
+
+        return rules;
+    }
+
+    private Map<String, Object> buildRule(Long id, String category, String title, String content, String categoryLabel, int priority) {
+        Map<String, Object> rule = new LinkedHashMap<>();
+        rule.put("id", id);
+        rule.put("category", category);
+        rule.put("categoryLabel", categoryLabel);
+        rule.put("title", title);
+        rule.put("content", content);
+        rule.put("priority", priority);
+        rule.put("type", "faq".equals(category) ? "faq" : "rule");
+        return rule;
+    }
+
     @GetMapping
-    public Result<java.util.List<java.util.Map<String, Object>>> getRulesList(
+    public Result<List<Map<String, Object>>> getRulesList(
             @RequestParam(required = false) String studyRoomId,
             @RequestParam(required = false) String category) {
-        // TODO: 实现规则列表查询
-        java.util.List<java.util.Map<String, Object>> rules = new java.util.ArrayList<>();
-        java.util.Map<String, Object> rule = new java.util.HashMap<>();
-        rule.put("id", "1");
-        rule.put("studyRoomId", studyRoomId);
-        rule.put("category", category != null ? category : "booking");
-        rule.put("title", "预约规则");
-        rule.put("content", "预约规则内容");
-        rule.put("priority", 1);
-        rule.put("createdAt", "2024-01-01T00:00:00Z");
-        rule.put("updatedAt", "2024-01-01T00:00:00Z");
-        rules.add(rule);
+        List<Map<String, Object>> rules = buildRules();
+        if (category != null && !category.isEmpty()) {
+            rules = rules.stream().filter(r -> category.equals(r.get("category"))).toList();
+        }
         return Result.success("success", rules);
     }
 
     @GetMapping("/{id}")
     public Result<Map<String, Object>> getRuleDetail(@PathVariable Long id) {
-        // TODO: 实现规则详情查询
-        Map<String, Object> result = new java.util.HashMap<>();
-        result.put("id", id.toString());
-        result.put("studyRoomId", null);
-        result.put("category", "booking");
-        result.put("title", "预约规则");
-        result.put("content", "预约规则内容");
-        result.put("priority", 1);
-        result.put("createdAt", "2024-01-01T00:00:00Z");
-        result.put("updatedAt", "2024-01-01T00:00:00Z");
-        return Result.success("success", result);
+        List<Map<String, Object>> rules = buildRules();
+        Map<String, Object> rule = rules.stream()
+                .filter(r -> id.equals(r.get("id")))
+                .findFirst()
+                .orElse(null);
+        if (rule == null) {
+            return Result.error("规则不存在");
+        }
+        return Result.success("success", rule);
     }
 }

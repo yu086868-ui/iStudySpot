@@ -33,11 +33,14 @@ import com.example.scylier.istudyspot.navigation.NavRoutes
 import com.example.scylier.istudyspot.ui.theme.IStudySpotTheme
 import com.example.scylier.istudyspot.ui.theme.LocalThemeMode
 import com.example.scylier.istudyspot.ui.theme.ThemeProvider
+import com.example.scylier.istudyspot.ui.theme.ThemeState
+import com.example.scylier.istudyspot.utils.ConfigManager
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        ThemeState.loadSavedTheme(ConfigManager.getInstance(this))
         setContent {
             ThemeProvider {
                 val themeMode = LocalThemeMode.current

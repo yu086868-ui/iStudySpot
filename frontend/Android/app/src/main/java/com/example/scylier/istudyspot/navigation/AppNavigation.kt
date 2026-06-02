@@ -43,13 +43,22 @@ import com.example.scylier.istudyspot.utils.ConfigManager
 import com.example.scylier.istudyspot.ui.screen.AiChatScreen
 import com.example.scylier.istudyspot.ui.screen.CharacterSelectScreen
 import com.example.scylier.istudyspot.ui.screen.PointsScreen
+import com.example.scylier.istudyspot.ui.screen.ProfileEditScreen
+import com.example.scylier.istudyspot.ui.screen.CustomerServiceScreen
+import com.example.scylier.istudyspot.ui.screen.CardCollectionScreen
+import com.example.scylier.istudyspot.ui.screen.ViolationScreen
+import com.example.scylier.istudyspot.ui.theme.ThemeMode
+import com.example.scylier.istudyspot.ui.theme.ThemeState
 import com.example.scylier.istudyspot.viewmodel.AiChatViewModel
 import com.example.scylier.istudyspot.viewmodel.AuthViewModel
 import com.example.scylier.istudyspot.viewmodel.BookingViewModel
+import com.example.scylier.istudyspot.viewmodel.CardViewModel
+import com.example.scylier.istudyspot.viewmodel.CustomerServiceViewModel
 import com.example.scylier.istudyspot.viewmodel.GuideViewModel
 import com.example.scylier.istudyspot.viewmodel.HomeViewModel
 import com.example.scylier.istudyspot.viewmodel.NotificationViewModel
 import com.example.scylier.istudyspot.viewmodel.OrderViewModel
+import com.example.scylier.istudyspot.viewmodel.ProfileEditViewModel
 import com.example.scylier.istudyspot.viewmodel.ProfileViewModel
 import com.example.scylier.istudyspot.viewmodel.RulesViewModel
 import com.example.scylier.istudyspot.viewmodel.StudyRecordViewModel
@@ -109,6 +118,7 @@ fun AppNavigation(
                             "ai_chat" -> navController.navigate(NavRoutes.CharacterSelect())
                             "notification" -> navController.navigate(NavRoutes.Notification)
                             "settings" -> navController.navigate(NavRoutes.More)
+                            "customer_service" -> navController.navigate(NavRoutes.CustomerService)
                         }
                     }
                 )
@@ -142,6 +152,7 @@ fun AppNavigation(
                             )
                         )
                     },
+                    onSearch = { keyword -> viewModel.loadStudyRooms(keyword.ifBlank { null }) },
                     onBack = { navController.popBackStack() }
                 )
             }
@@ -262,6 +273,8 @@ fun AppNavigation(
                     onCheckin = { viewModel.checkin(args.orderId) },
                     onCheckout = { viewModel.checkout(args.orderId) },
                     onCancel = { viewModel.cancelOrder(args.orderId) },
+                    onPay = { viewModel.payOrder(args.orderId) },
+                    onRenew = { newEndTime -> viewModel.renewOrder(args.orderId, newEndTime) },
                     onBack = { navController.popBackStack() }
                 )
             }
@@ -309,11 +322,27 @@ fun AppNavigation(
                     onOrderListClick = {
                         navController.navigate(NavRoutes.OrderList)
                     },
+                    onEditProfile = {
+                        navController.navigate(NavRoutes.ProfileEdit)
+                    },
+                    onStudyRecord = {
+                        navController.navigate(NavRoutes.StudyRecord)
+                    },
+                    onCustomerService = {
+                        navController.navigate(NavRoutes.CustomerService)
+                    },
+                    onCardCollection = {
+                        navController.navigate(NavRoutes.CardCollection)
+                    },
                     onLogout = {
                         configManager.removeToken()
                         navController.navigate(NavRoutes.Login) {
                             popUpTo(0) { inclusive = true }
                         }
+                    },
+                    onThemeChange = { isDark ->
+                        ThemeState.themeMode = if (isDark) ThemeMode.DARK else ThemeMode.LIGHT
+                        ThemeState.saveThemeTo(configManager)
                     }
                 )
             }
@@ -389,6 +418,8 @@ fun AppNavigation(
                         when (title) {
                             "预约记录" -> navController.navigate(NavRoutes.OrderList)
                             "成就徽章" -> navController.navigate(NavRoutes.Achievement)
+                            "卡牌收藏" -> navController.navigate(NavRoutes.CardCollection)
+                            "违规记录" -> navController.navigate(NavRoutes.Violation)
                             "积分兑换", "积分明细" -> navController.navigate(NavRoutes.Points)
                             "帮助中心" -> navController.navigate(NavRoutes.Rules)
                             "学习统计" -> navController.navigate(NavRoutes.StudyRecord)
@@ -516,6 +547,54 @@ fun AppNavigation(
                 popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) }
             ) {
                 PointsScreen(onBack = { navController.popBackStack() })
+            }
+
+            composable<NavRoutes.ProfileEdit>(
+                enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+                exitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+                popEnterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) },
+                popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) }
+            ) {
+                val viewModel: ProfileEditViewModel = viewModel()
+                ProfileEditScreen(
+                    viewModel = viewModel,
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable<NavRoutes.CustomerService>(
+                enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+                exitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+                popEnterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) },
+                popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) }
+            ) {
+                val viewModel: CustomerServiceViewModel = viewModel()
+                CustomerServiceScreen(
+                    viewModel = viewModel,
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable<NavRoutes.CardCollection>(
+                enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+                exitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+                popEnterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) },
+                popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) }
+            ) {
+                val viewModel: CardViewModel = viewModel()
+                CardCollectionScreen(
+                    viewModel = viewModel,
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable<NavRoutes.Violation>(
+                enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+                exitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+                popEnterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) },
+                popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) }
+            ) {
+                ViolationScreen(onBack = { navController.popBackStack() })
             }
         }
     }

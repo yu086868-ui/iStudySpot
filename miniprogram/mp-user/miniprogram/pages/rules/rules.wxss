@@ -3,6 +3,7 @@ page {
   background: #FFFFFF;
   display: flex;
   flex-direction: column;
+  padding-top: 0;
 }
 
 .scroll-content {

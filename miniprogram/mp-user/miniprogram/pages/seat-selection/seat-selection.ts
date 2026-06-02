@@ -121,7 +121,6 @@ Page({
         this.setData({ reservationRules: res.data })
       }
     } catch (error) {
-      console.error('获取预约规则失败', error)
     }
   },
 
@@ -134,7 +133,6 @@ Page({
         let seats = res.data
         
         if (!Array.isArray(seats)) {
-          console.error('seats is not an array:', seats)
           wx.showToast({
             title: '座位数据格式错误',
             icon: 'none'
@@ -165,14 +163,12 @@ Page({
           selectedSeat
         })
       } else {
-        console.error('API returned error:', res)
         wx.showToast({
           title: res.message || '获取座位失败',
           icon: 'none'
         })
       }
     } catch (error) {
-      console.error('获取座位失败', error)
       wx.showToast({
         title: '获取座位失败',
         icon: 'none'
@@ -379,8 +375,9 @@ Page({
     endTime.setHours(selectedEndHour, selectedEndMinute, 0, 0)
     
     const now = new Date()
-    
-    if (startTime <= now) {
+    const nowMinuteFloor = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes(), 0, 0)
+
+    if (startTime < nowMinuteFloor) {
       wx.showToast({
         title: '请选择未来的时间段',
         icon: 'none'
@@ -436,7 +433,6 @@ Page({
       }
     } catch (error) {
       wx.hideLoading()
-      console.error('预约失败', error)
       wx.showToast({
         title: '预约失败，请重试',
         icon: 'none'
@@ -469,7 +465,6 @@ Page({
       }
     } catch (error) {
       wx.hideLoading()
-      console.error('签到失败', error)
       wx.showToast({
         title: '签到失败，请重试',
         icon: 'none'

@@ -3,6 +3,7 @@
     "pages/home/home",
     "pages/rules/rules",
     "pages/profile/profile",
+    "pages/cards/cards",
     "pages/seat-selection/seat-selection",
     "pages/study-status/study-status",
     "pages/index/index",
@@ -18,6 +19,10 @@
       {
         "pagePath": "pages/home/home",
         "text": "首页"
+      },
+      {
+        "pagePath": "pages/cards/cards",
+        "text": "卡片"
       },
       {
         "pagePath": "pages/profile/profile",
