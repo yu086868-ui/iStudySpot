@@ -66,7 +66,6 @@ class CacheService {
       };
       wx.setStorageSync(fullKey, JSON.stringify(item));
     } catch (e) {
-      console.error(`[Cache] Failed to set ${key}:`, e);
     }
   }
 
@@ -86,7 +85,6 @@ class CacheService {
 
       return item.data;
     } catch (e) {
-      console.error(`[Cache] Failed to get ${key}:`, e);
       return null;
     }
   }
@@ -96,7 +94,6 @@ class CacheService {
       const fullKey = this.getFullKey(key, suffix);
       wx.removeStorageSync(fullKey);
     } catch (e) {
-      console.error(`[Cache] Failed to remove ${key}:`, e);
     }
   }
 
@@ -127,7 +124,6 @@ class CacheService {
         }
       });
     } catch (e) {
-      console.error('[Cache] Failed to clear all:', e);
     }
   }
 

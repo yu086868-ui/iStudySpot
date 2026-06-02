@@ -52,7 +52,6 @@ Page({
         })
       }
     } catch (error) {
-      console.error('获取用户信息失败', error)
     }
   },
 

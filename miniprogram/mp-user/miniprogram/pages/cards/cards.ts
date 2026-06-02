@@ -238,7 +238,6 @@ Page({
         this.applySort()
       }
     } catch (error) {
-      console.error('加载卡片列表失败', error)
     } finally {
       this.setData({ loading: false })
     }
@@ -306,7 +305,6 @@ Page({
         this.applySort()
       }
     } catch (error) {
-      console.error('刷新卡片列表失败', error)
     } finally {
       this.setData({ loading: false })
     }

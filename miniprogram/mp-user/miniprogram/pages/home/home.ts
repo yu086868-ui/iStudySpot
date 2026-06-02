@@ -112,12 +112,10 @@ Page({
 
   subscribeStoreEvents() {
     this.unsubscribeCheckIn = store.on(StoreEvent.CHECKIN_CHANGED, () => {
-      console.log('[首页] 收到签到状态变化事件')
       this.updateUserState(false)
     })
 
     this.unsubscribeReservations = store.on(StoreEvent.RESERVATIONS_CHANGED, () => {
-      console.log('[首页] 收到预约状态变化事件')
       this.updateUserState(false)
     })
   },
@@ -139,7 +137,6 @@ Page({
         this.setData({ userInfo: res.data })
       }
     } catch (error) {
-      console.error('获取用户信息失败', error)
     }
   },
 
@@ -155,7 +152,6 @@ Page({
         this.setData({ studyRooms: res.data.list || [] })
       }
     } catch (error) {
-      console.error('获取自习室列表失败', error)
     }
   },
 
@@ -208,7 +204,6 @@ Page({
 
       this.setNoneState()
     } catch (error) {
-      console.error('更新用户状态失败', error)
       this.setNoneState()
     }
   },
@@ -376,7 +371,6 @@ Page({
       }
     } catch (error) {
       wx.hideLoading()
-      console.error('取消预约失败', error)
       wx.showToast({
         title: '取消失败，请重试',
         icon: 'none'
@@ -439,7 +433,6 @@ Page({
         }
       }
     } catch (error) {
-      console.error('检查临近预约失败', error)
     }
 
     wx.showModal({
@@ -482,7 +475,6 @@ Page({
       }
     } catch (error) {
       wx.hideLoading()
-      console.error('快速签到失败', error)
       wx.showToast({
         title: '签到失败，请重试',
         icon: 'none'
@@ -493,7 +485,6 @@ Page({
   scanCheckIn() {
     wx.scanCode({
       success: async (res) => {
-        console.log('扫码结果', res.result)
         const qrParams = this.parseQrCode(res.result)
         if (qrParams) {
           await this.handleQrCodeCheckIn(qrParams)
@@ -545,7 +536,6 @@ Page({
 
       return null
     } catch (error) {
-      console.error('解析二维码失败', error)
       return null
     }
   },
@@ -603,7 +593,6 @@ Page({
       }
     } catch (error) {
       wx.hideLoading()
-      console.error('扫码签到失败', error)
       wx.showToast({
         title: '签到失败，请重试',
         icon: 'none'
@@ -612,7 +601,6 @@ Page({
   },
 
   async performCheckIn(reservationId: string, seatId: string) {
-    console.log('[签到] 开始签到', { reservationId, seatId })
     wx.showLoading({ title: '签到中...' })
     try {
       const res = await checkInApi.checkIn({
@@ -622,7 +610,6 @@ Page({
       wx.hideLoading()
 
       if (res.code === 200) {
-        console.log('[签到] 签到成功', res.data)
         wx.showToast({
           title: '签到成功',
           icon: 'success'
@@ -631,7 +618,6 @@ Page({
           navigationManager.navigateTo('study')
         }, 1500)
       } else {
-        console.error('[签到] 签到失败', res.message)
         wx.showToast({
           title: res.message || '签到失败',
           icon: 'none'
@@ -639,7 +625,6 @@ Page({
       }
     } catch (error) {
       wx.hideLoading()
-      console.error('[签到] 签到异常', error)
       wx.showToast({
         title: '签到失败，请重试',
         icon: 'none'
