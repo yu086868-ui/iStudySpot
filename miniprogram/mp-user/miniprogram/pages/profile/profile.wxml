@@ -11,6 +11,16 @@
       <text class="stat-text" wx:if="{{userInfo.phone}}">手机：{{userInfo.phone}}</text>
     </view>
   </view>
+
+  <view class="motto-section">
+    <view class="motto-row">
+      <text class="motto-label">座右铭</text>
+      <text class="motto-value">{{motto}}</text>
+    </view>
+    <view class="motto-edit-btn" bindtap="handleEditMotto">
+      <text class="motto-edit-text">修改</text>
+    </view>
+  </view>
 </view>
 
 <tab-bar currentTab="profile"></tab-bar>

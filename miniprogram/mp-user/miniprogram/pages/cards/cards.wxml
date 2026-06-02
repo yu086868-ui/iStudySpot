@@ -1,6 +1,11 @@
 <view class="container">
   <view class="header">
-    <text class="title">卡片收藏</text>
+    <view class="header-left">
+      <text class="title">卡片收藏</text>
+      <view class="info-btn" bindtap="onInfoTap">
+        <text class="info-icon">ⓘ</text>
+      </view>
+    </view>
     <view class="sort-btn" bindtap="onSortTap">
       <text class="sort-text">{{sortOptions[sortMode === 'id' ? 0 : sortMode === 'rarity' ? 1 : 2].label}}</text>
       <text class="sort-arrow">▼</text>
@@ -88,3 +93,19 @@
   card="{{selectedCard}}"
   bind:close="onCardPopupClose"
 />
+
+<view class="doc-popup-mask {{showDocPopup ? 'doc-mask-show' : ''}}" wx:if="{{showDocPopup}}" bindtap="onDocPopupClose">
+  <view class="doc-popup-container {{docAnimating ? 'doc-popup-show' : ''}}" catchtap="">
+    <view class="doc-popup-header">
+      <text class="doc-popup-title">卡片稀有度说明</text>
+      <view class="doc-popup-close" bindtap="onDocPopupClose">
+        <text class="doc-close-text">✕</text>
+      </view>
+    </view>
+    <scroll-view class="doc-popup-body" scroll-y type="list">
+      <view class="doc-content">
+        <mp-html content="{{rarityDocHtml}}" />
+      </view>
+    </scroll-view>
+  </view>
+</view>

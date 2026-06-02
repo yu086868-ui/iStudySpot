@@ -50,3 +50,49 @@ page {
   color: #000000;
   line-height: 1.6;
 }
+
+.motto-section {
+  background: #FFFFFF;
+  border-radius: 16rpx;
+  padding: 32rpx;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.motto-row {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.motto-label {
+  font-size: 24rpx;
+  color: #999999;
+  margin-bottom: 8rpx;
+}
+
+.motto-value {
+  font-size: 30rpx;
+  color: #333333;
+  font-weight: bold;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.motto-edit-btn {
+  padding: 12rpx 28rpx;
+  background: #5CB885;
+  border-radius: 24rpx;
+  margin-left: 24rpx;
+  flex-shrink: 0;
+}
+
+.motto-edit-text {
+  font-size: 26rpx;
+  color: #FFFFFF;
+  font-weight: bold;
+}

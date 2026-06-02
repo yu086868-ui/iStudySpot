@@ -21,6 +21,8 @@ interface LocalReservation {
   status: string
 }
 
+const DEFAULT_MOTTO = '我们的一生皆是征途'
+
 const CHECKIN_BUFFER_MINUTES = 30
 
 function isReservationCheckinable(reservation: { startTime: string; endTime: string }): boolean {
@@ -75,7 +77,8 @@ Page({
     seats: [] as any[],
     stateDisplayText: '',
     reserveButtonText: '选座预约',
-    checkInButtonText: '签到 / 学习'
+    checkInButtonText: '签到 / 学习',
+    motto: DEFAULT_MOTTO
   },
 
   unsubscribeCheckIn: null as (() => void) | null,
@@ -94,6 +97,7 @@ Page({
         currentTab: 'home'
       })
     }
+    this.loadMotto()
     this.updateUserState()
   },
 
@@ -116,6 +120,11 @@ Page({
       console.log('[首页] 收到预约状态变化事件')
       this.updateUserState(false)
     })
+  },
+
+  loadMotto() {
+    const motto = wx.getStorageSync('user_motto') || DEFAULT_MOTTO
+    this.setData({ motto })
   },
 
   async loadUserInfo() {
