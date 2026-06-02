@@ -13,7 +13,7 @@
 }
 
 .popup-mask.mask-show {
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(0, 0, 0, 0.7);
 }
 
 .popup-container {
@@ -23,8 +23,8 @@
   flex-direction: column;
   align-items: center;
   opacity: 0;
-  transform: scale(0.95);
-  transition: all 0.25s ease;
+  transform: scale(0.6);
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .popup-container.popup-show {
@@ -44,12 +44,12 @@
   align-items: center;
   justify-content: center;
   z-index: 10;
-  box-shadow: 0 2rpx 16rpx rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.2);
 }
 
 .close-text {
   font-size: 32rpx;
-  color: #86868B;
+  color: #666666;
   line-height: 1;
 }
 
@@ -72,37 +72,48 @@
   align-items: center;
   justify-content: center;
   z-index: 2;
+  backdrop-filter: blur(8rpx);
 }
 
 .popup-badge-text {
   font-size: 26rpx;
   color: #FFFFFF;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 2rpx;
 }
 
 .badge-N {
-  background: rgba(142, 142, 147, 0.85);
+  background: rgba(176, 176, 176, 0.9);
 }
 
 .badge-R {
-  background: rgba(110, 168, 138, 0.9);
+  background: rgba(76, 175, 80, 0.9);
 }
 
 .badge-SR {
-  background: rgba(90, 122, 150, 0.9);
+  background: rgba(66, 165, 245, 0.9);
 }
 
 .badge-SSR {
-  background: rgba(138, 109, 158, 0.9);
+  background: rgba(171, 71, 188, 0.9);
 }
 
 .badge-UR {
-  background: rgba(180, 155, 90, 0.9);
+  background: linear-gradient(135deg, #c9a84c, #f0d78c);
+}
+
+.badge-UR .popup-badge-text {
+  color: #3a2a00;
 }
 
 .badge-LR {
-  background: rgba(175, 90, 90, 0.9);
+  background: linear-gradient(135deg, #e53935, #ff6f61);
+  animation: lr-badge-pulse 2s ease-in-out infinite;
+}
+
+@keyframes lr-badge-pulse {
+  0%, 100% { box-shadow: 0 0 12rpx rgba(229, 57, 53, 0.4); }
+  50% { box-shadow: 0 0 28rpx rgba(229, 57, 53, 0.7); }
 }
 
 .popup-image {
@@ -129,7 +140,7 @@
 
 .popup-footer {
   padding: 16rpx 28rpx 28rpx;
-  border-top: 1rpx solid rgba(0, 0, 0, 0.05);
+  border-top: 1rpx solid #f5f5f5;
 }
 
 .popup-meta-row {
@@ -142,7 +153,7 @@
 
 .popup-meta-text {
   font-size: 24rpx;
-  color: #86868B;
+  color: #999999;
 }
 
 .popup-theme-row {
@@ -154,9 +165,9 @@
 
 .popup-theme-text {
   font-size: 22rpx;
-  color: #86868B;
+  color: #999999;
   padding: 6rpx 16rpx;
-  background: #F5F5F7;
+  background: #f5f5f7;
   border-radius: 12rpx;
 }
 
@@ -178,29 +189,35 @@
 }
 
 .popup-card-N {
-  border: 1rpx solid rgba(0, 0, 0, 0.06);
-  box-shadow: 0 4rpx 24rpx rgba(0, 0, 0, 0.06);
+  border: 6rpx solid #b0b0b0;
+  box-shadow: 0 8rpx 32rpx rgba(176, 176, 176, 0.2);
 }
 
 .popup-card-R {
-  border: 1rpx solid rgba(110, 168, 138, 0.3);
-  box-shadow: 0 4rpx 28rpx rgba(110, 168, 138, 0.15);
+  border: 6rpx solid #4caf50;
+  box-shadow: 0 8rpx 40rpx rgba(76, 175, 80, 0.25);
 }
 
 .popup-card-SR {
-  border: 1rpx solid rgba(90, 122, 150, 0.3);
-  box-shadow: 0 6rpx 32rpx rgba(90, 122, 150, 0.15);
+  border: 6rpx solid #42a5f5;
+  box-shadow: 0 8rpx 40rpx rgba(66, 165, 245, 0.3);
 }
 
 .popup-card-SSR {
-  border: 1rpx solid rgba(138, 109, 158, 0.3);
-  box-shadow: 0 6rpx 36rpx rgba(138, 109, 158, 0.18);
+  border: 6rpx solid #ab47bc;
+  box-shadow: 0 8rpx 48rpx rgba(171, 71, 188, 0.35);
+  animation: ssr-popup-glow 3s ease-in-out infinite;
+}
+
+@keyframes ssr-popup-glow {
+  0%, 100% { box-shadow: 0 8rpx 48rpx rgba(171, 71, 188, 0.35); }
+  50% { box-shadow: 0 8rpx 56rpx rgba(171, 71, 188, 0.5); }
 }
 
 .popup-card-UR {
-  border: 1rpx solid rgba(180, 155, 90, 0.35);
-  box-shadow: 0 8rpx 40rpx rgba(180, 155, 90, 0.2);
-  background: #2A2418;
+  border: 6rpx solid #c9a84c;
+  box-shadow: 0 12rpx 56rpx rgba(201, 168, 76, 0.4);
+  background: linear-gradient(160deg, #1a1710, #2a2418, #1a1710);
 }
 
 .popup-card-UR .popup-md-area {
@@ -208,22 +225,28 @@
 }
 
 .popup-card-UR .popup-footer {
-  border-top-color: rgba(180, 155, 90, 0.2);
+  border-top-color: rgba(201, 168, 76, 0.2);
 }
 
 .popup-card-UR .popup-meta-text {
-  color: #8A7A5A;
+  color: #8a7a5a;
 }
 
 .popup-card-UR .popup-theme-text {
-  background: rgba(180, 155, 90, 0.15);
-  color: #B49B5A;
+  background: rgba(201, 168, 76, 0.15);
+  color: #c9a84c;
 }
 
 .popup-card-LR {
-  border: 1rpx solid rgba(175, 90, 90, 0.35);
-  box-shadow: 0 8rpx 40rpx rgba(175, 90, 90, 0.2);
-  background: #2A1010;
+  border: 6rpx solid #e53935;
+  box-shadow: 0 12rpx 64rpx rgba(229, 57, 53, 0.45);
+  background: linear-gradient(160deg, #1a0a0a, #2a1010, #1a0808);
+  animation: lr-card-breathe 3s ease-in-out infinite;
+}
+
+@keyframes lr-card-breathe {
+  0%, 100% { box-shadow: 0 12rpx 64rpx rgba(229, 57, 53, 0.45); }
+  50% { box-shadow: 0 12rpx 80rpx rgba(229, 57, 53, 0.6); }
 }
 
 .popup-card-LR .popup-md-area {
@@ -231,16 +254,16 @@
 }
 
 .popup-card-LR .popup-footer {
-  border-top-color: rgba(175, 90, 90, 0.2);
+  border-top-color: rgba(229, 57, 53, 0.2);
 }
 
 .popup-card-LR .popup-meta-text {
-  color: #8A5A5A;
+  color: #8a5a5a;
 }
 
 .popup-card-LR .popup-theme-text {
-  background: rgba(175, 90, 90, 0.15);
-  color: #AF5A5A;
+  background: rgba(229, 57, 53, 0.15);
+  color: #ef5350;
 }
 
 .popup-card-UR ._h1,
@@ -249,20 +272,20 @@
 .popup-card-UR ._h4,
 .popup-card-UR ._h5,
 .popup-card-UR ._h6 {
-  color: #D4C48A !important;
+  color: #e8d48b !important;
 }
 
 .popup-card-UR ._p {
-  color: #B8B098 !important;
+  color: #c8c0a8 !important;
 }
 
 .popup-card-UR ._blockquote {
-  border-left-color: #B49B5A !important;
-  color: #B49B5A !important;
+  border-left-color: #c9a84c !important;
+  color: #c9a84c !important;
 }
 
 .popup-card-UR ._li {
-  color: #B8B098 !important;
+  color: #c8c0a8 !important;
 }
 
 .popup-card-LR ._h1,
@@ -271,18 +294,18 @@
 .popup-card-LR ._h4,
 .popup-card-LR ._h5,
 .popup-card-LR ._h6 {
-  color: #D4A8A6 !important;
+  color: #f5c6c4 !important;
 }
 
 .popup-card-LR ._p {
-  color: #B89896 !important;
+  color: #c8a8a6 !important;
 }
 
 .popup-card-LR ._blockquote {
-  border-left-color: #AF5A5A !important;
-  color: #AF5A5A !important;
+  border-left-color: #ef5350 !important;
+  color: #ef5350 !important;
 }
 
 .popup-card-LR ._li {
-  color: #B89896 !important;
+  color: #c8a8a6 !important;
 }
