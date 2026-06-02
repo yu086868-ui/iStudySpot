@@ -379,8 +379,9 @@ Page({
     endTime.setHours(selectedEndHour, selectedEndMinute, 0, 0)
     
     const now = new Date()
-    
-    if (startTime <= now) {
+    const nowMinuteFloor = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes(), 0, 0)
+
+    if (startTime < nowMinuteFloor) {
       wx.showToast({
         title: '请选择未来的时间段',
         icon: 'none'

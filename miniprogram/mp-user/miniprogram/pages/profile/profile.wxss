@@ -50,23 +50,3 @@ page {
   color: #000000;
   line-height: 1.6;
 }
-
-.menu-list {
-  background: #FFFFFF;
-  border-radius: 16rpx;
-  overflow: hidden;
-}
-
-.menu-item {
-  padding: 36rpx 32rpx;
-  border-bottom: 1rpx solid #EEEEEE;
-}
-
-.menu-item:last-child {
-  border-bottom: none;
-}
-
-.menu-text {
-  font-size: 32rpx;
-  color: #333333;
-}

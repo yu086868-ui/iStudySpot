@@ -1,7 +1,7 @@
 import type { ApiResponse } from '../typings/api';
 import mockData, { generateCard } from './data';
 
-const ENABLE_MOCK = false;
+const ENABLE_MOCK = true;
 
 function parseQueryParam(queryStr: string, key: string): string {
   if (!queryStr) return '';
