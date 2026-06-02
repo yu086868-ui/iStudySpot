@@ -1,6 +1,6 @@
 page {
   height: 100vh;
-  background: #FFFFFF;
+  background: #F5F5F7;
   display: flex;
   flex-direction: column;
 }
@@ -15,50 +15,54 @@ page {
 }
 
 .image-wrapper {
-  width: 400rpx;
-  height: 400rpx;
+  width: 360rpx;
+  height: 360rpx;
   border-radius: 50%;
-  border: 8rpx solid #E8F8EE;
+  border: 4rpx solid #EAF1ED;
   overflow: hidden;
   margin-bottom: 48rpx;
+  box-shadow: 0 4rpx 24rpx rgba(110, 168, 138, 0.12);
 }
 
 .tree-image {
   width: 100%;
   height: 100%;
-  background: linear-gradient(180deg, #E8F5E9 0%, #C8E6C9 50%, #A5D6A7 100%);
+  background: #EAF1ED;
 }
 
 .status-card {
-  background: #E8F8EE;
+  background: #FFFFFF;
   border-radius: 24rpx;
   padding: 40rpx 56rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
   margin-bottom: 48rpx;
+  box-shadow: 0 2rpx 16rpx rgba(0, 0, 0, 0.04);
 }
 
 .status-title {
   font-size: 30rpx;
-  color: #5CB885;
+  color: #6EA88A;
+  font-weight: 500;
   margin-bottom: 12rpx;
 }
 
 .status-time {
   font-size: 52rpx;
-  font-weight: bold;
-  color: #5CB885;
+  font-weight: 700;
+  color: #1D1D1F;
+  letter-spacing: -1rpx;
   margin-bottom: 20rpx;
 }
 
 .status-motto {
   font-size: 26rpx;
-  color: #5CB885;
+  color: #86868B;
 }
 
 .exit-btn {
-  background: #fcdcdcff;
+  background: #E8E8ED;
   border-radius: 48rpx;
   padding: 24rpx 80rpx;
   margin-bottom: 24rpx;
@@ -66,11 +70,11 @@ page {
 
 .exit-btn-text {
   font-size: 32rpx;
-  font-weight: bold;
-  color: #FFFFFF;
+  font-weight: 600;
+  color: #6E6E73;
 }
 
 .footer-hint {
   font-size: 24rpx;
-  color: #CCCCCC;
+  color: #AEAEB2;
 }

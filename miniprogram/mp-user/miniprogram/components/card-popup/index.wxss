@@ -13,7 +13,7 @@
 }
 
 .popup-mask.mask-show {
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.45);
 }
 
 .popup-container {
@@ -23,8 +23,8 @@
   flex-direction: column;
   align-items: center;
   opacity: 0;
-  transform: scale(0.6);
-  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform: scale(0.95);
+  transition: all 0.25s ease;
 }
 
 .popup-container.popup-show {
@@ -44,12 +44,12 @@
   align-items: center;
   justify-content: center;
   z-index: 10;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2rpx 16rpx rgba(0, 0, 0, 0.1);
 }
 
 .close-text {
   font-size: 32rpx;
-  color: #666666;
+  color: #86868B;
   line-height: 1;
 }
 
@@ -72,48 +72,37 @@
   align-items: center;
   justify-content: center;
   z-index: 2;
-  backdrop-filter: blur(8rpx);
 }
 
 .popup-badge-text {
   font-size: 26rpx;
   color: #FFFFFF;
-  font-weight: bold;
+  font-weight: 600;
   letter-spacing: 2rpx;
 }
 
 .badge-N {
-  background: rgba(176, 176, 176, 0.9);
+  background: rgba(142, 142, 147, 0.85);
 }
 
 .badge-R {
-  background: rgba(76, 175, 80, 0.9);
+  background: rgba(110, 168, 138, 0.9);
 }
 
 .badge-SR {
-  background: rgba(66, 165, 245, 0.9);
+  background: rgba(90, 122, 150, 0.9);
 }
 
 .badge-SSR {
-  background: rgba(171, 71, 188, 0.9);
+  background: rgba(138, 109, 158, 0.9);
 }
 
 .badge-UR {
-  background: linear-gradient(135deg, #c9a84c, #f0d78c);
-}
-
-.badge-UR .popup-badge-text {
-  color: #3a2a00;
+  background: rgba(180, 155, 90, 0.9);
 }
 
 .badge-LR {
-  background: linear-gradient(135deg, #e53935, #ff6f61);
-  animation: lr-badge-pulse 2s ease-in-out infinite;
-}
-
-@keyframes lr-badge-pulse {
-  0%, 100% { box-shadow: 0 0 12rpx rgba(229, 57, 53, 0.4); }
-  50% { box-shadow: 0 0 28rpx rgba(229, 57, 53, 0.7); }
+  background: rgba(175, 90, 90, 0.9);
 }
 
 .popup-image {
@@ -140,7 +129,7 @@
 
 .popup-footer {
   padding: 16rpx 28rpx 28rpx;
-  border-top: 1rpx solid #f5f5f5;
+  border-top: 1rpx solid rgba(0, 0, 0, 0.05);
 }
 
 .popup-meta-row {
@@ -153,7 +142,7 @@
 
 .popup-meta-text {
   font-size: 24rpx;
-  color: #999999;
+  color: #86868B;
 }
 
 .popup-theme-row {
@@ -165,9 +154,9 @@
 
 .popup-theme-text {
   font-size: 22rpx;
-  color: #999999;
+  color: #86868B;
   padding: 6rpx 16rpx;
-  background: #f5f5f7;
+  background: #F5F5F7;
   border-radius: 12rpx;
 }
 
@@ -176,42 +165,42 @@
 }
 
 .action-btn {
-  background: #5CB885;
+  background: #6EA88A;
   border-radius: 48rpx;
   padding: 20rpx 80rpx;
-  box-shadow: 0 8rpx 24rpx rgba(92, 184, 133, 0.3);
+  box-shadow: 0 4rpx 20rpx rgba(110, 168, 138, 0.2);
 }
 
 .action-btn-text {
   font-size: 30rpx;
-  font-weight: bold;
+  font-weight: 600;
   color: #FFFFFF;
 }
 
 .popup-card-N {
-  border: 6rpx solid #b0b0b0;
-  box-shadow: 0 8rpx 32rpx rgba(176, 176, 176, 0.2);
+  border: 1rpx solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4rpx 24rpx rgba(0, 0, 0, 0.06);
 }
 
 .popup-card-R {
-  border: 6rpx solid #4caf50;
-  box-shadow: 0 8rpx 40rpx rgba(76, 175, 80, 0.25);
+  border: 1rpx solid rgba(110, 168, 138, 0.3);
+  box-shadow: 0 4rpx 28rpx rgba(110, 168, 138, 0.15);
 }
 
 .popup-card-SR {
-  border: 6rpx solid #42a5f5;
-  box-shadow: 0 8rpx 40rpx rgba(66, 165, 245, 0.3);
+  border: 1rpx solid rgba(90, 122, 150, 0.3);
+  box-shadow: 0 6rpx 32rpx rgba(90, 122, 150, 0.15);
 }
 
 .popup-card-SSR {
-  border: 6rpx solid #ab47bc;
-  box-shadow: 0 8rpx 48rpx rgba(171, 71, 188, 0.35);
+  border: 1rpx solid rgba(138, 109, 158, 0.3);
+  box-shadow: 0 6rpx 36rpx rgba(138, 109, 158, 0.18);
 }
 
 .popup-card-UR {
-  border: 6rpx solid #c9a84c;
-  box-shadow: 0 12rpx 56rpx rgba(201, 168, 76, 0.4);
-  background: linear-gradient(160deg, #1a1710, #2a2418, #1a1710);
+  border: 1rpx solid rgba(180, 155, 90, 0.35);
+  box-shadow: 0 8rpx 40rpx rgba(180, 155, 90, 0.2);
+  background: #2A2418;
 }
 
 .popup-card-UR .popup-md-area {
@@ -219,28 +208,22 @@
 }
 
 .popup-card-UR .popup-footer {
-  border-top-color: rgba(201, 168, 76, 0.2);
+  border-top-color: rgba(180, 155, 90, 0.2);
 }
 
 .popup-card-UR .popup-meta-text {
-  color: #8a7a5a;
+  color: #8A7A5A;
 }
 
 .popup-card-UR .popup-theme-text {
-  background: rgba(201, 168, 76, 0.15);
-  color: #c9a84c;
+  background: rgba(180, 155, 90, 0.15);
+  color: #B49B5A;
 }
 
 .popup-card-LR {
-  border: 6rpx solid #e53935;
-  box-shadow: 0 12rpx 64rpx rgba(229, 57, 53, 0.45);
-  background: linear-gradient(160deg, #1a0a0a, #2a1010, #1a0808);
-  animation: lr-card-breathe 3s ease-in-out infinite;
-}
-
-@keyframes lr-card-breathe {
-  0%, 100% { box-shadow: 0 12rpx 64rpx rgba(229, 57, 53, 0.45); }
-  50% { box-shadow: 0 12rpx 80rpx rgba(229, 57, 53, 0.6); }
+  border: 1rpx solid rgba(175, 90, 90, 0.35);
+  box-shadow: 0 8rpx 40rpx rgba(175, 90, 90, 0.2);
+  background: #2A1010;
 }
 
 .popup-card-LR .popup-md-area {
@@ -248,16 +231,16 @@
 }
 
 .popup-card-LR .popup-footer {
-  border-top-color: rgba(229, 57, 53, 0.2);
+  border-top-color: rgba(175, 90, 90, 0.2);
 }
 
 .popup-card-LR .popup-meta-text {
-  color: #8a5a5a;
+  color: #8A5A5A;
 }
 
 .popup-card-LR .popup-theme-text {
-  background: rgba(229, 57, 53, 0.15);
-  color: #ef5350;
+  background: rgba(175, 90, 90, 0.15);
+  color: #AF5A5A;
 }
 
 .popup-card-UR ._h1,
@@ -266,20 +249,20 @@
 .popup-card-UR ._h4,
 .popup-card-UR ._h5,
 .popup-card-UR ._h6 {
-  color: #e8d48b !important;
+  color: #D4C48A !important;
 }
 
 .popup-card-UR ._p {
-  color: #c8c0a8 !important;
+  color: #B8B098 !important;
 }
 
 .popup-card-UR ._blockquote {
-  border-left-color: #c9a84c !important;
-  color: #c9a84c !important;
+  border-left-color: #B49B5A !important;
+  color: #B49B5A !important;
 }
 
 .popup-card-UR ._li {
-  color: #c8c0a8 !important;
+  color: #B8B098 !important;
 }
 
 .popup-card-LR ._h1,
@@ -288,18 +271,18 @@
 .popup-card-LR ._h4,
 .popup-card-LR ._h5,
 .popup-card-LR ._h6 {
-  color: #f5c6c4 !important;
+  color: #D4A8A6 !important;
 }
 
 .popup-card-LR ._p {
-  color: #c8a8a6 !important;
+  color: #B89896 !important;
 }
 
 .popup-card-LR ._blockquote {
-  border-left-color: #ef5350 !important;
-  color: #ef5350 !important;
+  border-left-color: #AF5A5A !important;
+  color: #AF5A5A !important;
 }
 
 .popup-card-LR ._li {
-  color: #c8a8a6 !important;
+  color: #B89896 !important;
 }
