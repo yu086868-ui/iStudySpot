@@ -16,35 +16,13 @@ var MAX_ERROR_RECORDS = 50;
 
 class ErrorMonitor {
   private errors: ErrorRecord[];
-  private originalOnError: Function | null;
-  private originalOnUnhandledRejection: Function | null;
 
   constructor() {
     this.errors = [];
-    this.originalOnError = null;
-    this.originalOnUnhandledRejection = null;
   }
 
-  install(): void {
-    logger.info('ErrorMonitor', '全局错误监控已安装');
-
-    var self = this;
-
-    this.originalOnError = App.onError || null;
-    App.onError = function(err: string) {
-      self.handleJsError(err);
-      if (self.originalOnError) {
-        self.originalOnError.call(this, err);
-      }
-    };
-
-    this.originalOnUnhandledRejection = App.onUnhandledRejection || null;
-    App.onUnhandledRejection = function(rejection: WechatMiniprogram.OnUnhandledRejectionListenerResult) {
-      self.handlePromiseRejection(rejection);
-      if (self.originalOnUnhandledRejection) {
-        self.originalOnUnhandledRejection.call(this, rejection);
-      }
-    };
+  init(): void {
+    logger.info('ErrorMonitor', '全局错误监控已初始化（通过 App 生命周期触发）');
   }
 
   handleJsError(err: string): void {

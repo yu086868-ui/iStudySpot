@@ -9,8 +9,8 @@ App<IAppOption>({
     logger.init();
     logger.info('App', '应用启动');
 
-    errorMonitor.loadErrors();
-    logger.info('App', '错误监控已加载');
+    errorMonitor.init();
+    logger.info('App', '错误监控已初始化');
 
     metrics.loadMetrics();
     logger.info('App', '指标收集已加载');
