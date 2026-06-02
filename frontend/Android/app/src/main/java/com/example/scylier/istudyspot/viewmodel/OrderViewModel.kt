@@ -23,9 +23,7 @@ data class OrderDetailUiState(
     val actionSuccess: String? = null
 )
 
-class OrderViewModel : ViewModel() {
-    private val repository = MainRepository()
-
+class OrderViewModel(private val repository: MainRepository = MainRepository()) : ViewModel() {
     private val _orderListState = MutableStateFlow(OrderListUiState())
     val orderListState: StateFlow<OrderListUiState> = _orderListState
 
@@ -38,7 +36,7 @@ class OrderViewModel : ViewModel() {
             when (val response = repository.getUserOrders()) {
                 is ApiResponse.Success -> {
                     _orderListState.value = OrderListUiState(
-                        orders = response.data.list,
+                        orders = response.data?.list ?: emptyList(),
                         isLoading = false
                     )
                 }
@@ -53,17 +51,17 @@ class OrderViewModel : ViewModel() {
     }
 
     fun loadOrderDetail(orderId: Long) {
-        _orderDetailState.value = _orderDetailState.value.copy(isLoading = true, actionSuccess = null)
+        _orderDetailState.value = _orderDetailState.value.copy(isLoading = true)
         viewModelScope.launch {
             when (val response = repository.getOrderDetail(orderId)) {
                 is ApiResponse.Success -> {
-                    _orderDetailState.value = OrderDetailUiState(
+                    _orderDetailState.value = _orderDetailState.value.copy(
                         order = response.data,
                         isLoading = false
                     )
                 }
                 is ApiResponse.Error -> {
-                    _orderDetailState.value = OrderDetailUiState(
+                    _orderDetailState.value = _orderDetailState.value.copy(
                         isLoading = false,
                         error = response.message
                     )
@@ -74,7 +72,8 @@ class OrderViewModel : ViewModel() {
 
     fun checkin(orderId: Long) {
         viewModelScope.launch {
-            when (val response = repository.checkin(orderId, orderId)) {
+            val seatId = _orderDetailState.value.order?.seatId ?: orderId
+            when (val response = repository.checkin(orderId, seatId)) {
                 is ApiResponse.Success -> {
                     _orderDetailState.value = _orderDetailState.value.copy(
                         actionSuccess = "签到成功"
@@ -119,6 +118,45 @@ class OrderViewModel : ViewModel() {
                 }
                 is ApiResponse.Error -> {
                     _orderDetailState.value = _orderDetailState.value.copy(
+                        error = response.message
+                    )
+                }
+            }
+        }
+    }
+
+    fun payOrder(orderId: Long) {
+        viewModelScope.launch {
+            when (val response = repository.payOrder(orderId)) {
+                is ApiResponse.Success -> {
+                    _orderDetailState.value = _orderDetailState.value.copy(
+                        actionSuccess = "支付成功"
+                    )
+                    loadOrderDetail(orderId)
+                }
+                is ApiResponse.Error -> {
+                    _orderDetailState.value = _orderDetailState.value.copy(
+                        error = response.message
+                    )
+                }
+            }
+        }
+    }
+
+    fun renewOrder(orderId: Long, newEndTime: String) {
+        viewModelScope.launch {
+            _orderDetailState.value = _orderDetailState.value.copy(isLoading = true)
+            when (val response = repository.renewOrder(orderId, newEndTime)) {
+                is ApiResponse.Success -> {
+                    _orderDetailState.value = _orderDetailState.value.copy(
+                        isLoading = false,
+                        actionSuccess = "续时成功"
+                    )
+                    loadOrderDetail(orderId)
+                }
+                is ApiResponse.Error -> {
+                    _orderDetailState.value = _orderDetailState.value.copy(
+                        isLoading = false,
                         error = response.message
                     )
                 }

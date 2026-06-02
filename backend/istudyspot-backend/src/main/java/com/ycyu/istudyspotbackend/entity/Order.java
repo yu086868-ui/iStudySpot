@@ -1,5 +1,6 @@
 package com.ycyu.istudyspotbackend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.math.BigDecimal;
@@ -28,6 +29,7 @@ public class Order {
     private BigDecimal actualPrice;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime createTime;
 
     @JsonProperty("startTime")
     public LocalDateTime getStartTime() { return planStartTime; }
@@ -85,15 +87,18 @@ public class Order {
     public BigDecimal getActualPrice() { return actualPrice; }
     public void setActualPrice(BigDecimal actualPrice) { this.actualPrice = actualPrice; }
 
+    @JsonIgnore
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 
+    @JsonIgnore
     public LocalDateTime getPlanStartTime() { return planStartTime; }
     public void setPlanStartTime(LocalDateTime planStartTime) { this.planStartTime = planStartTime; }
 
+    @JsonIgnore
     public LocalDateTime getPlanEndTime() { return planEndTime; }
     public void setPlanEndTime(LocalDateTime planEndTime) { this.planEndTime = planEndTime; }
 
@@ -102,4 +107,8 @@ public class Order {
 
     public LocalDateTime getActualEndTime() { return actualEndTime; }
     public void setActualEndTime(LocalDateTime actualEndTime) { this.actualEndTime = actualEndTime; }
+
+    @JsonProperty("createdAt")
+    public LocalDateTime getCreateTime() { return createTime; }
+    public void setCreateTime(LocalDateTime createTime) { this.createTime = createTime; }
 }

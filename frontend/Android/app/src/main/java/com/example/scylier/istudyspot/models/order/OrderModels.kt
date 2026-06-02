@@ -21,6 +21,7 @@ class OrderResponse(
 
 class OrderItem(
     val id: Long = 0,
+    val orderNo: String? = null,
     val seatId: Long = 0,
     val studyRoomName: String? = null,
     val seatPosition: String? = null,
@@ -45,6 +46,7 @@ class OrderListResponse(
 
 class OrderDetail(
     val id: Long = 0,
+    val orderNo: String? = null,
     val seatId: Long = 0,
     val userId: Long = 0,
     val studyRoomName: String? = null,
@@ -57,7 +59,13 @@ class OrderDetail(
     val createdAt: String? = null,
     val updatedAt: String? = null,
     val roomName: String? = null,
-    val seatNumber: String? = null
+    val seatNumber: String? = null,
+    val checkinTime: String? = null,
+    val checkoutTime: String? = null,
+    val actualDuration: Int? = null,
+    val actualPrice: Double? = null,
+    val actualStartTime: String? = null,
+    val actualEndTime: String? = null
 ) {
     val displayName: String get() = studyRoomName ?: roomName ?: "自习室"
     val displaySeat: String get() = seatPosition ?: seatNumber ?: "未知座位"

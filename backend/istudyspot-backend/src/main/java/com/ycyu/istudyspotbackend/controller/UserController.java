@@ -31,6 +31,9 @@ public class UserController {
             safeInfo.put("creditScore", user.getCreditScore());
             safeInfo.put("balance", user.getBalance());
             safeInfo.put("points", user.getPoints());
+            safeInfo.put("status", user.getStatus());
+            safeInfo.put("violationCount", user.getViolationCount());
+            safeInfo.put("lastLoginTime", user.getLastLoginTime());
             return Result.success("获取成功", safeInfo);
         } catch (RuntimeException e) {
             return Result.error(e.getMessage());
@@ -66,6 +69,9 @@ public class UserController {
             safeInfo.put("creditScore", updated.getCreditScore());
             safeInfo.put("balance", updated.getBalance());
             safeInfo.put("points", updated.getPoints());
+            safeInfo.put("status", updated.getStatus());
+            safeInfo.put("violationCount", updated.getViolationCount());
+            safeInfo.put("lastLoginTime", updated.getLastLoginTime());
             return Result.success("更新成功", safeInfo);
         } catch (RuntimeException e) {
             return Result.error(e.getMessage());

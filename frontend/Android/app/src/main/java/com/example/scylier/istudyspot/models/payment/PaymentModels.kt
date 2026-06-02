@@ -7,12 +7,15 @@ class CreatePaymentRequest(
 )
 
 class PaymentResponse(
-    val id: Long,
+    val paymentId: String? = null,
+    val id: Long? = null,
     val paymentNo: String? = null,
-    val orderId: Long,
-    val amount: Double,
-    val paymentMethod: String,
+    val orderId: Long? = null,
+    val amount: Double? = null,
+    val paymentMethod: String? = null,
+    val status: String? = null,
     val paymentUrl: String? = null,
+    val payTime: String? = null,
     val createdAt: String? = null
 )
 

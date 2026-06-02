@@ -431,7 +431,7 @@ class ApiManagerComprehensiveTest {
     fun testCreatePayment_responseContainsCorrectAmount() = runBlocking {
         val response = apiManager.createPayment(1L, 20.0, "wechat") as ApiResponse.Success
 
-        assertEquals(20.0, response.data.amount, 0.01)
+        assertEquals(20.0, response.data.amount!!, 0.01)
     }
 
     @Test

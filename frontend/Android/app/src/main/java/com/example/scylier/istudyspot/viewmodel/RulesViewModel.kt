@@ -43,7 +43,7 @@ class RulesViewModel(private val repository: MainRepository = MainRepository()) 
             try {
                 when (val response = repository.getRules()) {
                     is ApiResponse.Success -> {
-                        val apiRules = response.data
+                        val apiRules = response.data ?: emptyList()
                         if (apiRules.isNotEmpty()) {
                             val ruleItems = apiRules.map { rule ->
                                 val category = rule["category"] as? String ?: "主要规则"

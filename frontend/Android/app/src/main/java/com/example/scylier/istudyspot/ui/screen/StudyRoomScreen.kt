@@ -24,12 +24,14 @@ import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MeetingRoom
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -51,9 +53,11 @@ fun StudyRoomScreen(
     studyRooms: List<StudyRoomItem>,
     isLoading: Boolean,
     onStudyRoomClick: (StudyRoomItem) -> Unit,
+    onSearch: (String) -> Unit = {},
     onBack: () -> Unit = {}
 ) {
     val extendedColors = LocalExtendedColors.current
+    var keyword by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -67,6 +71,17 @@ fun StudyRoomScreen(
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = 16.dp)
+        )
+        OutlinedTextField(
+            value = keyword,
+            onValueChange = { keyword = it; onSearch(it) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 12.dp),
+            placeholder = { Text("搜索自习室") },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+            shape = RoundedCornerShape(14.dp),
+            singleLine = true
         )
         if (isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

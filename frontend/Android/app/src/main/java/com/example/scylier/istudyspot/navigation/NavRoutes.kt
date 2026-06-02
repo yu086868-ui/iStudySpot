@@ -72,4 +72,16 @@ sealed class NavRoutes {
 
     @Serializable
     data object Points : NavRoutes()
+
+    @Serializable
+    data object ProfileEdit : NavRoutes()
+
+    @Serializable
+    data object CustomerService : NavRoutes()
+
+    @Serializable
+    data object CardCollection : NavRoutes()
+
+    @Serializable
+    data object Violation : NavRoutes()
 }

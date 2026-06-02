@@ -49,7 +49,7 @@ class GuideViewModel(private val repository: MainRepository = MainRepository()) 
             try {
                 when (val response = repository.getStudyRooms()) {
                     is ApiResponse.Success -> {
-                        val rooms = response.data.list
+                        val rooms = response.data?.list ?: emptyList()
                         if (rooms.isNotEmpty()) {
                             val firstRoom = rooms.first()
                             val facilities = mutableListOf<Facility>()

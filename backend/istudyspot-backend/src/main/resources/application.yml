@@ -3,6 +3,12 @@ server:
   address: 0.0.0.0
 
 spring:
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/iseatspace?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai}
     username: ${SPRING_DATASOURCE_USERNAME:root}
@@ -33,7 +39,7 @@ mybatis:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
 jwt:
-  secret: iStudySpotSecretKey2024
+  secret: iStudySpotSecretKey2024IsVeryLongAndSecure1234567890
   expire: 604800
 
 # DeepSeek API 配置

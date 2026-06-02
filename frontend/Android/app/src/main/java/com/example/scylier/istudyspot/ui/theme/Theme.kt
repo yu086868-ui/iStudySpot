@@ -16,6 +16,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
+import com.example.scylier.istudyspot.utils.ConfigManager
+
 enum class ThemeMode {
     LIGHT, DARK, SYSTEM
 }
@@ -29,6 +31,26 @@ object ThemeState {
             ThemeMode.DARK -> ThemeMode.SYSTEM
             ThemeMode.SYSTEM -> ThemeMode.LIGHT
         }
+    }
+
+    fun loadSavedTheme(configManager: ConfigManager) {
+        val saved = configManager.getThemeMode()
+        if (saved != null) {
+            themeMode = when (saved) {
+                "DARK" -> ThemeMode.DARK
+                "LIGHT" -> ThemeMode.LIGHT
+                else -> ThemeMode.SYSTEM
+            }
+        }
+    }
+
+    fun saveThemeTo(configManager: ConfigManager) {
+        val mode = when (themeMode) {
+            ThemeMode.DARK -> "DARK"
+            ThemeMode.LIGHT -> "LIGHT"
+            ThemeMode.SYSTEM -> "SYSTEM"
+        }
+        configManager.saveThemeMode(mode)
     }
 }
 

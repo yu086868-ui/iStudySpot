@@ -54,14 +54,18 @@ class ProfileViewModel : ViewModel() {
                 when (val response = repository.getUserInfo()) {
                     is ApiResponse.Success -> {
                         val user = response.data
-                        _state.value = _state.value.copy(
-                            username = user.username,
-                            nickname = user.nickname ?: user.username,
-                            phone = user.phone ?: "未设置",
-                            email = user.email ?: "未设置",
-                            avatar = user.avatar,
-                            isLoading = false
-                        )
+                        if (user != null) {
+                            _state.value = _state.value.copy(
+                                username = user.username,
+                                nickname = user.nickname ?: user.username,
+                                phone = user.phone ?: "未设置",
+                                email = user.email ?: "未设置",
+                                avatar = user.avatar,
+                                isLoading = false
+                            )
+                        } else {
+                            _state.value = _state.value.copy(isLoading = false)
+                        }
                     }
                     is ApiResponse.Error -> {
                         _state.value = _state.value.copy(isLoading = false)
@@ -82,7 +86,7 @@ class ProfileViewModel : ViewModel() {
 
             when (val recordsResponse = repository.getCheckinRecords()) {
                 is ApiResponse.Success -> {
-                    val data = recordsResponse.data
+                    val data = recordsResponse.data ?: emptyMap()
                     totalHours = (data["totalHours"] as? Number)?.toInt() ?: 0
                     streak = (data["streak"] as? Number)?.toInt() ?: 0
                 }
@@ -91,7 +95,7 @@ class ProfileViewModel : ViewModel() {
 
             when (val ordersResponse = repository.getUserOrders()) {
                 is ApiResponse.Success -> {
-                    bookings = ordersResponse.data.list.size
+                    bookings = ordersResponse.data?.list?.size ?: 0
                 }
                 is ApiResponse.Error -> {}
             }

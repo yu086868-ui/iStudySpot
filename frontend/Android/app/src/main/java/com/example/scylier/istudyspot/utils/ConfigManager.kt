@@ -54,6 +54,14 @@ class ConfigManager private constructor(context: Context) {
         return sharedPreferences.getString("nickname", null)
     }
 
+    fun saveThemeMode(mode: String) {
+        sharedPreferences.edit().putString("theme_mode", mode).apply()
+    }
+
+    fun getThemeMode(): String? {
+        return sharedPreferences.getString("theme_mode", null)
+    }
+
     fun clearAll() {
         sharedPreferences.edit().clear().apply()
     }

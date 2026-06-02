@@ -88,6 +88,9 @@ interface ApiService {
     @POST("/api/reservations/{id}/pay")
     suspend fun payOrder(@Path("id") id: Long): Response<BaseResponse<Map<String, Any?>>>
 
+    @POST("/api/reservations/{id}/renew")
+    suspend fun renewOrder(@Path("id") id: Long, @Body body: Map<String, String>): Response<BaseResponse<Map<String, Any?>>>
+
     @GET("/api/reservations/rules")
     suspend fun getReservationRules(): Response<BaseResponse<Map<String, Any?>>>
 
@@ -163,6 +166,9 @@ interface ApiService {
     @POST("/api/chat")
     suspend fun sendAiMessage(@Body request: AiChatRequest): Response<BaseResponse<Map<String, Any?>>>
 
+    @GET("/api/card/list")
+    suspend fun getCardList(@Query("userID") userId: String): Response<BaseResponse<List<Map<String, Any?>>>>
+
     @GET("/api/customer-service/welcome")
     suspend fun getCustomerServiceWelcome(): Response<BaseResponse<Map<String, Any?>>>
 
@@ -175,4 +181,13 @@ interface ApiService {
     suspend fun getCustomerServiceHistory(
         @Query("sessionId") sessionId: String
     ): Response<BaseResponse<Map<String, Any?>>>
+
+    @GET("/api/achievements")
+    suspend fun getAchievements(): Response<BaseResponse<List<Map<String, Any?>>>>
+
+    @GET("/api/violations")
+    suspend fun getViolations(): Response<BaseResponse<Map<String, Any?>>>
+
+    @POST("/api/violations/{id}/appeal")
+    suspend fun appealViolation(@Path("id") id: Long, @Body body: Map<String, String>): Response<BaseResponse<Unit>>
 }

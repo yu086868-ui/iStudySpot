@@ -22,14 +22,7 @@ class ApiManager(
                     val body = response.body()
                     if (body != null) {
                         if (body.code in 200..299) {
-                            @Suppress("UNCHECKED_CAST")
-                            val safeData = body.data as? T
-                            if (safeData != null) {
-                                ApiResponse.Success(body.code, body.message, safeData)
-                            } else {
-                                @Suppress("UNCHECKED_CAST")
-                                ApiResponse.Success(body.code, body.message, Unit as T)
-                            }
+                            ApiResponse.Success(body.code, body.message, body.data)
                         } else {
                             ApiResponse.Error(body.code, body.message)
                         }
@@ -109,7 +102,7 @@ class ApiManager(
         apiService.login(com.example.scylier.istudyspot.models.auth.LoginRequest(username, password))
     }
 
-    suspend fun register(username: String, password: String, nickname: String) = executeRequest {
+    suspend fun register(username: String, password: String, nickname: String, phone: String? = null, studentId: String? = null) = executeRequest {
         if (useMockData) {
             return@executeRequest Response.success(
                 BaseResponse(
@@ -127,7 +120,7 @@ class ApiManager(
                 )
             )
         }
-        apiService.register(com.example.scylier.istudyspot.models.auth.RegisterRequest(username, password, nickname))
+        apiService.register(com.example.scylier.istudyspot.models.auth.RegisterRequest(username, password, nickname, phone, studentId))
     }
 
     suspend fun refreshToken(refreshToken: String) = executeRequest {
@@ -372,11 +365,24 @@ class ApiManager(
                 BaseResponse(
                     code = 200,
                     message = "支付成功",
-                    data = mapOf("orderId" to id, "status" to "paid")
+                    data = mapOf("orderId" to id, "status" to "paid", "paymentStatus" to "success")
                 )
             )
         }
         apiService.payOrder(id)
+    }
+
+    suspend fun renewOrder(orderId: Long, newEndTime: String) = executeRequest {
+        if (useMockData) {
+            return@executeRequest Response.success(
+                BaseResponse(
+                    code = 200,
+                    message = "续时成功",
+                    data = mapOf("orderId" to orderId, "newEndTime" to newEndTime, "additionalAmount" to 10.0)
+                )
+            )
+        }
+        apiService.renewOrder(orderId, mapOf("newEndTime" to newEndTime))
     }
 
     suspend fun getReservationRules() = executeRequest {
@@ -519,13 +525,13 @@ class ApiManager(
             return@executeRequest Response.success(
                 BaseResponse(
                     code = 201,
-                    message = "支付创建成功",
+                    message = "支付成功",
                     data = com.example.scylier.istudyspot.models.payment.PaymentResponse(
-                        id = System.currentTimeMillis(),
+                        paymentId = System.currentTimeMillis().toString(),
                         orderId = orderId,
                         amount = amount,
                         paymentMethod = paymentMethod,
-                        paymentUrl = "https://example.com/pay",
+                        status = "success",
                         createdAt = "2026-10-01T09:00:00"
                     )
                 )
@@ -675,14 +681,31 @@ class ApiManager(
         }
         return when (result) {
             is ApiResponse.Success -> {
-                val map = result.data
-                ApiResponse.Success(result.code, result.message, com.example.scylier.istudyspot.models.ai.AiChatResponse(
+                        val map = result.data ?: emptyMap()
+                        ApiResponse.Success(result.code, result.message, com.example.scylier.istudyspot.models.ai.AiChatResponse(
                     reply = map["reply"] as? String ?: "",
                     session_id = map["session_id"] as? String
                 ))
             }
             is ApiResponse.Error -> result
         }
+    }
+
+    suspend fun getCardList(userId: String) = executeRequest {
+        if (useMockData) {
+            return@executeRequest Response.success(
+                BaseResponse(
+                    code = 200,
+                    message = "获取成功",
+                    data = listOf(
+                        mapOf("uuid" to "card1", "rarity" to "SR", "borderTheme" to "星空", "cardTheme" to "银河", "themeCategory" to "宇宙", "markdown" to "在星空下学习", "studyDuration" to 120, "createTime" to "2026-05-01 10:00:00"),
+                        mapOf("uuid" to "card2", "rarity" to "N", "borderTheme" to "简约", "cardTheme" to "清晨", "themeCategory" to "自然", "markdown" to "清晨的第一缕阳光", "studyDuration" to 30, "createTime" to "2026-05-02 08:00:00"),
+                        mapOf("uuid" to "card3", "rarity" to "SSR", "borderTheme" to "金色", "cardTheme" to "传奇", "themeCategory" to "传说", "markdown" to "传说级学霸的证明", "studyDuration" to 600, "createTime" to "2026-05-03 14:00:00")
+                    )
+                )
+            )
+        }
+        apiService.getCardList(userId)
     }
 
     suspend fun getCustomerServiceWelcome() = executeRequest {
@@ -722,5 +745,49 @@ class ApiManager(
             )
         }
         apiService.getCustomerServiceHistory(sessionId)
+    }
+
+    suspend fun getAchievements() = executeRequest {
+        if (useMockData) {
+            return@executeRequest Response.success(
+                BaseResponse(
+                    code = 200,
+                    message = "获取成功",
+                    data = listOf(
+                        mapOf("code" to "early_bird", "name" to "早起鸟", "description" to "连续3天在7:00-8:00签到", "icon" to "wb_sunny", "category" to "study", "isUnlocked" to true),
+                        mapOf("code" to "night_owl", "name" to "夜猫子", "description" to "连续3天在21:00后仍在学习", "icon" to "nights_stay", "category" to "study", "isUnlocked" to false),
+                        mapOf("code" to "study_master", "name" to "学霸", "description" to "累计学习100小时", "icon" to "school", "category" to "study", "isUnlocked" to true),
+                        mapOf("code" to "streak_king", "name" to "连击王", "description" to "连续打卡7天", "icon" to "local_fire_department", "category" to "study", "isUnlocked" to true),
+                        mapOf("code" to "punctual", "name" to "守时达人", "description" to "连续30天按时签到", "icon" to "schedule", "category" to "study", "isUnlocked" to false),
+                        mapOf("code" to "regular", "name" to "常客", "description" to "在同一座位学习10次", "icon" to "event_seat", "category" to "study", "isUnlocked" to false),
+                        mapOf("code" to "social", "name" to "社交达人", "description" to "推荐3位好友注册", "icon" to "people", "category" to "social", "isUnlocked" to false),
+                        mapOf("code" to "marathon", "name" to "马拉松", "description" to "单次学习超过6小时", "icon" to "directions_run", "category" to "study", "isUnlocked" to false)
+                    )
+                )
+            )
+        }
+        apiService.getAchievements()
+    }
+
+    suspend fun getViolations() = executeRequest {
+        if (useMockData) {
+            return@executeRequest Response.success(
+                BaseResponse(
+                    code = 200,
+                    message = "获取成功",
+                    data = mapOf("list" to emptyList<Any>(), "total" to 0)
+                )
+            )
+        }
+        apiService.getViolations()
+    }
+
+    suspend fun appealViolation(id: Long, reason: String) = executeRequest {
+        if (useMockData) {
+            return@executeRequest Response.success(
+                BaseResponse<Unit>(code = 200, message = "申诉已提交", data = Unit)
+            )
+        }
+        apiService.appealViolation(id, mapOf("reason" to reason))
     }
 }
