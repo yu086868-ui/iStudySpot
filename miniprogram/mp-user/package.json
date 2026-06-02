@@ -3,11 +3,6 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "test": "jest",
-    "test:ci": "jest --ci --coverage --reporters=default --reporters=jest-junit --maxWorkers=2",
-    "test:coverage": "jest --coverage",
-    "test:watch": "jest --watch",
-    "test:changed": "jest --onlyChanged",
     "lint": "tsc --noEmit"
   },
   "keywords": [],
@@ -15,11 +10,6 @@
   "license": "",
   "dependencies": {},
   "devDependencies": {
-    "miniprogram-api-typings": "^2.8.3-1",
-    "@types/jest": "^29.5.12",
-    "jest": "^29.7.0",
-    "ts-jest": "^29.1.2",
-    "miniprogram-simulate": "^1.6.0",
-    "jest-junit": "^16.0.0"
+    "miniprogram-api-typings": "^2.8.3-1"
   }
 }
