@@ -23,6 +23,9 @@ import com.example.scylier.istudyspot.models.studyroom.SeatDetail
 import com.example.scylier.istudyspot.models.studyroom.SeatInfo
 import com.example.scylier.istudyspot.models.studyroom.StudyRoomDetail
 import com.example.scylier.istudyspot.models.studyroom.StudyRoomListResponse
+import com.example.scylier.istudyspot.models.todo.CreateTodoRequest
+import com.example.scylier.istudyspot.models.todo.Todo
+import com.example.scylier.istudyspot.models.todo.UpdateTodoRequest
 import com.example.scylier.istudyspot.models.user.ChangePasswordRequest
 import com.example.scylier.istudyspot.models.user.UpdateUserRequest
 import retrofit2.Response
@@ -190,4 +193,20 @@ interface ApiService {
 
     @POST("/api/violations/{id}/appeal")
     suspend fun appealViolation(@Path("id") id: Long, @Body body: Map<String, String>): Response<BaseResponse<Unit>>
+
+    // 待办相关 API
+    @GET("/api/todos")
+    suspend fun getTodos(@Query("status") status: String? = null): Response<BaseResponse<List<Todo>>>
+
+    @POST("/api/todos")
+    suspend fun createTodo(@Body request: CreateTodoRequest): Response<BaseResponse<Todo>>
+
+    @PUT("/api/todos/{id}")
+    suspend fun updateTodo(@Path("id") id: Long, @Body request: UpdateTodoRequest): Response<BaseResponse<Todo>>
+
+    @PUT("/api/todos/{id}/toggle")
+    suspend fun toggleTodo(@Path("id") id: Long): Response<BaseResponse<Todo>>
+
+    @DELETE("/api/todos/{id}")
+    suspend fun deleteTodo(@Path("id") id: Long): Response<BaseResponse<Unit>>
 }
