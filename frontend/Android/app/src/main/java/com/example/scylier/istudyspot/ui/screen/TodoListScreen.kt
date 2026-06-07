@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -22,6 +21,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.scylier.istudyspot.models.todo.Todo
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -145,11 +150,11 @@ fun TodoListScreen(
         }
     }
 
-    // 错误提示
+    // 错误提示 Snackbar
+    val snackbarHostState = remember { SnackbarHostState() }
     state.error?.let { error ->
         LaunchedEffect(error) {
-            // 简单处理：3秒后自动清除
-            kotlinx.coroutines.delay(3000)
+            snackbarHostState.showSnackbar(error)
             viewModel.clearError()
         }
     }
@@ -186,9 +191,9 @@ fun TodoItem(
     onDelete: () -> Unit
 ) {
     val priorityColor = when (todo.priority) {
-        1 -> Color(0xFFE53935) // 高 - 红色
-        2 -> Color(0xFFFB8C00) // 中 - 橙色
-        else -> Color(0xFF43A047) // 低 - 绿色
+        1 -> Color(0xFFE53935)
+        2 -> Color(0xFFFB8C00)
+        else -> Color(0xFF43A047)
     }
 
     val isCompleted = todo.status == "completed"
@@ -207,7 +212,6 @@ fun TodoItem(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 优先级指示条
             Box(
                 modifier = Modifier
                     .width(4.dp)
@@ -218,7 +222,6 @@ fun TodoItem(
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            // 勾选框
             IconButton(
                 onClick = onToggle,
                 modifier = Modifier.size(32.dp)
@@ -233,7 +236,6 @@ fun TodoItem(
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            // 内容
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = todo.title,
@@ -255,7 +257,7 @@ fun TodoItem(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = todo.dueTime!!.take(16),
+                            text = formatDueTime(todo.dueTime!!),
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.outlineVariant
                         )
@@ -263,7 +265,6 @@ fun TodoItem(
                 }
             }
 
-            // 操作按钮
             Row {
                 IconButton(onClick = onEdit, modifier = Modifier.size(32.dp)) {
                     Icon(
@@ -286,6 +287,7 @@ fun TodoItem(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEditTodoDialog(
     todo: Todo? = null,
@@ -294,10 +296,77 @@ fun AddEditTodoDialog(
 ) {
     var title by remember { mutableStateOf(todo?.title ?: "") }
     var selectedPriority by remember { mutableStateOf(todo?.priority ?: 2) }
-    var dueTime by remember { mutableStateOf(todo?.dueTime ?: "") }
+    var selectedDate by remember { mutableStateOf<LocalDate?>(null) }
+    var selectedTime by remember { mutableStateOf<LocalTime?>(null) }
     var titleError by remember { mutableStateOf(false) }
+    var showDatePicker by remember { mutableStateOf(false) }
+    var showTimePicker by remember { mutableStateOf(false) }
+
+    // 编辑模式下，解析已有的 dueTime
+    LaunchedEffect(todo?.dueTime) {
+        if (todo?.dueTime != null) {
+            try {
+                val dt = LocalDateTime.parse(todo.dueTime!!, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"))
+                selectedDate = dt.toLocalDate()
+                selectedTime = dt.toLocalTime()
+            } catch (e: Exception) {
+                try {
+                    val dt = LocalDateTime.parse(todo.dueTime!!)
+                    selectedDate = dt.toLocalDate()
+                    selectedTime = dt.toLocalTime()
+                } catch (_: Exception) {}
+            }
+        }
+    }
 
     val isEdit = todo != null
+
+    // 日期选择器
+    if (showDatePicker) {
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = selectedDate?.atStartOfDay(ZoneId.systemDefault())?.toInstant()?.toEpochMilli()
+        )
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let { millis ->
+                        selectedDate = Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
+                    }
+                    showDatePicker = false
+                }) { Text("确定") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) { Text("取消") }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+
+    // 时间选择器
+    if (showTimePicker) {
+        val timePickerState = rememberTimePickerState(
+            initialHour = selectedTime?.hour ?: 18,
+            initialMinute = selectedTime?.minute ?: 0,
+            is24Hour = true
+        )
+        AlertDialog(
+            onDismissRequest = { showTimePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    selectedTime = LocalTime.of(timePickerState.hour, timePickerState.minute)
+                    showTimePicker = false
+                }) { Text("确定") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showTimePicker = false }) { Text("取消") }
+            },
+            text = {
+                TimePicker(state = timePickerState)
+            }
+        )
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -325,13 +394,82 @@ fun AddEditTodoDialog(
                     PriorityChip("低", 3, selectedPriority == 3, Color(0xFF43A047)) { selectedPriority = 3 }
                 }
 
-                OutlinedTextField(
-                    value = dueTime,
-                    onValueChange = { dueTime = it },
-                    label = { Text("截止时间（可选，格式：2026-06-05 18:00:00）") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
+                // 截止时间选择
+                Text("截止时间（可选）", fontSize = 13.sp, color = MaterialTheme.colorScheme.outline)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // 日期选择按钮
+                    OutlinedButton(
+                        onClick = { showDatePicker = true },
+                        modifier = Modifier.weight(1f),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.CalendarToday,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = selectedDate?.format(DateTimeFormatter.ofPattern("MM月dd日")) ?: "选择日期",
+                            fontSize = 13.sp
+                        )
+                    }
+
+                    // 时间选择按钮
+                    OutlinedButton(
+                        onClick = { showTimePicker = true },
+                        modifier = Modifier.weight(1f),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Schedule,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = selectedTime?.format(DateTimeFormatter.ofPattern("HH:mm")) ?: "选择时间",
+                            fontSize = 13.sp
+                        )
+                    }
+
+                    // 清除按钮
+                    if (selectedDate != null || selectedTime != null) {
+                        IconButton(
+                            onClick = {
+                                selectedDate = null
+                                selectedTime = null
+                            },
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = "清除",
+                                modifier = Modifier.size(16.dp),
+                                tint = MaterialTheme.colorScheme.outlineVariant
+                            )
+                        }
+                    }
+                }
+
+                // 显示已选时间预览
+                if (selectedDate != null) {
+                    val preview = buildString {
+                        append(selectedDate!!.format(DateTimeFormatter.ofPattern("yyyy年MM月dd日")))
+                        if (selectedTime != null) {
+                            append(" ")
+                            append(selectedTime!!.format(DateTimeFormatter.ofPattern("HH:mm")))
+                        }
+                    }
+                    Text(
+                        text = preview,
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
         },
         confirmButton = {
@@ -341,7 +479,12 @@ fun AddEditTodoDialog(
                         titleError = true
                         return@TextButton
                     }
-                    onConfirm(title.trim(), selectedPriority, dueTime.ifBlank { null })
+                    val dueTimeStr = if (selectedDate != null) {
+                        val time = selectedTime ?: LocalTime.of(23, 59)
+                        LocalDateTime.of(selectedDate, time)
+                            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                    } else null
+                    onConfirm(title.trim(), selectedPriority, dueTimeStr)
                 }
             ) {
                 Text(if (isEdit) "保存" else "创建")
@@ -359,10 +502,6 @@ fun PriorityChip(label: String, value: Int, selected: Boolean, color: Color, onC
         if (selected) color.copy(alpha = 0.15f) else Color.Transparent,
         label = "bg"
     )
-    val borderColor by animateColorAsState(
-        if (selected) color else MaterialTheme.colorScheme.outlineVariant,
-        label = "border"
-    )
 
     Box(
         modifier = Modifier
@@ -378,5 +517,19 @@ fun PriorityChip(label: String, value: Int, selected: Boolean, color: Color, onC
             fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
             color = if (selected) color else MaterialTheme.colorScheme.outline
         )
+    }
+}
+
+private fun formatDueTime(dueTime: String): String {
+    return try {
+        val dt = LocalDateTime.parse(dueTime, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"))
+        dt.format(DateTimeFormatter.ofPattern("MM/dd HH:mm"))
+    } catch (e: Exception) {
+        try {
+            val dt = LocalDateTime.parse(dueTime)
+            dt.format(DateTimeFormatter.ofPattern("MM/dd HH:mm"))
+        } catch (e: Exception) {
+            dueTime.take(16)
+        }
     }
 }

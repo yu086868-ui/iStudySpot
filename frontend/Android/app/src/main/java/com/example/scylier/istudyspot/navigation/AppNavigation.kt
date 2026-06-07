@@ -46,6 +46,7 @@ import com.example.scylier.istudyspot.ui.screen.PointsScreen
 import com.example.scylier.istudyspot.ui.screen.ProfileEditScreen
 import com.example.scylier.istudyspot.ui.screen.CustomerServiceScreen
 import com.example.scylier.istudyspot.ui.screen.CardCollectionScreen
+import com.example.scylier.istudyspot.ui.screen.TodoListScreen
 import com.example.scylier.istudyspot.ui.screen.ViolationScreen
 import com.example.scylier.istudyspot.ui.theme.ThemeMode
 import com.example.scylier.istudyspot.ui.theme.ThemeState
