@@ -5,5 +5,6 @@
         <domain includeSubdomains="true">localhost</domain>
         <domain includeSubdomains="true">127.0.0.1</domain>
         <domain includeSubdomains="true">frp-six.com</domain>
+        <domain includeSubdomains="true">8.136.135.189</domain>
     </domain-config>
 </network-security-config>

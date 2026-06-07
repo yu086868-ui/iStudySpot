@@ -359,7 +359,9 @@ fun AppNavigation(
                 LaunchedEffect(loginState.isSuccess) {
                     if (loginState.isSuccess) {
                         snackbarHostState.showSnackbar("登录成功")
-                        navController.popBackStack()
+                        navController.navigate(NavRoutes.Home) {
+                            popUpTo(0) { inclusive = true }
+                        }
                         viewModel.resetLoginState()
                     }
                 }
@@ -388,7 +390,9 @@ fun AppNavigation(
                 LaunchedEffect(registerState.isSuccess) {
                     if (registerState.isSuccess) {
                         snackbarHostState.showSnackbar("注册成功")
-                        navController.popBackStack()
+                        navController.navigate(NavRoutes.Home) {
+                            popUpTo(0) { inclusive = true }
+                        }
                         viewModel.resetRegisterState()
                     }
                 }
@@ -416,6 +420,7 @@ fun AppNavigation(
                 MoreScreen(
                     onAction = { title ->
                         when (title) {
+                            "学习待办" -> navController.navigate(NavRoutes.TodoList)
                             "预约记录" -> navController.navigate(NavRoutes.OrderList)
                             "成就徽章" -> navController.navigate(NavRoutes.Achievement)
                             "卡牌收藏" -> navController.navigate(NavRoutes.CardCollection)
@@ -595,6 +600,15 @@ fun AppNavigation(
                 popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) }
             ) {
                 ViolationScreen(onBack = { navController.popBackStack() })
+            }
+
+            composable<NavRoutes.TodoList>(
+                enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+                exitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+                popEnterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) },
+                popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) }
+            ) {
+                TodoListScreen(onBack = { navController.popBackStack() })
             }
         }
     }

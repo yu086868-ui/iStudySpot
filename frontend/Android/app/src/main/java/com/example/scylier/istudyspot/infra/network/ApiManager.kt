@@ -790,4 +790,88 @@ class ApiManager(
         }
         apiService.appealViolation(id, mapOf("reason" to reason))
     }
+
+    // 待办相关
+    suspend fun getTodos(status: String? = null) = executeRequest {
+        if (useMockData) {
+            return@executeRequest Response.success(
+                BaseResponse(
+                    code = 200,
+                    message = "获取成功",
+                    data = listOf(
+                        com.example.scylier.istudyspot.models.todo.Todo(
+                            id = 1L, userId = 1L, title = "复习高数第三章", priority = 1, status = "pending",
+                            dueTime = "2026-06-05 18:00:00", createdAt = "2026-06-02 09:00:00"
+                        ),
+                        com.example.scylier.istudyspot.models.todo.Todo(
+                            id = 2L, userId = 1L, title = "完成英语阅读作业", priority = 2, status = "pending",
+                            createdAt = "2026-06-02 09:30:00"
+                        ),
+                        com.example.scylier.istudyspot.models.todo.Todo(
+                            id = 3L, userId = 1L, title = "整理物理笔记", priority = 3, status = "completed",
+                            completedAt = "2026-06-01 20:00:00", createdAt = "2026-06-01 10:00:00"
+                        )
+                    )
+                )
+            )
+        }
+        apiService.getTodos(status)
+    }
+
+    suspend fun createTodo(title: String, priority: Int = 2, dueTime: String? = null, orderId: Long? = null) = executeRequest {
+        if (useMockData) {
+            return@executeRequest Response.success(
+                BaseResponse(
+                    code = 200,
+                    message = "创建成功",
+                    data = com.example.scylier.istudyspot.models.todo.Todo(
+                        id = System.currentTimeMillis(), userId = 1L, title = title, priority = priority,
+                        status = "pending", dueTime = dueTime, orderId = orderId
+                    )
+                )
+            )
+        }
+        apiService.createTodo(com.example.scylier.istudyspot.models.todo.CreateTodoRequest(title, priority, dueTime, orderId))
+    }
+
+    suspend fun updateTodo(todoId: Long, title: String, priority: Int, dueTime: String? = null, orderId: Long? = null) = executeRequest {
+        if (useMockData) {
+            return@executeRequest Response.success(
+                BaseResponse(
+                    code = 200,
+                    message = "更新成功",
+                    data = com.example.scylier.istudyspot.models.todo.Todo(
+                        id = todoId, userId = 1L, title = title, priority = priority,
+                        status = "pending", dueTime = dueTime, orderId = orderId
+                    )
+                )
+            )
+        }
+        apiService.updateTodo(todoId, com.example.scylier.istudyspot.models.todo.UpdateTodoRequest(title, priority, dueTime, orderId))
+    }
+
+    suspend fun toggleTodo(todoId: Long) = executeRequest {
+        if (useMockData) {
+            return@executeRequest Response.success(
+                BaseResponse(
+                    code = 200,
+                    message = "操作成功",
+                    data = com.example.scylier.istudyspot.models.todo.Todo(
+                        id = todoId, userId = 1L, title = "测试待办", priority = 2,
+                        status = "completed", completedAt = "2026-06-02 10:00:00"
+                    )
+                )
+            )
+        }
+        apiService.toggleTodo(todoId)
+    }
+
+    suspend fun deleteTodo(todoId: Long) = executeRequest {
+        if (useMockData) {
+            return@executeRequest Response.success(
+                BaseResponse<Unit>(code = 200, message = "删除成功", data = Unit)
+            )
+        }
+        apiService.deleteTodo(todoId)
+    }
 }

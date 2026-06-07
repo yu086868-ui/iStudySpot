@@ -20,7 +20,8 @@ public class JwtUtils {
 
     public String generateToken(Long userId) {
         Date now = new Date();
-        Date expiration = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+        // 测试模式：令牌有效期设为 100 年，方便测试
+        Date expiration = new Date(now.getTime() + 100L * 365 * 24 * 60 * 60 * 1000);
 
         return Jwts.builder()
                 .setSubject(String.valueOf(userId))
@@ -32,7 +33,8 @@ public class JwtUtils {
 
     public String generateRefreshToken(Long userId) {
         Date now = new Date();
-        Date expiration = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+        // 测试模式：刷新令牌有效期设为 100 年，方便测试
+        Date expiration = new Date(now.getTime() + 100L * 365 * 24 * 60 * 60 * 1000);
 
         return Jwts.builder()
                 .setSubject(String.valueOf(userId))

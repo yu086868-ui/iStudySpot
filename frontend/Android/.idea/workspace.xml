@@ -52,17 +52,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3a6b51a8-f9c9-41fb-82aa-c7da64a37e8a" name="Changes" comment="修改了MoreFragment并把其中一些View进行了解耦">
-      <change beforePath="$PROJECT_DIR$/../../backend/istudyspot-backend/src/main/java/com/ycyu/istudyspotbackend/controller/OrderController.java" beforeDir="false" afterPath="$PROJECT_DIR$/../../backend/istudyspot-backend/src/main/java/com/ycyu/istudyspotbackend/controller/OrderController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../backend/istudyspot-backend/src/main/java/com/ycyu/istudyspotbackend/controller/RulesController.java" beforeDir="false" afterPath="$PROJECT_DIR$/../../backend/istudyspot-backend/src/main/java/com/ycyu/istudyspotbackend/controller/RulesController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../backend/istudyspot-backend/src/main/java/com/ycyu/istudyspotbackend/controller/UserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/../../backend/istudyspot-backend/src/main/java/com/ycyu/istudyspotbackend/controller/UserController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../backend/istudyspot-backend/src/main/java/com/ycyu/istudyspotbackend/entity/Order.java" beforeDir="false" afterPath="$PROJECT_DIR$/../../backend/istudyspot-backend/src/main/java/com/ycyu/istudyspotbackend/entity/Order.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../backend/istudyspot-backend/src/main/java/com/ycyu/istudyspotbackend/interceptor/JwtInterceptor.java" beforeDir="false" afterPath="$PROJECT_DIR$/../../backend/istudyspot-backend/src/main/java/com/ycyu/istudyspotbackend/interceptor/JwtInterceptor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../backend/istudyspot-backend/src/main/java/com/ycyu/istudyspotbackend/mapper/OrderMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/../../backend/istudyspot-backend/src/main/java/com/ycyu/istudyspotbackend/mapper/OrderMapper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../backend/istudyspot-backend/src/main/java/com/ycyu/istudyspotbackend/service/impl/OrderServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/../../backend/istudyspot-backend/src/main/java/com/ycyu/istudyspotbackend/service/impl/OrderServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../backend/istudyspot-backend/src/main/java/com/ycyu/istudyspotbackend/service/impl/PaymentServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/../../backend/istudyspot-backend/src/main/java/com/ycyu/istudyspotbackend/service/impl/PaymentServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../backend/istudyspot-backend/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/../../backend/istudyspot-backend/src/main/resources/application.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../backend/istudyspot-backend/src/test/java/com/ycyu/istudyspotbackend/controller/OrderControllerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/../../backend/istudyspot-backend/src/test/java/com/ycyu/istudyspotbackend/controller/OrderControllerTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../backend/istudyspot-backend/src/test/java/com/ycyu/istudyspotbackend/service/impl/PaymentServiceImplTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/../../backend/istudyspot-backend/src/test/java/com/ycyu/istudyspotbackend/service/impl/PaymentServiceImplTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../backend/istudyspot-backend/src/main/java/com/ycyu/istudyspotbackend/utils/JwtUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/../../backend/istudyspot-backend/src/main/java/com/ycyu/istudyspotbackend/utils/JwtUtils.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -78,7 +68,7 @@
       <entry key="_F:/SomeWork/iStudySpot/frontend/Android" value="3BhVNoQs3alqyK8EsFMfpWkQMOA" />
     </persistenceIdMap>
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[DeviceId(pluginId=PhysicalDevice, isTemplate=false, identifier=serial=A4YQVB3530001919)]" />
+  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[DeviceId(pluginId=LocalEmulator, isTemplate=false, identifier=path=C:\Users\26877\.android\avd\Dev_Phone.avd)]" />
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
       <ProjectState />
@@ -95,7 +85,12 @@
         </task>
         <projects_view>
           <tree_state>
-            <expand />
+            <expand>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="IStudySpot" type="f1a62948:ProjectNode" />
+              </path>
+            </expand>
             <select />
           </tree_state>
         </projects_view>

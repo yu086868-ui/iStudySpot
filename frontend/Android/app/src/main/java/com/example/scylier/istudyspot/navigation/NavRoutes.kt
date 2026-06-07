@@ -84,4 +84,7 @@ sealed class NavRoutes {
 
     @Serializable
     data object Violation : NavRoutes()
+
+    @Serializable
+    data object TodoList : NavRoutes()
 }

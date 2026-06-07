@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CardGiftcard
+import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
@@ -58,6 +59,7 @@ fun MoreScreen(onAction: (String) -> Unit) {
     val extendedColors = LocalExtendedColors.current
 
     val moreItems = listOf(
+        MoreItemData("学习待办", Icons.Default.Checklist, "学习数据"),
         MoreItemData("学习统计", Icons.Default.Timer, "学习数据"),
         MoreItemData("成就徽章", Icons.Default.Star, "学习数据"),
         MoreItemData("预约记录", Icons.AutoMirrored.Filled.ReceiptLong, "预约管理"),
