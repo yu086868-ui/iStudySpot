@@ -243,6 +243,41 @@ export interface CardListParams {
   pageSize?: number;
 }
 
+// ==================== SSE 流式事件类型 ====================
+
+export interface SSEInitEvent {
+  type: 'init';
+  rarity: CardRarity;
+  themeCategory: ThemeCategory;
+  borderTheme: string;
+  cardTheme: string;
+}
+
+export interface SSETextEvent {
+  type: 'text';
+  content: string;
+}
+
+export type SSEDataEvent = SSEInitEvent | SSETextEvent;
+
+export interface SSECompleteEvent {
+  success: boolean;
+  message: string;
+  card: Card;
+}
+
+export interface SSEErrorEvent {
+  success: boolean;
+  message: string;
+}
+
+export interface StreamCallbacks {
+  onInit: (data: SSEInitEvent) => void;
+  onText: (content: string) => void;
+  onComplete: (card: Card) => void;
+  onError: (message: string) => void;
+}
+
 export interface RuleListParams {
   studyRoomId?: string;
   category?: 'booking' | 'usage' | 'penalty' | 'general';

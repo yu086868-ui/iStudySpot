@@ -37,50 +37,101 @@ Component({
     actionText: {
       type: String,
       value: '收下卡片'
+    },
+    streaming: {
+      type: Boolean,
+      value: false
+    },
+    streamingHtml: {
+      type: String,
+      value: ''
+    },
+    streamingRarity: {
+      type: String,
+      value: 'N'
+    },
+    streamingThemeCategory: {
+      type: String,
+      value: ''
     }
   },
 
   data: {
     animating: false,
-    html: '',
-    rarity: 'N' as CardRarity,
-    imageURL: '',
-    createTime: '',
-    studyDuration: 0,
-    themeCategory: '',
-    themeLabel: '',
+    isStreaming: false,
+    displayHtml: '',
+    displayRarity: 'N' as CardRarity,
+    displayImageURL: '',
+    displayCreateTime: '',
+    displayStudyDuration: 0,
+    displayThemeCategory: '',
+    displayThemeLabel: '',
     rarityBorderColor: RARITY_BORDER_COLOR
   },
 
   observers: {
-    'card': function(card: Record<string, unknown>) {
-      if (card && card.uuid) {
-        var cardData = card as unknown as Card
+    'streaming': function (streaming: boolean) {
+      this.setData({ isStreaming: streaming })
+      if (streaming) {
         this.setData({
-          html: renderMarkdown(cardData.markdown),
-          rarity: cardData.rarity,
-          imageURL: cardData.imageURL,
-          createTime: cardData.createTime,
-          studyDuration: cardData.studyDuration,
-          themeCategory: cardData.themeCategory || '',
-          themeLabel: THEME_LABEL[cardData.themeCategory] || ''
+          displayRarity: (this.properties.streamingRarity as CardRarity) || 'N',
+          displayThemeCategory: this.properties.streamingThemeCategory || '',
+          displayThemeLabel: THEME_LABEL[this.properties.streamingThemeCategory || ''] || '',
+          displayImageURL: '',
+          displayCreateTime: '',
+          displayStudyDuration: 0
         })
       }
     },
-    'visible': function(visible: boolean) {
+    'streamingHtml': function (html: string) {
+      if (this.data.isStreaming) {
+        this.setData({ displayHtml: html })
+      }
+    },
+    'streamingRarity': function (rarity: string) {
+      if (this.data.isStreaming) {
+        this.setData({ displayRarity: rarity as CardRarity })
+      }
+    },
+    'streamingThemeCategory': function (category: string) {
+      if (this.data.isStreaming) {
+        this.setData({
+          displayThemeCategory: category,
+          displayThemeLabel: THEME_LABEL[category] || ''
+        })
+      }
+    },
+    'card': function (card: Record<string, unknown>) {
+      if (card && card.uuid) {
+        var cardData = card as unknown as Card
+        this.setData({
+          isStreaming: false,
+          displayHtml: renderMarkdown(cardData.markdown),
+          displayRarity: cardData.rarity,
+          displayImageURL: cardData.imageURL,
+          displayCreateTime: cardData.createTime,
+          displayStudyDuration: cardData.studyDuration,
+          displayThemeCategory: cardData.themeCategory || '',
+          displayThemeLabel: THEME_LABEL[cardData.themeCategory] || ''
+        })
+      }
+    },
+    'visible': function (visible: boolean) {
       if (visible) {
-        var card = this.properties.card as Record<string, unknown>
-        if (card && card.uuid) {
-          var cardData = card as unknown as Card
-          this.setData({
-            html: renderMarkdown(cardData.markdown),
-            rarity: cardData.rarity,
-            imageURL: cardData.imageURL,
-            createTime: cardData.createTime,
-            studyDuration: cardData.studyDuration,
-            themeCategory: cardData.themeCategory || '',
-            themeLabel: THEME_LABEL[cardData.themeCategory] || ''
-          })
+        if (!this.data.isStreaming) {
+          var card = this.properties.card as Record<string, unknown>
+          if (card && card.uuid) {
+            var cardData = card as unknown as Card
+            this.setData({
+              displayHtml: renderMarkdown(cardData.markdown),
+              displayRarity: cardData.rarity,
+              displayImageURL: cardData.imageURL,
+              displayCreateTime: cardData.createTime,
+              displayStudyDuration: cardData.studyDuration,
+              displayThemeCategory: cardData.themeCategory || '',
+              displayThemeLabel: THEME_LABEL[cardData.themeCategory] || ''
+            })
+          }
         }
         setTimeout(() => {
           this.setData({ animating: true })

@@ -99,3 +99,19 @@ page {
   color: #6EA88A;
   font-weight: 500;
 }
+
+.tree-section {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24rpx 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.tree-image {
+  width: 400rpx;
+  height: 400rpx;
+  opacity: 0.4;
+}
