@@ -11,17 +11,12 @@
   justify-content: space-around;
   padding-bottom: env(safe-area-inset-bottom);
   z-index: 999;
+  box-shadow: 0 -2rpx 20rpx rgba(0, 0, 0, 0.04);
 }
 
 /* ===== 顶部细微分隔线 ===== */
 .tab-bar-border {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: rgba(0, 0, 0, 0.05);
-  transform: scaleY(0.5);
+  display: none;
 }
 
 /* ===== 单个 Tab 项 ===== */
@@ -31,19 +26,20 @@
   align-items: center;
   justify-content: center;
   flex: 1;
-  height: 100rpx;
+  height: 120rpx;
   position: relative;
 }
 
 /* ===== 图标包裹层（选中时作为背景指示器）===== */
 .tab-icon-wrap {
-  width: 56rpx;
-  height: 56rpx;
+  width: 64rpx;
+  height: 64rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 14rpx;
-  margin-bottom: 4rpx;
+  border-radius: 16rpx;
+  margin-bottom: 6rpx;
+  transition: background 0.2s ease;
 }
 
 /* 选中状态：图标包裹层背景 */
@@ -53,16 +49,17 @@
 
 /* ===== 图标样式 ===== */
 .tab-icon {
-  width: 44rpx;
-  height: 44rpx;
+  width: 48rpx;
+  height: 48rpx;
 }
 
 /* ===== 文字样式 ===== */
 .tab-text {
-  font-size: 20rpx;
+  font-size: 22rpx;
   color: #B8B8BD;
   line-height: 1.4;
-  letter-spacing: 0.2rpx;
+  letter-spacing: 0.5rpx;
+  font-weight: 400;
 }
 
 /* 选中状态：文字颜色与字重 */
