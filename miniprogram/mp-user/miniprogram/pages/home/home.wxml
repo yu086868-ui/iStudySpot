@@ -1,46 +1,108 @@
 <view class="container">
-  <view class="header">
-    <text class="title">Hello~</text>
-    <text class="subtitle">{{motto}}</text>
+  <!-- Hero区域 -->
+  <view class="hero">
+    <view class="hero-text">
+      <text class="hero-title">Hello~</text>
+      <text class="hero-motto">{{motto}}</text>
+    </view>
+    <image class="hero-leaf" src="/assets/home/leaf.png" mode="aspectFit" />
   </view>
 
+  <!-- 功能卡片区域 -->
   <view class="action-area">
-    <view class="btn-large" hover-class="btn-large-active" bindtap="handleReserveButton">
-      <text class="btn-text">{{reserveButtonText}}</text>
-    </view>
-    <view class="btn-group">
-      <view class="btn-small" hover-class="btn-small-active" bindtap="handleCheckInButton">
-        <text class="btn-text">{{checkInButtonText}}</text>
+    <!-- 主功能卡片：重新预约 -->
+    <view class="card-primary" hover-class="card-primary-active" bindtap="handleReserveButton">
+      <image class="card-primary-icon" src="/assets/home/calendar.svg" mode="aspectFit" />
+      <view class="card-primary-content">
+        <text class="card-primary-title">{{reserveButtonText}}</text>
+        <text class="card-primary-subtitle">预约自习座位</text>
       </view>
-      <view class="btn-small" hover-class="btn-small-active" bindtap="scanCheckIn">
-        <text class="btn-text">扫码签到</text>
+      <image class="card-primary-arrow" src="/assets/home/arrow-white.svg" mode="aspectFit" />
+      <image class="card-primary-texture" src="/assets/home/plant-texture.jpg" mode="aspectFit" />
+    </view>
+
+    <!-- 次功能卡片组 -->
+    <view class="card-secondary-group">
+      <!-- 签到 / 学习 -->
+      <view class="card-secondary" hover-class="card-secondary-active" bindtap="handleCheckInButton">
+        <image class="card-secondary-icon" src="/assets/home/study.svg" mode="aspectFit" />
+        <view class="card-secondary-content">
+          <text class="card-secondary-title">{{checkInButtonText}}</text>
+          <text class="card-secondary-subtitle">记录学习时长</text>
+        </view>
+        <image class="card-secondary-arrow" src="/assets/home/arrow-green.svg" mode="aspectFit" />
+      </view>
+
+      <!-- 扫码签到 -->
+      <view class="card-secondary" hover-class="card-secondary-active" bindtap="scanCheckIn">
+        <image class="card-secondary-icon" src="/assets/home/qrcode.svg" mode="aspectFit" />
+        <view class="card-secondary-content">
+          <text class="card-secondary-title">扫码签到</text>
+          <text class="card-secondary-subtitle">快速扫码签到</text>
+        </view>
+        <image class="card-secondary-arrow" src="/assets/home/arrow-green.svg" mode="aspectFit" />
       </view>
     </view>
   </view>
 
+  <!-- 预约信息卡片 -->
   <view class="info-card">
-    <view class="status-badge status-{{userState}}">
-      <text class="status-text">{{stateDisplayText}}</text>
+    <!-- 卡片头部：状态标签 + 台灯 -->
+    <view class="info-card-header">
+      <view class="status-badge status-{{userState}}">
+        <text class="status-text">{{stateDisplayText}}</text>
+      </view>
+      <image class="info-card-lamp" src="/assets/home/lamp.png" mode="aspectFit" />
     </view>
-    
-    <block wx:if="{{userState === 'studying' && currentReservation}}">
-      <text class="info-text">正在{{currentReservation.roomName}}学习，</text>
-      <text class="info-text">座位号：{{currentReservation.seatNumber}}，</text>
-      <text class="info-text">已学习 {{currentReservation.displayTime}}，</text>
-      <text class="info-text">本周累计学习 {{weeklyStudyHours}} 小时。</text>
-    </block>
-    
-    <block wx:elif="{{userState === 'reserved' && currentReservation}}">
-      <text class="info-text">已预约{{currentReservation.roomName}} {{currentReservation.displayTime}}，</text>
-      <text class="info-text">座位号：{{currentReservation.seatNumber}}，</text>
-      <text class="info-text">请按时前往自习。</text>
-      <text class="info-text">本周累计学习 {{weeklyStudyHours}} 小时。</text>
-    </block>
-    
-    <block wx:else>
-      <text class="info-text">暂无进行中的预约</text>
-      <text class="info-text">本周累计学习 {{weeklyStudyHours}} 小时。</text>
-    </block>
+
+    <!-- 卡片正文 -->
+    <view class="info-card-body">
+      <!-- 学习中状态 -->
+      <block wx:if="{{userState === 'studying' && currentReservation}}">
+        <view class="info-row">
+          <image class="info-row-icon" src="/assets/home/icon-location.svg" mode="aspectFit" />
+          <text class="info-row-text">{{currentReservation.roomName}}</text>
+        </view>
+        <view class="info-row">
+          <image class="info-row-icon" src="/assets/home/icon-seat.svg" mode="aspectFit" />
+          <text class="info-row-text">座位 {{currentReservation.seatNumber}}</text>
+        </view>
+        <view class="info-row">
+          <image class="info-row-icon" src="/assets/home/icon-time.svg" mode="aspectFit" />
+          <text class="info-row-text">已学习 {{currentReservation.displayTime}}</text>
+        </view>
+      </block>
+
+      <!-- 已预约状态 -->
+      <block wx:elif="{{userState === 'reserved' && currentReservation}}">
+        <view class="info-row">
+          <image class="info-row-icon" src="/assets/home/icon-location.svg" mode="aspectFit" />
+          <text class="info-row-text">{{currentReservation.roomName}}</text>
+        </view>
+        <view class="info-row">
+          <image class="info-row-icon" src="/assets/home/icon-seat.svg" mode="aspectFit" />
+          <text class="info-row-text">座位 {{currentReservation.seatNumber}}</text>
+        </view>
+        <view class="info-row">
+          <image class="info-row-icon" src="/assets/home/icon-time.svg" mode="aspectFit" />
+          <text class="info-row-text">{{currentReservation.displayTime}}</text>
+        </view>
+      </block>
+
+      <!-- 未预约状态 -->
+      <block wx:else>
+        <text class="info-empty-text">暂无进行中的预约</text>
+      </block>
+    </view>
+
+    <!-- 卡片底部：本周学习时长独立区域 -->
+    <view class="info-card-footer">
+      <view class="weekly-stat">
+        <text class="weekly-stat-label">本周累计学习</text>
+        <text class="weekly-stat-value">{{weeklyStudyHours}}</text>
+        <text class="weekly-stat-unit">小时</text>
+      </view>
+    </view>
   </view>
 </view>
 

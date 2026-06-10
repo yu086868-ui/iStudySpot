@@ -1,9 +1,8 @@
 page {
   height: 100vh;
-  background: #F5F5F7;
+  background-color: transparent;
   display: flex;
   flex-direction: column;
-  padding-top: 0;
 }
 
 .scroll-content {
@@ -14,6 +13,20 @@ page {
 .container {
   padding: 24rpx 32rpx;
   padding-bottom: 180rpx;
+}
+
+/* 页面标题 */
+.page-hero {
+  padding-top: 40rpx;
+  margin-bottom: 32rpx;
+}
+
+.page-hero-title {
+  font-size: 52rpx;
+  font-weight: 700;
+  color: #1D1D1F;
+  letter-spacing: -0.5rpx;
+  display: block;
 }
 
 .rule-card {
