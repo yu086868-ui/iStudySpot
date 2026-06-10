@@ -1,8 +1,10 @@
-<navigation-bar title="规则与公告" background="#F5F5F7" back="{{false}}" homeButton="{{false}}">
-</navigation-bar>
-
 <scroll-view scroll-y class="scroll-content" type="list">
   <view class="container">
+    <!-- 页面标题 -->
+    <view class="page-hero">
+      <text class="page-hero-title">规则与公告</text>
+    </view>
+
     <view class="rule-card" wx:if="{{rules.length > 0}}">
       <view class="rule-header">
         <view class="rule-icon-dot"></view>

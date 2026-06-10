@@ -2,11 +2,6 @@ page {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #F6F7F8;
-  background-image: url('/assets/home/bg-texture.svg');
-  background-size: 100% 100%;
-  background-repeat: no-repeat;
-  background-position: top center;
 }
 
 .container {
@@ -14,7 +9,7 @@ page {
   padding: 0 32rpx;
   padding-bottom: 180rpx;
   position: relative;
-  background: transparent;
+  background-color: transparent;
 }
 
 /* ===== Hero区域 ===== */
