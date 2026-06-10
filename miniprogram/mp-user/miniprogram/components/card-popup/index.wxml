@@ -4,33 +4,35 @@
       <text class="close-text">✕</text>
     </view>
 
-    <view class="popup-card popup-card-{{rarity}}">
-      <view class="popup-rarity-badge badge-{{rarity}}">
-        <text class="popup-badge-text">{{rarity}}</text>
+    <view class="popup-card popup-card-{{displayRarity}}">
+      <view class="popup-rarity-badge badge-{{displayRarity}}">
+        <text class="popup-badge-text">{{displayRarity}}</text>
       </view>
 
       <image
+        wx:if="{{displayImageURL}}"
         class="popup-image"
-        src="{{imageURL}}"
+        src="{{displayImageURL}}"
         mode="aspectFill"
       />
 
       <view class="popup-md-area">
-        <markdown-card content="{{html}}" />
+        <markdown-card content="{{displayHtml}}" />
+        <view wx:if="{{isStreaming}}" class="streaming-cursor"></view>
       </view>
 
       <view class="popup-footer">
-        <view class="popup-meta-row">
-          <text class="popup-meta-text">{{createTime}}</text>
-          <text class="popup-meta-text">{{studyDuration}}min</text>
+        <view class="popup-meta-row" wx:if="{{!isStreaming && displayCreateTime}}">
+          <text class="popup-meta-text">{{displayCreateTime}}</text>
+          <text class="popup-meta-text">{{displayStudyDuration}}min</text>
         </view>
-        <view class="popup-theme-row" wx:if="{{themeCategory}}">
-          <text class="popup-theme-text">{{themeLabel}}</text>
+        <view class="popup-theme-row" wx:if="{{displayThemeLabel}}">
+          <text class="popup-theme-text">{{displayThemeLabel}}</text>
         </view>
       </view>
     </view>
 
-    <view class="popup-action" wx:if="{{showAction}}">
+    <view class="popup-action" wx:if="{{showAction && !isStreaming}}">
       <view class="action-btn" bindtap="onAction">
         <text class="action-btn-text">{{actionText}}</text>
       </view>

@@ -19,6 +19,10 @@
 <card-popup
   visible="{{showCardPopup}}"
   card="{{newCard}}"
+  streaming="{{isStreaming}}"
+  streamingHtml="{{streamingHtml}}"
+  streamingRarity="{{streamingRarity}}"
+  streamingThemeCategory="{{streamingThemeCategory}}"
   showAction="{{true}}"
   actionText="收下卡片"
   bind:close="onCardPopupClose"
