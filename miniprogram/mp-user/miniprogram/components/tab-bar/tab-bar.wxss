@@ -4,6 +4,8 @@
   bottom: 0;
   left: 0;
   right: 0;
+  padding-left: 32rpx;
+  padding-right: 32rpx;
   background: #FFFFFF;
   display: flex;
   flex-direction: row;
@@ -11,7 +13,7 @@
   justify-content: space-around;
   padding-bottom: env(safe-area-inset-bottom);
   z-index: 999;
-  box-shadow: 0 -2rpx 20rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 -4rpx 32rpx rgba(0, 0, 0, 0.15);
 }
 
 /* ===== 顶部细微分隔线 ===== */
