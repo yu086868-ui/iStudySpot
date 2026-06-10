@@ -55,13 +55,12 @@ page {
 }
 
 .hero-leaf {
-  /* mix-blend-mode: soft-light; */
   width: 280rpx;
   height: 280rpx;
   flex-shrink: 0;
   margin-top: -40rpx;
   margin-right: -24rpx;
-  opacity: 0.3;
+  opacity: 0.2;
 }
 
 /* ===== 卡片布局区域 ===== */
@@ -221,7 +220,7 @@ page {
   flex-shrink: 0;
   margin-top: -12rpx;
   margin-right: -8rpx;
-  opacity: 0.5;
+  opacity: 0.2;
 }
 
 .status-badge {
