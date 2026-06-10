@@ -1,6 +1,3 @@
-<!-- 全屏背景层：覆盖状态栏 -->
-<view class="page-bg"></view>
-
 <view class="container">
   <!-- Hero区域 -->
   <view class="hero">
