@@ -29,7 +29,7 @@ public class CustomerServiceController {
     public Result<Map<String, Object>> chatWithCustomerService(
             @RequestBody Map<String, String> request) {
         try {
-            String sessionId = request.get("sessionId");
+            String sessionId = firstNonBlank(request, "sessionId", "session_id");
             String message = request.get("message");
 
             if (sessionId == null || sessionId.isEmpty()) {
@@ -52,7 +52,7 @@ public class CustomerServiceController {
     @PostMapping("/chat/stream")
     public SseEmitter streamChatWithCustomerService(
             @RequestBody Map<String, String> request) throws IOException {
-        String sessionId = request.get("sessionId");
+        String sessionId = firstNonBlank(request, "sessionId", "session_id");
         String message = request.get("message");
 
         if (sessionId == null || sessionId.isEmpty()) {
@@ -77,5 +77,15 @@ public class CustomerServiceController {
         Map<String, Object> result = new HashMap<>();
         result.put("messages", customerServiceService.getSessionHistory(sessionId));
         return Result.success(result);
+    }
+
+    private String firstNonBlank(Map<String, String> request, String... keys) {
+        for (String key : keys) {
+            String value = request.get(key);
+            if (value != null && !value.isBlank()) {
+                return value;
+            }
+        }
+        return null;
     }
 }

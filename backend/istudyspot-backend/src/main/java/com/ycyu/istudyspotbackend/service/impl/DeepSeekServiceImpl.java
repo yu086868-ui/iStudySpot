@@ -343,6 +343,41 @@ public class DeepSeekServiceImpl implements DeepSeekService {
     }
 
     @Override
+    public JsonNode chatCompletion(String model, List<Map<String, Object>> messages, List<Map<String, Object>> tools) {
+        if (messages == null || messages.isEmpty()) {
+            throw new IllegalArgumentException("messages cannot be null or empty");
+        }
+
+        String url = apiUrl + "/chat/completions";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + apiKey);
+
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("model", model);
+        requestBody.put("temperature", 0.2);
+        requestBody.put("max_tokens", 1200);
+        requestBody.put("messages", messages);
+        if (tools != null && !tools.isEmpty()) {
+            requestBody.put("tools", tools);
+            requestBody.put("tool_choice", "auto");
+        }
+
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+
+        try {
+            ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+            if (response.getStatusCode() != HttpStatus.OK || response.getBody() == null) {
+                throw new RuntimeException("DeepSeek API request failed: " + response.getStatusCode());
+            }
+            return objectMapper.readTree(response.getBody());
+        } catch (Exception e) {
+            throw new RuntimeException("DeepSeek chat completion failed", e);
+        }
+    }
+
+    @Override
     public void streamChat(String model, List<Map<String, String>> messages,
                            java.util.function.Consumer<String> onMessage,
                            java.lang.Runnable onComplete,

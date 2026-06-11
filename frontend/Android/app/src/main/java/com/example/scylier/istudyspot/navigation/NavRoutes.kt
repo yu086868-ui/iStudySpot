@@ -60,6 +60,9 @@ sealed class NavRoutes {
     data object AiChat : NavRoutes()
 
     @Serializable
+    data object Agent : NavRoutes()
+
+    @Serializable
     data class CharacterSelect(
         val characterId: String? = null,
         val characterName: String? = null,

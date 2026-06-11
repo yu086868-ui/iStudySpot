@@ -34,7 +34,7 @@ android {
             buildConfigField(
                 "String",
                 "BASE_URL",
-                "\"http://8.136.135.189:8680/\""
+                "\"https://frp-six.com:37379/\""
             )
             buildConfigField(
                 "Boolean",
@@ -54,7 +54,7 @@ android {
             buildConfigField(
                 "String",
                 "BASE_URL",
-                "\"http://8.136.135.189:8680/\""
+                "\"https://frp-six.com:37379/\""
             )
             buildConfigField(
                 "Boolean",

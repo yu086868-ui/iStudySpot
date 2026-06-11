@@ -2,6 +2,8 @@ package com.example.scylier.istudyspot.repository
 
 import com.example.scylier.istudyspot.infra.network.ApiManager
 import com.example.scylier.istudyspot.models.ApiResponse
+import com.example.scylier.istudyspot.models.agent.AgentChatResponse
+import com.example.scylier.istudyspot.models.agent.AgentToolExecutionResult
 
 class MainRepository {
     private val apiManager = ApiManager()
@@ -68,6 +70,18 @@ class MainRepository {
     suspend fun getAiCharacters() = apiManager.getAiCharacters()
     suspend fun sendAiMessage(message: String, sessionId: String? = null, characterId: String? = null) =
         apiManager.sendAiMessage(message, sessionId, characterId)
+
+    suspend fun getAgentToolCatalog() = apiManager.getAgentToolCatalog()
+
+    suspend fun sendAgentMessage(
+        message: String,
+        sessionId: String? = null
+    ): ApiResponse<AgentChatResponse> = apiManager.sendAgentMessage(message, sessionId)
+
+    suspend fun executeAgentTool(
+        tool: String,
+        arguments: Map<String, Any?> = emptyMap()
+    ): ApiResponse<AgentToolExecutionResult> = apiManager.executeAgentTool(tool, arguments)
 
     suspend fun getCustomerServiceWelcome() = apiManager.getCustomerServiceWelcome()
     suspend fun customerServiceChat(sessionId: String, message: String) =
