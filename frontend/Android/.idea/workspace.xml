@@ -51,15 +51,7 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3a6b51a8-f9c9-41fb-82aa-c7da64a37e8a" name="Changes" comment="修改了MoreFragment并把其中一些View进行了解耦">
-      <change beforePath="$PROJECT_DIR$/../../backend/istudyspot-backend/src/main/java/com/ycyu/istudyspotbackend/agent/chat/AgentChatResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/../../backend/istudyspot-backend/src/main/java/com/ycyu/istudyspotbackend/agent/chat/AgentChatResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../backend/istudyspot-backend/src/main/java/com/ycyu/istudyspotbackend/agent/chat/AgentChatServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/../../backend/istudyspot-backend/src/main/java/com/ycyu/istudyspotbackend/agent/chat/AgentChatServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../backend/istudyspot-backend/src/main/java/com/ycyu/istudyspotbackend/agent/tool/AgentToolServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/../../backend/istudyspot-backend/src/main/java/com/ycyu/istudyspotbackend/agent/tool/AgentToolServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../backend/istudyspot-backend/src/main/resources/ai-rules.json" beforeDir="false" afterPath="$PROJECT_DIR$/../../backend/istudyspot-backend/src/main/resources/ai-rules.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../backend/istudyspot-backend/src/test/java/com/ycyu/istudyspotbackend/agent/chat/AgentChatServiceImplTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/../../backend/istudyspot-backend/src/test/java/com/ycyu/istudyspotbackend/agent/chat/AgentChatServiceImplTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../docs/architecture.md" beforeDir="false" afterPath="$PROJECT_DIR$/../../docs/architecture.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../init-db.sql" beforeDir="false" afterPath="$PROJECT_DIR$/../../init-db.sql" afterDir="false" />
-    </list>
+    <list default="true" id="3a6b51a8-f9c9-41fb-82aa-c7da64a37e8a" name="Changes" comment="修改了MoreFragment并把其中一些View进行了解耦" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -74,7 +66,7 @@
       <entry key="_F:/SomeWork/iStudySpot/frontend/Android" value="3BhVNoQs3alqyK8EsFMfpWkQMOA" />
     </persistenceIdMap>
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[DeviceId(pluginId=LocalEmulator, isTemplate=false, identifier=path=C:\Users\26877\.android\avd\Dev_Phone.avd)]" />
+  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[DeviceId(pluginId=PhysicalDevice, isTemplate=false, identifier=serial=A4YQVB3530001919)]" />
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
       <ProjectState />

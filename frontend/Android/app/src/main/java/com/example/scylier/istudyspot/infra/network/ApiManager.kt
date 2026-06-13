@@ -1,5 +1,8 @@
 ﻿package com.example.scylier.istudyspot.infra.network
 
+import com.example.scylier.istudyspot.infra.network.ApiClient
+import com.example.scylier.istudyspot.infra.network.ApiService
+
 import com.example.scylier.istudyspot.BuildConfig
 import com.example.scylier.istudyspot.models.ApiResponse
 import com.example.scylier.istudyspot.models.BaseResponse

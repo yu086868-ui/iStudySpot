@@ -106,6 +106,9 @@ class SeatDetail(
     val seatType: Int,
     val pricePerHour: Double,
     val seatNumber: String? = null,
+    val hasPower: Int? = null,
+    val hasLamp: Int? = null,
+    val isWindow: Int? = null,
     val description: String? = null
 ) {
     val studyRoomId: Long
@@ -118,4 +121,6 @@ class SeatDetail(
         get() = colNum
     val type: String
         get() = if (seatType == 2) "vip" else "normal"
+    val coordinateLabel: String
+        get() = "${rowNum}排${colNum}列"
 }

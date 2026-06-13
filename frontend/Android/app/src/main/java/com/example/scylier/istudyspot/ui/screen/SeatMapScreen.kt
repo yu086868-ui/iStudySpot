@@ -20,9 +20,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -64,6 +62,28 @@ private data class SeatPresentation(
         get() = "${row}排${col}列"
 }
 
+/**
+ * 从 SeatLayoutData 构建座位展示信息。
+ * 复杂布局下，座位的行列坐标取自 seat_layout_item 表（item.row/item.col），
+ * 而非 seat 表的原始 rowNum/colNum，因为 layout item 的坐标是经过布局计算的真实渲染位置。
+ */
+private fun buildSeatPresentations(layout: SeatLayoutData): Map<Long, SeatPresentation> {
+    val seatMap = layout.seats.associateBy { it.id }
+    val presentations = mutableMapOf<Long, SeatPresentation>()
+    for (item in layout.items) {
+        if (item.isSeat && item.seatId != null) {
+            seatMap[item.seatId]?.let { seat ->
+                presentations[seat.id] = SeatPresentation(
+                    seat = seat,
+                    row = item.row,
+                    col = item.col
+                )
+            }
+        }
+    }
+    return presentations
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SeatMapScreen(
@@ -100,6 +120,15 @@ fun SeatMapScreen(
             SeatLegend(color = extendedColors.warning, label = "已预订")
             SeatLegend(color = MaterialTheme.colorScheme.error, label = "使用中")
             SeatLegend(color = MaterialTheme.colorScheme.onSurfaceVariant, label = "不可用")
+        }
+        Spacer(modifier = Modifier.height(6.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            FeatureLegend(color = extendedColors.info, label = "电源")
+            FeatureLegend(color = MaterialTheme.colorScheme.tertiary, label = "靠窗")
+            FeatureLegend(color = extendedColors.warning, label = "推荐", isStar = true)
         }
         if (layout != null && layout.items.isNotEmpty()) {
             Spacer(modifier = Modifier.height(10.dp))
@@ -209,6 +238,33 @@ private fun SeatLegend(color: Color, label: String) {
 }
 
 @Composable
+private fun FeatureLegend(color: Color, label: String, isStar: Boolean = false) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        if (isStar) {
+            Icon(
+                imageVector = Icons.Default.Star,
+                contentDescription = label,
+                modifier = Modifier.size(10.dp),
+                tint = color
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .size(6.dp)
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(color)
+            )
+        }
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            modifier = Modifier.padding(start = 4.dp),
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
 private fun LayoutLegend(color: Color, label: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Box(
@@ -234,22 +290,59 @@ private fun LegacySeatGrid(
     extendedColors: ExtendedColors,
     onSeatClick: (SeatInfo) -> Unit
 ) {
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(6),
-        modifier = Modifier.fillMaxSize(),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        items(seats) { seat ->
-            SeatItem(
-                seat = seat,
-                isRecommended = seat.status == "available" && seat.row in 2..4,
-                maxCol = maxCol,
-                extendedColors = extendedColors,
-                widthUnits = 1,
-                heightUnits = 1,
-                onClick = { onSeatClick(seat) }
-            )
+    val sortedSeats = remember(seats) { seats.sortedWith(compareBy({ it.row }, { it.col })) }
+    val maxRow = sortedSeats.maxOfOrNull { it.row } ?: 1
+    val cols = maxCol.coerceAtLeast(1)
+    val viewportScroll = rememberScrollState()
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+            val cellSize = (maxWidth / cols).coerceIn(36.dp, 56.dp)
+            val canvasWidth = cellSize * cols
+            val canvasHeight = cellSize * maxRow
+            val viewportHeight = if (canvasHeight > 420.dp) 420.dp else canvasHeight + 8.dp
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 240.dp)
+                    .height(viewportHeight)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.28f))
+                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp))
+                    .verticalScroll(viewportScroll)
+                    .horizontalScroll(rememberScrollState())
+                    .padding(8.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .width(canvasWidth)
+                        .height(canvasHeight)
+                ) {
+                    sortedSeats.forEach { seat ->
+                        Box(
+                            modifier = Modifier
+                                .offset(
+                                    x = cellSize * (seat.col - 1),
+                                    y = cellSize * (seat.row - 1)
+                                )
+                                .size(cellSize),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            SeatItem(
+                                seat = seat,
+                                isRecommended = seat.status == "available" && seat.row in 2..4,
+                                maxCol = maxCol,
+                                extendedColors = extendedColors,
+                                widthUnits = 1,
+                                heightUnits = 1,
+                                baseSize = (cellSize - 10.dp).coerceIn(26.dp, 38.dp),
+                                onClick = { onSeatClick(seat) }
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -488,7 +581,10 @@ private fun SeatItem(
 @Composable
 private fun SeatDetailContent(
     seat: SeatInfo,
+    coordinateLabel: String,
     maxCol: Int,
+    visualCol: Int,
+    allowEdgeWindowInference: Boolean,
     extendedColors: ExtendedColors,
     onBookClick: () -> Unit
 ) {
@@ -505,7 +601,9 @@ private fun SeatDetailContent(
         "in_use" -> MaterialTheme.colorScheme.error
         else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
-    val isWindowSeat = seat.isWindow == 1 || seat.col == 1 || seat.col == maxCol
+    // 复杂布局下 visualCol 来自 layout item 坐标；简单布局下来自 seat 表
+    // 仅在简单布局模式下通过边缘列推断靠窗
+    val isWindowSeat = seat.isWindow == 1 || (allowEdgeWindowInference && (visualCol == 1 || visualCol == maxCol))
     val isVip = seat.type == "vip"
     val features = buildList {
         if (seat.hasPower == 1) add("有电源")
@@ -613,7 +711,7 @@ private fun SeatDetailContent(
                     .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
                 Text(
-                    text = seat.coordinateLabel,
+                    text = coordinateLabel,
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
