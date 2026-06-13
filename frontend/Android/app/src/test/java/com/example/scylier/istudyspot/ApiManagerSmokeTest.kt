@@ -45,6 +45,17 @@ class ApiManagerSmokeTest {
     }
 
     @Test
+    fun getStudyRoomSeatLayoutShouldReturnHybridMockLayout() = runBlocking {
+        val response = apiManager.getStudyRoomSeatLayout(2L)
+
+        assertTrue(response is ApiResponse.Success)
+        val success = response as ApiResponse.Success
+        assertEquals("hybrid", success.data?.layoutMode)
+        assertTrue((success.data?.items?.size ?: 0) > 0)
+        assertTrue((success.data?.seats?.size ?: 0) > 0)
+    }
+
+    @Test
     fun createOrderShouldReturnPendingOrder() = runBlocking {
         val response = apiManager.createOrder(
             studyRoomId = 1L,
@@ -58,5 +69,44 @@ class ApiManagerSmokeTest {
         val success = response as ApiResponse.Success
         assertEquals("pending", success.data?.status)
         assertEquals(1L, success.data?.seatId)
+    }
+
+    @Test
+    fun getUserOrdersShouldPreferSeatNumbers() = runBlocking {
+        val response = apiManager.getUserOrders()
+
+        assertTrue(response is ApiResponse.Success)
+        val success = response as ApiResponse.Success
+        val orders = success.data?.list.orEmpty()
+        assertTrue(orders.isNotEmpty())
+        assertEquals("A01", orders.first().seatNumber)
+        assertEquals("A01", orders.first().displaySeat)
+        assertEquals("B03", orders.getOrNull(1)?.displaySeat)
+    }
+
+    @Test
+    fun executeAgentSeatToolShouldReturnNormalizedSeatLabels() = runBlocking {
+        val response = apiManager.executeAgentTool(
+            tool = "list_room_seats",
+            arguments = mapOf("studyRoomId" to 1L)
+        )
+
+        assertTrue(response is ApiResponse.Success)
+        val success = response as ApiResponse.Success
+        val items = success.data?.data?.get("items") as? List<Map<String, Any?>>
+        assertEquals("A01", items?.firstOrNull()?.get("seatNumber"))
+        assertEquals("A02", items?.getOrNull(1)?.get("seatNumber"))
+    }
+
+    @Test
+    fun executeAgentReservationToolShouldReturnSeatNumberForSingleSeat() = runBlocking {
+        val response = apiManager.executeAgentTool(tool = "get_my_reservations")
+
+        assertTrue(response is ApiResponse.Success)
+        val success = response as ApiResponse.Success
+        val items = success.data?.data?.get("items") as? List<Map<String, Any?>>
+        val firstItem = items?.firstOrNull()
+        assertEquals("A03", firstItem?.get("seatNumber"))
+        assertEquals("A03", firstItem?.get("seatPosition"))
     }
 }

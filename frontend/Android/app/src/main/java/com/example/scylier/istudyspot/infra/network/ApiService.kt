@@ -26,6 +26,7 @@ import com.example.scylier.istudyspot.models.payment.PaymentStatusResponse
 import com.example.scylier.istudyspot.models.statistics.StudyRoomStatisticsResponse
 import com.example.scylier.istudyspot.models.studyroom.SeatDetail
 import com.example.scylier.istudyspot.models.studyroom.SeatInfo
+import com.example.scylier.istudyspot.models.studyroom.SeatLayoutData
 import com.example.scylier.istudyspot.models.studyroom.StudyRoomDetail
 import com.example.scylier.istudyspot.models.studyroom.StudyRoomListResponse
 import com.example.scylier.istudyspot.models.todo.CreateTodoRequest
@@ -70,6 +71,11 @@ interface ApiService {
         @Query("status") status: String? = null,
         @Query("type") type: String? = null
     ): Response<BaseResponse<List<SeatInfo>>>
+
+    @GET("/api/studyrooms/{studyRoomId}/seat-layout")
+    suspend fun getStudyRoomSeatLayout(
+        @Path("studyRoomId") studyRoomId: Long
+    ): Response<BaseResponse<SeatLayoutData>>
 
     @GET("/api/seats/{id}")
     suspend fun getSeatDetail(@Path("id") id: Long): Response<BaseResponse<SeatDetail>>

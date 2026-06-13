@@ -17,6 +17,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -24,6 +26,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.example.scylier.istudyspot.infra.network.ApiClient
+import com.example.scylier.istudyspot.repository.SharedPreferencesAgentConversationStore
 import com.example.scylier.istudyspot.ui.screen.AchievementScreen
 import com.example.scylier.istudyspot.ui.screen.AgentScreen
 import com.example.scylier.istudyspot.ui.screen.AiChatScreen
@@ -129,7 +132,17 @@ fun AppNavigation(
             }
 
             composable<NavRoutes.Agent> {
-                val viewModel: AgentViewModel = viewModel()
+                val context = LocalContext.current
+                val viewModel: AgentViewModel = viewModel(
+                    factory = object : ViewModelProvider.Factory {
+                        @Suppress("UNCHECKED_CAST")
+                        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                            return AgentViewModel(
+                                conversationStore = SharedPreferencesAgentConversationStore(context)
+                            ) as T
+                        }
+                    }
+                )
                 AgentScreen(
                     viewModel = viewModel,
                     onBack = { navController.popBackStack() },
@@ -154,6 +167,8 @@ fun AppNavigation(
                             }
                             "reservation_list" -> navController.navigate(NavRoutes.OrderList)
                             "reservation_rules" -> navController.navigate(NavRoutes.Rules)
+                            "study_record" -> navController.navigate(NavRoutes.StudyRecord)
+                            "todo_list" -> navController.navigate(NavRoutes.TodoList)
                             else -> {
                                 scope.launch {
                                     snackbarHostState.showSnackbar("当前动作暂未映射到页面")
@@ -218,6 +233,7 @@ fun AppNavigation(
                 SeatMapScreen(
                     studyRoomName = args.studyRoomName,
                     seats = seatMapState.seats,
+                    layout = seatMapState.layout,
                     isLoading = seatMapState.isLoading,
                     onSeatClick = { seat ->
                         if (seat.status == "available") {
@@ -226,7 +242,7 @@ fun AppNavigation(
                                     seatId = seat.id,
                                     studyRoomId = args.studyRoomId,
                                     studyRoomName = args.studyRoomName,
-                                    seatPosition = "${seat.row}-${seat.col}",
+                                    seatLabel = seat.displayLabel,
                                     pricePerHour = seat.pricePerHour
                                 )
                             )
@@ -272,7 +288,7 @@ fun AppNavigation(
 
                 BookingScreen(
                     studyRoomName = args.studyRoomName,
-                    seatPosition = args.seatPosition,
+                    seatLabel = args.seatLabel,
                     pricePerHour = args.pricePerHour,
                     onBook = { startTime, endTime, bookingType ->
                         viewModel.createOrder(args.studyRoomId, args.seatId, startTime, endTime, bookingType)

@@ -20,7 +20,7 @@ sealed class NavRoutes {
         val seatId: Long,
         val studyRoomId: Long,
         val studyRoomName: String,
-        val seatPosition: String,
+        val seatLabel: String,
         val pricePerHour: Double
     ) : NavRoutes()
 

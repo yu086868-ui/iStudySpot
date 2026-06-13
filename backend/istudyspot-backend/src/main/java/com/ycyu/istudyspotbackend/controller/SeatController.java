@@ -2,6 +2,7 @@ package com.ycyu.istudyspotbackend.controller;
 
 import com.ycyu.istudyspotbackend.entity.Result;
 import com.ycyu.istudyspotbackend.entity.Seat;
+import com.ycyu.istudyspotbackend.entity.SeatLayoutResponse;
 import com.ycyu.istudyspotbackend.service.SeatService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +25,12 @@ public class SeatController {
             @RequestParam(required = false) Integer col) {
         List<Seat> seats = seatService.getSeatList(studyRoomId, status, type, row, col);
         return Result.success("success", seats);
+    }
+
+    @GetMapping("/studyrooms/{studyRoomId}/seat-layout")
+    public Result<SeatLayoutResponse> getSeatLayout(@PathVariable Long studyRoomId) {
+        SeatLayoutResponse layout = seatService.getSeatLayout(studyRoomId);
+        return Result.success("success", layout);
     }
 
     @GetMapping("/seats/{id}")

@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.material3.AssistChip
@@ -59,8 +60,10 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.example.scylier.istudyspot.models.agent.AgentMessage
 import com.example.scylier.istudyspot.models.agent.AgentMessageRole
+import com.example.scylier.istudyspot.models.agent.AgentReplyBlock
 import com.example.scylier.istudyspot.models.agent.AgentToolDefinition
 import com.example.scylier.istudyspot.models.agent.AgentToolExecutionResult
+import com.example.scylier.istudyspot.models.agent.AgentUiAction
 import com.example.scylier.istudyspot.ui.components.AppTopBar
 import com.example.scylier.istudyspot.ui.theme.LocalExtendedColors
 import com.example.scylier.istudyspot.viewmodel.AgentUiState
@@ -100,8 +103,20 @@ fun AgentScreen(
     Scaffold(
         topBar = {
             AppTopBar(
-                title = "AI Agent",
-                onBack = onBack
+                title = "智能助手",
+                onBack = onBack,
+                actions = {
+                    FilledIconButton(
+                        onClick = { viewModel.clearConversation() },
+                        enabled = state.messages.isNotEmpty(),
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.DeleteOutline,
+                            contentDescription = "清空会话"
+                        )
+                    }
+                }
             )
         },
         bottomBar = {
@@ -118,7 +133,7 @@ fun AgentScreen(
                     OutlinedTextField(
                         value = inputText,
                         onValueChange = { inputText = it },
-                        placeholder = { Text("Ask about rooms, seats, reservations, or rules") },
+                        placeholder = { Text("询问自习室、座位、预约或规则") },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(24.dp),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -143,7 +158,7 @@ fun AgentScreen(
                         } else {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.Send,
-                                contentDescription = "Send"
+                                contentDescription = "发送"
                             )
                         }
                     }
@@ -237,13 +252,13 @@ private fun AgentEmptyState(
                             Spacer(modifier = Modifier.size(12.dp))
                             Column {
                                 Text(
-                                    text = "AI Agent",
+                                    text = "智能助手",
                                     style = MaterialTheme.typography.titleLarge,
                                     color = Color.White,
                                     fontWeight = FontWeight.SemiBold
                                 )
                                 Text(
-                                    text = "Secure backend tools for rooms, seats, and reservations",
+                                    text = "查询自习室、座位与预约信息",
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = Color.White.copy(alpha = 0.88f)
                                 )
@@ -251,7 +266,7 @@ private fun AgentEmptyState(
                         }
                         Spacer(modifier = Modifier.height(18.dp))
                         Text(
-                            text = "Ask for study rooms, seat availability, your reservations, or reservation rules. Sensitive business details stay behind backend checks.",
+                            text = "你可以查询可用自习室、座位状态、我的预约和预约规则。预约、取消、支付、签到等操作请在对应页面完成。",
                             style = MaterialTheme.typography.bodyLarge,
                             color = Color.White.copy(alpha = 0.94f)
                         )
@@ -287,7 +302,7 @@ private fun AgentEmptyState(
         }
 
         item {
-            AgentSectionTitle("Try asking")
+            AgentSectionTitle("可以这样问")
         }
 
         item {
@@ -298,7 +313,7 @@ private fun AgentEmptyState(
         }
 
         item {
-            AgentSectionTitle("Available tools")
+            AgentSectionTitle("可用查询")
         }
 
         if (state.isCatalogLoading) {
@@ -370,7 +385,7 @@ private fun AgentSuggestedPromptBlock(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "You can ask next",
+                text = "你还可以问",
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.SemiBold
@@ -409,13 +424,13 @@ private fun AgentToolCard(
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
-                    text = if (tool.requiresAuth) "Login required" else "Public",
+                    text = if (tool.requiresAuth) "需登录" else "公开",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
             }
             Text(
-                text = tool.description?.takeIf { it.isNotBlank() } ?: "Run this agent tool",
+                text = tool.description?.takeIf { it.isNotBlank() } ?: "执行这项查询",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -454,19 +469,117 @@ private fun AgentMessageCard(
                 modifier = Modifier.padding(18.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text(
-                    text = message.content,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = textColor
-                )
-                if (!isUser && message.result != null) {
+                AgentMessageContent(message = message, color = textColor)
+                val results = message.results.ifEmpty { listOfNotNull(message.result) }
+                if (!isUser && results.isNotEmpty()) {
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                    AgentResultBlock(
-                        result = message.result,
-                        viewModel = viewModel,
+                    results.forEachIndexed { index, result ->
+                        if (index > 0) {
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        }
+                        AgentResultBlock(
+                            result = result,
+                            viewModel = viewModel,
+                            onActionNavigate = onActionNavigate
+                        )
+                    }
+                }
+                if (!isUser && message.uiAction?.type == "navigate" && !message.uiAction.route.isNullOrBlank()) {
+                    if (results.isEmpty()) {
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    }
+                    AgentNavigationActionButton(
+                        action = message.uiAction,
                         onActionNavigate = onActionNavigate
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AgentNavigationActionButton(
+    action: AgentUiAction,
+    onActionNavigate: (route: String, params: Map<String, Any?>) -> Unit
+) {
+    ElevatedButton(
+        onClick = { onActionNavigate(action.route.orEmpty(), action.params) }
+    ) {
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp)
+        )
+        Spacer(modifier = Modifier.size(8.dp))
+        Text(readableNavigationAction(action.route.orEmpty()))
+    }
+}
+
+@Composable
+private fun AgentMessageContent(
+    message: AgentMessage,
+    color: Color
+) {
+    val blocks = message.blocks
+    if (blocks.isEmpty()) {
+        Text(
+            text = message.content,
+            style = MaterialTheme.typography.bodyLarge,
+            color = color
+        )
+        return
+    }
+
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        blocks.forEach { block ->
+            AgentReplyBlockView(block = block, color = color)
+        }
+    }
+}
+
+@Composable
+private fun AgentReplyBlockView(
+    block: AgentReplyBlock,
+    color: Color
+) {
+    when (block.type) {
+        "bullet" -> Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            block.items.forEach { item ->
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(text = "•", color = color, style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        text = item,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = color,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+        }
+
+        "numbered" -> Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            block.items.forEachIndexed { index, item ->
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(text = "${index + 1}.", color = color, style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        text = item,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = color,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+        }
+
+        else -> {
+            val text = block.text?.takeIf { it.isNotBlank() } ?: block.items.joinToString("\n")
+            if (text.isNotBlank()) {
+                Text(
+                    text = text,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = color
+                )
             }
         }
     }
@@ -517,7 +630,7 @@ private fun AgentResultBlock(
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.size(8.dp))
-                Text("Open related page")
+                Text("打开相关页面")
             }
         }
     }
@@ -565,7 +678,7 @@ private fun AgentStudyRoomItems(
                                     )
                                 }
                             ) {
-                                Text("View seats")
+                                Text("查看座位")
                             }
                             ElevatedButton(
                                 onClick = {
@@ -578,7 +691,7 @@ private fun AgentStudyRoomItems(
                                     )
                                 }
                             ) {
-                                Text("Open details")
+                                Text("查看详情")
                             }
                         }
                     }
@@ -626,7 +739,7 @@ private fun AgentStudyRoomDetail(
                         )
                     }
                 ) {
-                    Text("View seats for this room")
+                    Text("查看该自习室座位")
                 }
             }
         }
@@ -638,17 +751,18 @@ private fun AgentSeatItems(result: AgentToolExecutionResult) {
     val items = result.data.listOfMaps("items")
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         items.take(8).forEach { seat ->
+            val row = seat["rowNum"]?.toString()
+            val col = seat["colNum"]?.toString()
+            val label = seat.stringValue("seatNumber")?.takeIf { it.isNotBlank() }
+                ?: listOfNotNull(row, col).joinToString("-")
+            val status = seat.stringValue("status")?.lowercase().orEmpty()
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                val row = seat["rowNum"]?.toString()
-                val col = seat["colNum"]?.toString()
-                val label = seat.stringValue("seatNumber")?.takeIf { it.isNotBlank() }
-                    ?: listOfNotNull(row, col).joinToString("-")
-                val status = seat.stringValue("status")?.lowercase().orEmpty()
                 Text(
-                    text = if (label.isBlank()) "Seat" else "Seat $label",
+                    text = if (label.isBlank()) "??" else "?? $label",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -660,6 +774,13 @@ private fun AgentSeatItems(result: AgentToolExecutionResult) {
                         "booked", "occupied", "in_use" -> MaterialTheme.colorScheme.error
                         else -> MaterialTheme.colorScheme.onSurfaceVariant
                     }
+                )
+            }
+            if (!row.isNullOrBlank() && !col.isNullOrBlank() && label != "$row-$col") {
+                Text(
+                    text = "${row}?${col}?",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -688,7 +809,7 @@ private fun AgentReservationItems(
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
-                        text = "Seat ${order.stringValue("seatPosition").orEmpty()}",
+                        text = "座位 ${order.stringValue("seatNumber") ?: order.stringValue("seatPosition").orEmpty()}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -704,7 +825,7 @@ private fun AgentReservationItems(
             ElevatedButton(
                 onClick = { onActionNavigate("reservation_list", emptyMap()) }
             ) {
-                Text("Open full order list")
+                Text("查看完整预约列表")
             }
         }
     }
@@ -714,12 +835,12 @@ private fun AgentReservationItems(
 private fun AgentRuleItems(result: AgentToolExecutionResult) {
     val data = result.data
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        AgentRuleLine("Advance booking", "${data["maxAdvanceDays"] ?: "-"} days")
-        AgentRuleLine("Daily reservations", "${data["maxDailyReservations"] ?: "-"} times")
-        AgentRuleLine("Max duration", "${data["maxDurationHours"] ?: "-"} hours")
-        AgentRuleLine("Min duration", "${data["minDurationMinutes"] ?: "-"} minutes")
-        AgentRuleLine("Cancel before", "${data["cancellationDeadlineMinutes"] ?: "-"} minutes")
-        AgentRuleLine("No-show penalty", "${data["noShowPenalty"] ?: "-"} points")
+        AgentRuleLine("可提前预约", "${data["maxAdvanceDays"] ?: "-"} 天")
+        AgentRuleLine("每日预约次数", "${data["maxDailyReservations"] ?: "-"} 次")
+        AgentRuleLine("最长时长", "${data["maxDurationHours"] ?: "-"} 小时")
+        AgentRuleLine("最短时长", "${data["minDurationMinutes"] ?: "-"} 分钟")
+        AgentRuleLine("最晚取消", "开始前 ${data["cancellationDeadlineMinutes"] ?: "-"} 分钟")
+        AgentRuleLine("爽约扣分", "${data["noShowPenalty"] ?: "-"} 分")
     }
 }
 
@@ -754,10 +875,21 @@ private fun AgentJsonFallback(result: AgentToolExecutionResult) {
 
 private fun readableSeatStatus(status: String): String {
     return when (status) {
-        "available", "free", "idle", "1" -> "Available"
-        "booked" -> "Booked"
-        "occupied", "in_use" -> "In use"
+        "available", "free", "idle", "1" -> "可用"
+        "booked" -> "已预约"
+        "occupied", "in_use" -> "使用中"
         else -> status
+    }
+}
+
+private fun readableNavigationAction(route: String): String {
+    return when (route) {
+        "study_record" -> "打开学习记录"
+        "todo_list" -> "打开学习待办"
+        "studyroom_list" -> "打开自习室列表"
+        "reservation_list" -> "打开预约列表"
+        "reservation_rules" -> "打开预约规则"
+        else -> "打开相关页面"
     }
 }
 

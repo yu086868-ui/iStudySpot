@@ -20,6 +20,7 @@ class MainRepository {
 
     suspend fun getStudyRoomSeats(id: Long, status: String? = null, type: String? = null) =
         apiManager.getStudyRoomSeats(id, status, type)
+    suspend fun getStudyRoomSeatLayout(id: Long) = apiManager.getStudyRoomSeatLayout(id)
     suspend fun getSeatDetail(id: Long) = apiManager.getSeatDetail(id)
 
     suspend fun createOrder(studyRoomId: Long, seatId: Long, startTime: String, endTime: String, bookingType: String) =

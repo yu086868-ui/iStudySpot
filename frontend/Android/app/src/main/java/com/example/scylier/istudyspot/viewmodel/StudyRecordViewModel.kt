@@ -43,12 +43,15 @@ class StudyRecordViewModel(
                             totalStudyHours = (data["totalHours"] as? Number)?.toInt() ?: result.totalStudyHours,
                             streakDays = (data["streak"] as? Number)?.toInt() ?: result.streakDays,
                             avgStudyDuration = (data["avgDuration"] as? Number)?.toDouble() ?: result.avgStudyDuration,
-                            favoriteSeat = (data["favoriteSeat"] as? String)?.takeIf { it.isNotBlank() } ?: result.favoriteSeat,
-                            peakTime = (data["peakTime"] as? String)?.takeIf { it.isNotBlank() } ?: result.peakTime,
+                            favoriteSeat = (data["favoriteSeat"] as? String)?.takeIf { it.isNotBlank() }
+                                ?: result.favoriteSeat,
+                            peakTime = (data["peakTime"] as? String)?.takeIf { it.isNotBlank() }
+                                ?: result.peakTime,
                             weekStudyHours = (data["weekHours"] as? Number)?.toInt() ?: result.weekStudyHours,
                             monthStudyHours = (data["monthHours"] as? Number)?.toInt() ?: result.monthStudyHours
                         )
                     }
+
                     is ApiResponse.Error -> {
                         errorMessage = response.message
                     }
@@ -60,6 +63,7 @@ class StudyRecordViewModel(
                             totalBookings = ordersResponse.data?.total ?: result.totalBookings
                         )
                     }
+
                     is ApiResponse.Error -> Unit
                 }
 
@@ -84,7 +88,7 @@ class StudyRecordViewModel(
             totalBookings = 23,
             streakDays = 6,
             avgStudyDuration = 2.8,
-            favoriteSeat = "A区 12号",
+            favoriteSeat = "A12",
             peakTime = "14:00-17:00",
             isLoading = false
         )

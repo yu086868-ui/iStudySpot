@@ -223,7 +223,8 @@ class ApiManager(
                             colNum = col,
                             status = if ((row + col) % 3 == 0) "booked" else if ((row + col) % 4 == 0) "in_use" else "available",
                             seatType = if (col == 1) 2 else 1,
-                            pricePerHour = if (col == 1) 15.0 else 10.0
+                            pricePerHour = if (col == 1) 15.0 else 10.0,
+                            seatNumber = "${('A'.code + row - 1).toChar()}${col.toString().padStart(2, '0')}"
                         )
                     )
                 }
@@ -237,6 +238,72 @@ class ApiManager(
             )
         }
         apiService.getStudyRoomSeats(id, status, type)
+    }
+
+    suspend fun getStudyRoomSeatLayout(id: Long) = executeRequest {
+        if (useMockData) {
+            val seats = listOf(
+                com.example.scylier.istudyspot.models.studyroom.SeatInfo(
+                    id = 101L, rowNum = 3, colNum = 1, status = "available", seatType = 1, pricePerHour = 15.0,
+                    seatNumber = "A01", hasPower = 1, hasLamp = 1, isWindow = 1
+                ),
+                com.example.scylier.istudyspot.models.studyroom.SeatInfo(
+                    id = 102L, rowNum = 3, colNum = 2, status = "booked", seatType = 1, pricePerHour = 15.0,
+                    seatNumber = "A02", hasPower = 1, hasLamp = 1, isWindow = 1
+                ),
+                com.example.scylier.istudyspot.models.studyroom.SeatInfo(
+                    id = 103L, rowNum = 6, colNum = 6, status = "available", seatType = 2, pricePerHour = 20.0,
+                    seatNumber = "B01", hasPower = 1, hasLamp = 0, isWindow = 0
+                )
+            )
+            val items = listOf(
+                com.example.scylier.istudyspot.models.studyroom.SeatLayoutItemInfo(
+                    id = 1L, roomId = id, itemType = "front_desk", itemKey = "front-desk", label = "前台",
+                    rowNum = 1, colNum = 1, widthUnits = 2, heightUnits = 1, zIndex = 10
+                ),
+                com.example.scylier.istudyspot.models.studyroom.SeatLayoutItemInfo(
+                    id = 2L, roomId = id, itemType = "aisle", itemKey = "main-aisle", label = "走道",
+                    rowNum = 2, colNum = 4, widthUnits = 2, heightUnits = 6, zIndex = 1
+                ),
+                com.example.scylier.istudyspot.models.studyroom.SeatLayoutItemInfo(
+                    id = 3L, roomId = id, itemType = "table", itemKey = "table-a", label = "共享长桌A",
+                    rowNum = 3, colNum = 1, widthUnits = 3, heightUnits = 2, zIndex = 4
+                ),
+                com.example.scylier.istudyspot.models.studyroom.SeatLayoutItemInfo(
+                    id = 4L, roomId = id, itemType = "window", itemKey = "window", label = "落地窗",
+                    rowNum = 2, colNum = 1, widthUnits = 3, heightUnits = 1, zIndex = 5
+                ),
+                com.example.scylier.istudyspot.models.studyroom.SeatLayoutItemInfo(
+                    id = 5L, roomId = id, seatId = 101L, itemType = "seat", itemKey = "seat-101", label = "A01",
+                    rowNum = 3, colNum = 1, widthUnits = 1, heightUnits = 1, zIndex = 20
+                ),
+                com.example.scylier.istudyspot.models.studyroom.SeatLayoutItemInfo(
+                    id = 6L, roomId = id, seatId = 102L, itemType = "seat", itemKey = "seat-102", label = "A02",
+                    rowNum = 3, colNum = 2, widthUnits = 1, heightUnits = 1, zIndex = 20
+                ),
+                com.example.scylier.istudyspot.models.studyroom.SeatLayoutItemInfo(
+                    id = 7L, roomId = id, seatId = 103L, itemType = "seat", itemKey = "seat-103", label = "B01",
+                    rowNum = 6, colNum = 6, widthUnits = 1, heightUnits = 1, zIndex = 20
+                )
+            )
+            return@executeRequest Response.success(
+                BaseResponse(
+                    code = 200,
+                    message = "获取成功",
+                    data = com.example.scylier.istudyspot.models.studyroom.SeatLayoutData(
+                        studyRoomId = id,
+                        studyRoomName = "复杂布局自习室",
+                        rows = 8,
+                        cols = 9,
+                        cellSize = 40,
+                        layoutMode = "hybrid",
+                        seats = seats,
+                        items = items
+                    )
+                )
+            )
+        }
+        apiService.getStudyRoomSeatLayout(id)
     }
 
     suspend fun getSeatDetail(id: Long) = executeRequest {
@@ -253,6 +320,7 @@ class ApiManager(
                         status = "available",
                         seatType = 1,
                         pricePerHour = 10.0,
+                        seatNumber = "A01",
                         description = "Standard seat"
                     )
                 )
@@ -290,23 +358,25 @@ class ApiManager(
                     id = 1L,
                     seatId = 1L,
                     studyRoomName = "鑷範瀹?",
-                    seatPosition = "1-1",
+                    seatPosition = "A01",
                     startTime = "2026-10-01T10:00:00",
                     endTime = "2026-10-01T12:00:00",
                     totalPrice = 20.0,
                     status = "pending",
-                    createdAt = "2026-10-01T09:00:00"
+                    createdAt = "2026-10-01T09:00:00",
+                    seatNumber = "A01"
                 ),
                 com.example.scylier.istudyspot.models.order.OrderItem(
                     id = 2L,
                     seatId = 2L,
                     studyRoomName = "鑷範瀹?",
-                    seatPosition = "2-3",
+                    seatPosition = "B03",
                     startTime = "2026-10-02T14:00:00",
                     endTime = "2026-10-02T16:00:00",
                     totalPrice = 20.0,
                     status = "paid",
-                    createdAt = "2026-10-02T13:00:00"
+                    createdAt = "2026-10-02T13:00:00",
+                    seatNumber = "B03"
                 )
             )
             return@executeRequest Response.success(
@@ -334,13 +404,14 @@ class ApiManager(
                         seatId = 1L,
                         userId = 1L,
                         studyRoomName = "鑷範瀹?",
-                        seatPosition = "1-1",
+                        seatPosition = "A01",
                         startTime = "2026-10-01T10:00:00",
                         endTime = "2026-10-01T12:00:00",
                         totalPrice = 20.0,
                         status = "paid",
                         createdAt = "2026-10-01T09:00:00",
-                        updatedAt = "2026-10-01T09:00:00"
+                        updatedAt = "2026-10-01T09:00:00",
+                        seatNumber = "A01"
                     )
                 )
             )
@@ -646,7 +717,7 @@ class ApiManager(
                 BaseResponse(
                     code = 200,
                     message = "鑾峰彇鎴愬姛",
-                    data = mapOf("id" to id, "title" to "Reservation rules", "content" to "Please follow reservation rules.", "category" to "booking")
+                    data = mapOf("id" to id, "title" to "预约规则", "content" to "请遵守预约规则。", "category" to "booking")
                 )
             )
         }
@@ -660,7 +731,7 @@ class ApiManager(
                     code = 200,
                     message = "鑾峰彇鎴愬姛",
                     data = listOf(
-                        mapOf("id" to 1L, "name" to "瀛︿範鍔╂墜", "persona" to "friendly", "speaking_style" to "casual")
+                        mapOf("id" to 1L, "name" to "学习助手", "persona" to "友好、谨慎", "speaking_style" to "简洁实用")
                     )
                 )
             )
@@ -676,7 +747,7 @@ class ApiManager(
                         code = 200,
                         message = "success",
                         data = mapOf(
-                            "reply" to "This is a mock AI assistant reply.",
+                            "reply" to "这是智能助手的模拟回复。",
                             "session_id" to (sessionId ?: "session_${System.currentTimeMillis()}")
                         )
                     )
@@ -705,32 +776,32 @@ class ApiManager(
                     data = listOf(
                         AgentToolDefinition(
                             name = "list_study_rooms",
-                            title = "Study rooms",
-                            description = "View available study rooms",
+                            title = "自习室列表",
+                            description = "查看可用自习室",
                             requiresAuth = true,
                             tags = listOf("studyroom", "read"),
                             inputSchema = mapOf("keyword" to "string?")
                         ),
                         AgentToolDefinition(
                             name = "list_room_seats",
-                            title = "搴т綅鍒楄〃",
-                            description = "View seats for a selected study room",
+                            title = "座位列表",
+                            description = "查看指定自习室的座位",
                             requiresAuth = true,
                             tags = listOf("seat", "read"),
                             inputSchema = mapOf("studyRoomId" to "number")
                         ),
                         AgentToolDefinition(
                             name = "get_my_reservations",
-                            title = "鎴戠殑棰勭害",
-                            description = "鏌ョ湅褰撳墠鐧诲綍鐢ㄦ埛棰勭害",
+                            title = "我的预约",
+                            description = "查看当前登录用户的预约",
                             requiresAuth = true,
                             tags = listOf("reservation", "read"),
                             inputSchema = emptyMap()
                         ),
                         AgentToolDefinition(
                             name = "get_reservation_rules",
-                            title = "棰勭害瑙勫垯",
-                            description = "View reservation and cancellation rules",
+                            title = "预约规则",
+                            description = "查看预约与取消规则",
                             requiresAuth = true,
                             tags = listOf("rules", "read"),
                             inputSchema = emptyMap()
@@ -749,7 +820,7 @@ class ApiManager(
         if (useMockData) {
             val toolResult = AgentToolExecutionResult(
                 tool = "get_reservation_rules",
-                summary = "Reservation rules loaded",
+                summary = "已加载预约规则",
                 referenceScope = "response",
                 data = mapOf(
                     "maxAdvanceDays" to 7,
@@ -765,15 +836,22 @@ class ApiManager(
                     params = emptyMap()
                 )
             )
+            val isRuleQuery = message.contains("规则") || message.contains("rule", ignoreCase = true)
+            val reply = if (isRuleQuery) {
+                "已找到预约规则。你最多可以提前 7 天预约。"
+            } else {
+                "我可以帮你查询自习室、座位、预约记录和预约规则。"
+            }
             return@executeRequest Response.success(
                 BaseResponse(
                     code = 200,
                     message = "success",
                     data = AgentChatResponse(
                         sessionId = sessionId ?: "agent_session_${System.currentTimeMillis()}",
-                        reply = "I found the reservation rules. You can reserve up to 7 days in advance.",
-                        toolResult = if (message.contains("瑙勫垯")) toolResult else null,
-                        suggestedPrompts = listOf("鏌ョ湅鎴戠殑棰勭害", "鏈夊摢浜涜嚜涔犲鍙€夛紵", "鐪嬬湅 1 鍙疯嚜涔犲搴т綅")
+                        reply = reply,
+                        toolResult = if (isRuleQuery) toolResult else null,
+                        toolResults = if (isRuleQuery) listOf(toolResult) else emptyList(),
+                        suggestedPrompts = listOf("查看我的预约", "查看可用自习室", "查看 1 号自习室的座位")
                     )
                 )
             )
@@ -789,22 +867,22 @@ class ApiManager(
             val result = when (tool) {
                 "list_study_rooms" -> AgentToolExecutionResult(
                     tool = tool,
-                    summary = "鎵惧埌 2 涓嚜涔犲",
+                    summary = "找到 2 间自习室",
                     referenceScope = "response",
                     data = mapOf(
                         "items" to listOf(
                             mapOf(
                                 "id" to 1L,
-                                "name" to "闈欓煶鑷範瀹?A",
-                                "address" to "Library 3F",
+                                "name" to "安静自习室 A",
+                                "address" to "图书馆 3 层",
                                 "openTime" to "08:00",
                                 "closeTime" to "22:00",
                                 "status" to 1
                             ),
                             mapOf(
                                 "id" to 2L,
-                                "name" to "涓寸獥鑷範瀹?B",
-                                "address" to "Library 4F",
+                                "name" to "临窗自习室 B",
+                                "address" to "图书馆 4 层",
                                 "openTime" to "09:00",
                                 "closeTime" to "23:00",
                                 "status" to 1
@@ -822,13 +900,13 @@ class ApiManager(
                 )
                 "list_room_seats" -> AgentToolExecutionResult(
                     tool = tool,
-                    summary = "Seats loaded",
+                    summary = "已加载座位",
                     referenceScope = "response",
                     data = mapOf(
                         "studyRoomId" to (arguments["studyRoomId"] ?: 1L),
                         "items" to listOf(
-                            mapOf("id" to 11L, "seatNumber" to "A-01", "rowNum" to 1, "colNum" to 1, "status" to "available"),
-                            mapOf("id" to 12L, "seatNumber" to "A-02", "rowNum" to 1, "colNum" to 2, "status" to "booked")
+                            mapOf("id" to 11L, "seatNumber" to "A01", "rowNum" to 1, "colNum" to 1, "status" to "available"),
+                            mapOf("id" to 12L, "seatNumber" to "A02", "rowNum" to 1, "colNum" to 2, "status" to "booked")
                         )
                     ),
                     uiAction = com.example.scylier.istudyspot.models.agent.AgentUiAction(
@@ -839,15 +917,16 @@ class ApiManager(
                 )
                 "get_my_reservations" -> AgentToolExecutionResult(
                     tool = tool,
-                    summary = "Reservations loaded",
+                    summary = "已加载预约记录",
                     referenceScope = "response",
                     data = mapOf(
                         "items" to listOf(
                             mapOf(
                                 "reference" to "ORDER_REF_1",
                                 "status" to "paid",
-                                "roomName" to "闈欓煶鑷範瀹?A",
-                                "seatPosition" to "1-3",
+                                "roomName" to "安静自习室 A",
+                                "seatPosition" to "A03",
+                                "seatNumber" to "A03",
                                 "timeRange" to "2026-06-09 19:00:00 - 2026-06-09 21:00:00",
                                 "canCancel" to true,
                                 "canRenew" to false
@@ -865,17 +944,18 @@ class ApiManager(
                     references = mapOf(
                         "ORDER_REF_1" to mapOf(
                             "type" to "reservation",
-                            "display" to mapOf(
-                                "status" to "paid",
-                                "roomName" to "闈欓煶鑷範瀹?A",
-                                "seatPosition" to "1-3"
-                            )
+                        "display" to mapOf(
+                            "status" to "paid",
+                            "roomName" to "安静自习室 A",
+                            "seatPosition" to "A03",
+                            "seatNumber" to "A03"
                         )
                     )
                 )
+                )
                 else -> AgentToolExecutionResult(
                     tool = "get_reservation_rules",
-                    summary = "Reservation rules loaded",
+                    summary = "已加载预约规则",
                     referenceScope = "response",
                     data = mapOf(
                         "maxAdvanceDays" to 7,

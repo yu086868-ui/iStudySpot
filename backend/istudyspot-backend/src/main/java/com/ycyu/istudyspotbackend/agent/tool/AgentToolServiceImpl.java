@@ -38,8 +38,8 @@ public class AgentToolServiceImpl implements AgentToolService {
         List<AgentToolDefinition> tools = new ArrayList<>();
         tools.add(new AgentToolDefinition(
                 "list_study_rooms",
-                "List study rooms",
-                "Return a safe list of study rooms for search and filtering.",
+                "自习室列表",
+                "查询可用于搜索和筛选的自习室列表。",
                 true,
                 List.of("studyroom", "read"),
                 mapOf(
@@ -51,16 +51,16 @@ public class AgentToolServiceImpl implements AgentToolService {
         ));
         tools.add(new AgentToolDefinition(
                 "get_study_room_detail",
-                "Get study room detail",
-                "Return safe details for one study room.",
+                "自习室详情",
+                "查询单个自习室的安全详情。",
                 true,
                 List.of("studyroom", "read"),
                 mapOf("studyRoomId", "number")
         ));
         tools.add(new AgentToolDefinition(
                 "list_room_seats",
-                "List room seats",
-                "Return seats for one study room, optionally filtered by status and type.",
+                "座位列表",
+                "查询指定自习室的座位，可按状态和类型筛选。",
                 true,
                 List.of("seat", "read"),
                 mapOf(
@@ -71,8 +71,8 @@ public class AgentToolServiceImpl implements AgentToolService {
         ));
         tools.add(new AgentToolDefinition(
                 "get_my_reservations",
-                "Get my reservations",
-                "Return a redacted reservation view for the authenticated user.",
+                "我的预约",
+                "查询当前登录用户的脱敏预约记录。",
                 true,
                 List.of("reservation", "read", "sensitive"),
                 mapOf(
@@ -83,8 +83,8 @@ public class AgentToolServiceImpl implements AgentToolService {
         ));
         tools.add(new AgentToolDefinition(
                 "get_reservation_rules",
-                "Get reservation rules",
-                "Return reservation limits, cancellation rules, and no-show penalties.",
+                "预约规则",
+                "查询预约限制、取消规则和爽约扣分。",
                 true,
                 List.of("reservation", "read", "rules"),
                 Map.of()
@@ -121,7 +121,7 @@ public class AgentToolServiceImpl implements AgentToolService {
 
         return new AgentToolExecutionResult(
                 "list_study_rooms",
-                "Loaded " + safeRooms.size() + " study rooms.",
+                "已加载 " + safeRooms.size() + " 间自习室。",
                 mapOf(
                         "items", safeRooms,
                         "page", result.get("page"),
@@ -144,7 +144,7 @@ public class AgentToolServiceImpl implements AgentToolService {
 
         return new AgentToolExecutionResult(
                 "get_study_room_detail",
-                "Loaded study room detail: " + room.getName(),
+                "已加载自习室详情：" + room.getName(),
                 mapOf("studyRoom", safeRoom),
                 mapOf(
                         "type", "navigate",
@@ -167,7 +167,7 @@ public class AgentToolServiceImpl implements AgentToolService {
 
         return new AgentToolExecutionResult(
                 "list_room_seats",
-                "Loaded " + safeSeats.size() + " seats.",
+                "已加载 " + safeSeats.size() + " 个座位。",
                 mapOf(
                         "studyRoomId", studyRoomId,
                         "items", safeSeats,
@@ -216,7 +216,7 @@ public class AgentToolServiceImpl implements AgentToolService {
 
         return new AgentToolExecutionResult(
                 "get_my_reservations",
-                "Loaded " + safeOrders.size() + " reservation records.",
+                "已加载 " + safeOrders.size() + " 条预约记录。",
                 mapOf(
                         "items", safeOrders,
                         "page", result.get("page"),
@@ -235,7 +235,7 @@ public class AgentToolServiceImpl implements AgentToolService {
     private AgentToolExecutionResult getReservationRules() {
         return new AgentToolExecutionResult(
                 "get_reservation_rules",
-                "Loaded reservation rules.",
+                "已加载预约规则。",
                 reservationRulesProvider.getRules(),
                 mapOf(
                         "type", "navigate",

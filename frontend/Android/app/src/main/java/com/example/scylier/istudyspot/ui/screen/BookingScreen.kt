@@ -55,7 +55,7 @@ import java.util.TimeZone
 @Composable
 fun BookingScreen(
     studyRoomName: String,
-    seatPosition: String,
+    seatLabel: String,
     pricePerHour: Double,
     onBook: (String, String, String) -> Unit,
     onBack: () -> Unit = {}
@@ -259,7 +259,7 @@ fun BookingScreen(
                 Spacer(modifier = Modifier.height(12.dp))
                 BookingInfoRow(label = "自习室", value = studyRoomName)
                 Spacer(modifier = Modifier.height(8.dp))
-                BookingInfoRow(label = "座位", value = seatPosition)
+                BookingInfoRow(label = "座位编号", value = seatLabel)
                 Spacer(modifier = Modifier.height(8.dp))
                 BookingInfoRow(
                     label = "单价",
