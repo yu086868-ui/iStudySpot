@@ -78,7 +78,7 @@
 .popup-badge-text {
   font-size: 26rpx;
   color: #FFFFFF;
-  font-weight: bold;
+  font-weight: 700;
   letter-spacing: 2rpx;
 }
 
@@ -125,6 +125,21 @@
   padding: 24rpx 28rpx;
   max-height: 400rpx;
   overflow: hidden;
+}
+
+.streaming-cursor {
+  display: inline-block;
+  width: 4rpx;
+  height: 32rpx;
+  background: currentColor;
+  animation: cursor-blink 1s step-end infinite;
+  vertical-align: middle;
+  margin-left: 4rpx;
+}
+
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
 
 .popup-md-area .markdown-card {
@@ -176,15 +191,15 @@
 }
 
 .action-btn {
-  background: #5CB885;
+  background: #6EA88A;
   border-radius: 48rpx;
   padding: 20rpx 80rpx;
-  box-shadow: 0 8rpx 24rpx rgba(92, 184, 133, 0.3);
+  box-shadow: 0 4rpx 20rpx rgba(110, 168, 138, 0.2);
 }
 
 .action-btn-text {
   font-size: 30rpx;
-  font-weight: bold;
+  font-weight: 600;
   color: #FFFFFF;
 }
 
@@ -206,6 +221,12 @@
 .popup-card-SSR {
   border: 6rpx solid #ab47bc;
   box-shadow: 0 8rpx 48rpx rgba(171, 71, 188, 0.35);
+  animation: ssr-popup-glow 3s ease-in-out infinite;
+}
+
+@keyframes ssr-popup-glow {
+  0%, 100% { box-shadow: 0 8rpx 48rpx rgba(171, 71, 188, 0.35); }
+  50% { box-shadow: 0 8rpx 56rpx rgba(171, 71, 188, 0.5); }
 }
 
 .popup-card-UR {

@@ -1,81 +1,71 @@
+/* ===== 底部导航栏容器 ===== */
 .tab-bar {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 120rpx;
+  padding-left: 32rpx;
+  padding-right: 32rpx;
   background: #FFFFFF;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-around;
   padding-bottom: env(safe-area-inset-bottom);
-  box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.05);
+  z-index: 999;
+  box-shadow: 0 -4rpx 32rpx rgba(0, 0, 0, 0.15);
 }
 
+/* ===== 顶部细微分隔线 ===== */
+.tab-bar-border {
+  display: none;
+}
+
+/* ===== 单个 Tab 项 ===== */
 .tab-item {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   flex: 1;
-  height: 100%;
-}
-
-.tab-item.active .tab-text {
-  color: #5CB885;
-}
-
-.tab-icon {
-  width: 48rpx;
-  height: 48rpx;
-  margin-bottom: 8rpx;
-}
-
-.tab-icon.diamond {
-  width: 44rpx;
-  height: 44rpx;
-  background: #5CB885;
-  transform: rotate(45deg);
-  border-radius: 8rpx;
-}
-
-.tab-icon.circle {
-  width: 48rpx;
-  height: 48rpx;
-  background: #5CB885;
-  border-radius: 50%;
-}
-
-.tab-icon.triangle {
-  width: 0;
-  height: 0;
-  border-left: 28rpx solid transparent;
-  border-right: 28rpx solid transparent;
-  border-bottom: 48rpx solid #5CB885;
-  background: transparent;
-}
-
-.tab-icon.card-icon {
-  width: 40rpx;
-  height: 48rpx;
-  background: #5CB885;
-  border-radius: 6rpx;
+  height: 120rpx;
   position: relative;
 }
 
-.tab-icon.card-icon::after {
-  content: '';
-  position: absolute;
-  top: 12rpx;
-  left: 8rpx;
-  right: 8rpx;
-  height: 4rpx;
-  background: #FFFFFF;
-  border-radius: 2rpx;
+/* ===== 图标包裹层（选中时作为背景指示器）===== */
+.tab-icon-wrap {
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16rpx;
+  margin-bottom: 6rpx;
+  transition: background 0.2s ease;
 }
 
+/* 选中状态：图标包裹层背景 */
+.tab-item.active .tab-icon-wrap {
+  background: #F4FAF6;
+}
+
+/* ===== 图标样式 ===== */
+.tab-icon {
+  width: 48rpx;
+  height: 48rpx;
+}
+
+/* ===== 文字样式 ===== */
 .tab-text {
-  font-size: 24rpx;
-  color: #999999;
+  font-size: 22rpx;
+  color: #B8B8BD;
+  line-height: 1.4;
+  letter-spacing: 0.5rpx;
+  font-weight: 400;
+}
+
+/* 选中状态：文字颜色与字重 */
+.tab-item.active .tab-text {
+  color: #60B27A;
+  font-weight: 600;
 }

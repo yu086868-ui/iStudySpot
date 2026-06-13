@@ -1,9 +1,8 @@
 page {
   height: 100vh;
-  background: #FFFFFF;
+  background-color: transparent;
   display: flex;
   flex-direction: column;
-  padding-top: 0;
 }
 
 .scroll-content {
@@ -16,32 +15,48 @@ page {
   padding-bottom: 180rpx;
 }
 
+/* 页面标题 */
+.page-hero {
+  padding-top: 40rpx;
+  margin-bottom: 32rpx;
+}
+
+.page-hero-title {
+  font-size: 52rpx;
+  font-weight: 700;
+  color: #1D1D1F;
+  letter-spacing: -0.5rpx;
+  display: block;
+}
+
 .rule-card {
-  background: #E8F8EE;
-  border-radius: 16rpx;
+  background: #FFFFFF;
+  border-radius: 20rpx;
   padding: 32rpx;
   margin-bottom: 32rpx;
+  box-shadow: 0 2rpx 16rpx rgba(0, 0, 0, 0.04);
 }
 
 .rule-header {
   display: flex;
   flex-direction: row;
   align-items: center;
-  margin-bottom: 24rpx;
+  margin-bottom: 28rpx;
 }
 
 .rule-icon-dot {
-  width: 12rpx;
-  height: 12rpx;
-  border-radius: 6rpx;
-  background: #5CB885;
-  margin-right: 12rpx;
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 5rpx;
+  background: #6EA88A;
+  margin-right: 14rpx;
 }
 
 .rule-title {
   font-size: 32rpx;
-  font-weight: bold;
-  color: #000000;
+  font-weight: 600;
+  color: #1D1D1F;
+  letter-spacing: 0.5rpx;
 }
 
 .rule-content {
@@ -52,7 +67,7 @@ page {
 .rule-item {
   margin-bottom: 24rpx;
   padding-bottom: 24rpx;
-  border-bottom: 1rpx solid rgba(0, 0, 0, 0.06);
+  border-bottom: 1rpx solid rgba(0, 0, 0, 0.05);
 }
 
 .rule-item:last-child {
@@ -63,14 +78,14 @@ page {
 
 .rule-item-title {
   font-size: 30rpx;
-  font-weight: bold;
-  color: #333333;
+  font-weight: 600;
+  color: #1D1D1F;
   margin-bottom: 12rpx;
 }
 
 .rule-text {
   font-size: 28rpx;
-  color: #555555;
+  color: #6E6E73;
   line-height: 1.8;
   margin-bottom: 4rpx;
 }
@@ -83,29 +98,32 @@ page {
   display: flex;
   flex-direction: row;
   align-items: center;
-  margin-bottom: 24rpx;
+  margin-bottom: 20rpx;
+  padding-left: 4rpx;
 }
 
 .notice-icon-dot {
-  width: 12rpx;
-  height: 12rpx;
-  border-radius: 6rpx;
-  background: #E8A84C;
-  margin-right: 12rpx;
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 5rpx;
+  background: #C78D2E;
+  margin-right: 14rpx;
 }
 
 .notice-section-title {
   font-size: 32rpx;
-  font-weight: bold;
-  color: #000000;
+  font-weight: 600;
+  color: #1D1D1F;
+  letter-spacing: 0.5rpx;
 }
 
 .notice-card {
-  background: #FAFFF8;
-  border: 2rpx solid #E0E0E0;
-  border-radius: 16rpx;
+  background: #FFFFFF;
+  border: 1rpx solid rgba(0, 0, 0, 0.05);
+  border-radius: 20rpx;
   padding: 28rpx 32rpx;
-  margin-bottom: 24rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.03);
 }
 
 .notice-card-header {
@@ -118,8 +136,8 @@ page {
 
 .notice-title {
   font-size: 30rpx;
-  font-weight: bold;
-  color: #000000;
+  font-weight: 600;
+  color: #1D1D1F;
   flex: 1;
   margin-right: 16rpx;
 }
@@ -127,28 +145,29 @@ page {
 .notice-priority {
   font-size: 22rpx;
   padding: 4rpx 16rpx;
-  border-radius: 8rpx;
+  border-radius: 16rpx;
   flex-shrink: 0;
+  font-weight: 500;
 }
 
 .priority-high {
-  background: #FEE2E2;
-  color: #DC2626;
+  background: #FEF0F0;
+  color: #C0392B;
 }
 
 .priority-medium {
-  background: #FEF3C7;
-  color: #D97706;
+  background: #FFF8EE;
+  color: #C78D2E;
 }
 
 .priority-low {
-  background: #E0F2FE;
-  color: #0284C7;
+  background: #F0F4F8;
+  color: #5A7A96;
 }
 
 .notice-content {
   font-size: 28rpx;
-  color: #333333;
+  color: #1D1D1F;
   line-height: 1.7;
   margin-bottom: 16rpx;
 }
@@ -162,12 +181,12 @@ page {
 
 .notice-author {
   font-size: 24rpx;
-  color: #999999;
+  color: #86868B;
 }
 
 .notice-time {
   font-size: 24rpx;
-  color: #999999;
+  color: #86868B;
 }
 
 .empty-state {
@@ -179,5 +198,5 @@ page {
 
 .empty-text {
   font-size: 28rpx;
-  color: #999999;
+  color: #86868B;
 }

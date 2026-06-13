@@ -21,6 +21,10 @@
       <text class="motto-edit-text">修改</text>
     </view>
   </view>
+
+  <view class="tree-section">
+    <image class="tree-image" src="/assets/profile/tree.png" mode="aspectFit"></image>
+  </view>
 </view>
 
 <tab-bar currentTab="profile"></tab-bar>

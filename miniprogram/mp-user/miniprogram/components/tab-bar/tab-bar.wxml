@@ -1,18 +1,27 @@
 <view class="tab-bar">
+  <view class="tab-bar-border"></view>
   <view class="tab-item {{currentTab === 'rules' ? 'active' : ''}}" bindtap="switchToRules">
-    <view class="tab-icon diamond"></view>
+    <view class="tab-icon-wrap">
+      <image class="tab-icon" src="{{currentTab === 'rules' ? '/assets/tabbar/rule-filled.png' : '/assets/tabbar/rule-outline.png'}}" mode="aspectFit"></image>
+    </view>
     <text class="tab-text">规则公告</text>
   </view>
   <view class="tab-item {{currentTab === 'home' ? 'active' : ''}}" bindtap="switchToHome">
-    <view class="tab-icon circle"></view>
+    <view class="tab-icon-wrap">
+      <image class="tab-icon" src="{{currentTab === 'home' ? '/assets/tabbar/home-filled.png' : '/assets/tabbar/home-outline.png'}}" mode="aspectFit"></image>
+    </view>
     <text class="tab-text">首页</text>
   </view>
   <view class="tab-item {{currentTab === 'cards' ? 'active' : ''}}" bindtap="switchToCards">
-    <view class="tab-icon card-icon"></view>
+    <view class="tab-icon-wrap">
+      <image class="tab-icon" src="{{currentTab === 'cards' ? '/assets/tabbar/card-filled.png' : '/assets/tabbar/card-outline.png'}}" mode="aspectFit"></image>
+    </view>
     <text class="tab-text">卡片</text>
   </view>
   <view class="tab-item {{currentTab === 'profile' ? 'active' : ''}}" bindtap="switchToProfile">
-    <view class="tab-icon triangle"></view>
+    <view class="tab-icon-wrap">
+      <image class="tab-icon" src="{{currentTab === 'profile' ? '/assets/tabbar/user-filled.png' : '/assets/tabbar/user-outline.png'}}" mode="aspectFit"></image>
+    </view>
     <text class="tab-text">个人中心</text>
   </view>
 </view>

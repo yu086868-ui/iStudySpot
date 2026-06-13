@@ -1,4 +1,4 @@
-import type { ApiResponse } from '../typings/api';
+import type { ApiResponse, StreamCallbacks } from '../typings/api';
 import mockData, { generateCard } from './data';
 
 const ENABLE_MOCK = true;
@@ -45,6 +45,55 @@ class MockManager {
         resolve(response);
       }, 300);
     });
+  }
+
+  requestStream(
+    url: string,
+    method: string,
+    data: unknown,
+    callbacks: StreamCallbacks
+  ): () => void {
+    if (url === '/card/generate/stream' && method === 'POST') {
+      var params = (data || {}) as { userID?: string; studyDuration?: number };
+      var card = generateCard(params.userID || 'user_001', params.studyDuration || 30);
+
+      // 模拟 init 事件
+      setTimeout(function () {
+        callbacks.onInit({
+          type: 'init',
+          rarity: card.rarity,
+          themeCategory: card.themeCategory,
+          borderTheme: card.borderTheme,
+          cardTheme: card.cardTheme
+        });
+      }, 100);
+
+      // 模拟 text 事件：逐字发送
+      var markdown = card.markdown;
+      var charIndex = 0;
+      var textInterval = setInterval(function () {
+        if (charIndex < markdown.length) {
+          callbacks.onText(markdown[charIndex]);
+          charIndex++;
+        } else {
+          clearInterval(textInterval);
+          // 模拟 complete 事件
+          if (mockData && mockData.cards) {
+            mockData.cards.unshift(card);
+          }
+          callbacks.onComplete(card);
+        }
+      }, 50);
+
+      // 返回取消函数
+      return function () {
+        clearInterval(textInterval);
+      };
+    }
+
+    // 其他流式接口暂不支持
+    callbacks.onError('Mock 流式接口未实现');
+    return function () {};
   }
 
   private handleRequest<T = unknown>(url: string, method: string, data?: unknown): ApiResponse<T> {
