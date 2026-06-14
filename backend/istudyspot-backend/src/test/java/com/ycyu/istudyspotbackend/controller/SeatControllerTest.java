@@ -1,6 +1,7 @@
 package com.ycyu.istudyspotbackend.controller;
 
 import com.ycyu.istudyspotbackend.entity.Seat;
+import com.ycyu.istudyspotbackend.entity.SeatLayoutResponse;
 import com.ycyu.istudyspotbackend.service.SeatService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -85,5 +86,27 @@ public class SeatControllerTest {
 
         // 验证方法调用
         verify(seatService, times(1)).getSeatDetail(1L);
+    }
+
+    @Test
+    void testGetSeatLayout() throws Exception {
+        SeatLayoutResponse response = new SeatLayoutResponse();
+        response.setStudyRoomId(2L);
+        response.setStudyRoomName("复杂布局自习室");
+        response.setRows(8);
+        response.setCols(10);
+        response.setLayoutMode("hybrid");
+
+        when(seatService.getSeatLayout(2L)).thenReturn(response);
+
+        mockMvc.perform(get("/api/studyrooms/2/seat-layout"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.message").value("success"))
+                .andExpect(jsonPath("$.data.studyRoomId").value(2))
+                .andExpect(jsonPath("$.data.studyRoomName").value("复杂布局自习室"))
+                .andExpect(jsonPath("$.data.layoutMode").value("hybrid"));
+
+        verify(seatService, times(1)).getSeatLayout(2L);
     }
 }

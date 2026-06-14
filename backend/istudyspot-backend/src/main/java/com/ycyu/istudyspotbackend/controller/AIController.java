@@ -15,6 +15,8 @@ import java.util.UUID;
 @RequestMapping("/api")
 public class AIController {
 
+    private static final String DEFAULT_CHARACTER_ID = "customer_service";
+
     @Autowired
     private AIService aiService;
 
@@ -29,13 +31,13 @@ public class AIController {
     @PostMapping("/chat")
     public Result<?> chat(@RequestBody Map<String, String> request) {
         try {
-            String sessionId = request.get("session_id");
+            String sessionId = firstNonBlank(request, "session_id", "sessionId");
             if (sessionId == null || sessionId.isEmpty()) {
                 sessionId = UUID.randomUUID().toString();
             }
-            String characterId = request.get("character_id");
+            String characterId = firstNonBlank(request, "character_id", "characterId");
             if (characterId == null || characterId.isEmpty()) {
-                characterId = "customer_service";
+                characterId = DEFAULT_CHARACTER_ID;
             }
             String message = request.get("message");
 
@@ -54,18 +56,15 @@ public class AIController {
     @PostMapping("/chat/stream")
     public SseEmitter streamChat(@RequestBody Map<String, String> request) {
         try {
-            String sessionId = request.get("session_id");
+            String sessionId = firstNonBlank(request, "session_id", "sessionId");
             if (sessionId == null || sessionId.isEmpty()) {
                 sessionId = UUID.randomUUID().toString();
             }
-            String characterId = request.get("character_id");
+            String characterId = firstNonBlank(request, "character_id", "characterId");
             String message = request.get("message");
 
             if (characterId == null || characterId.isEmpty()) {
-                SseEmitter emitter = new SseEmitter();
-                emitter.send(SseEmitter.event().data("{\"type\": \"error\", \"message\": \"EMPTY_CHARACTER_ID\"}"));
-                emitter.complete();
-                return emitter;
+                characterId = DEFAULT_CHARACTER_ID;
             }
             if (message == null || message.isEmpty()) {
                 SseEmitter emitter = new SseEmitter();
@@ -86,5 +85,15 @@ public class AIController {
             emitter.complete();
             return emitter;
         }
+    }
+
+    private String firstNonBlank(Map<String, String> request, String... keys) {
+        for (String key : keys) {
+            String value = request.get(key);
+            if (value != null && !value.isBlank()) {
+                return value;
+            }
+        }
+        return null;
     }
 }

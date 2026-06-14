@@ -38,12 +38,54 @@ class NotificationViewModel(private val repository: MainRepository = MainReposit
         get() = _state.value.notifications.count { !it.isRead }
 
     private fun mockNotifications(): List<NotificationItem> = listOf(
-        NotificationItem("1", "预约成功", "您已成功预约A区-12号座位，预约时间：2024-01-15 14:00-17:00", "10分钟前", false, NotificationType.BOOKING),
-        NotificationItem("2", "签到提醒", "您预约的座位即将开始，请准时签到", "30分钟前", false, NotificationType.REMINDER),
-        NotificationItem("3", "系统维护通知", "系统将于今晚00:00-02:00进行维护，期间无法预约", "2小时前", true, NotificationType.SYSTEM),
-        NotificationItem("4", "优惠活动", "新春特惠：充值满100送20，活动截止至1月31日", "1天前", true, NotificationType.ACTIVITY),
-        NotificationItem("5", "预约取消", "您预约的B区-05号座位已取消", "2天前", true, NotificationType.BOOKING),
-        NotificationItem("6", "学习成就", "恭喜您！本周学习时长达到20小时，获得\"学习达人\"徽章", "3天前", true, NotificationType.ACTIVITY)
+        NotificationItem(
+            id = "1",
+            title = "预约成功",
+            content = "您已成功预约座位 A12，预约时间：2024-01-15 14:00-17:00",
+            time = "10分钟前",
+            isRead = false,
+            type = NotificationType.BOOKING
+        ),
+        NotificationItem(
+            id = "2",
+            title = "签到提醒",
+            content = "您预约的座位即将开始使用，请准时签到。",
+            time = "30分钟前",
+            isRead = false,
+            type = NotificationType.REMINDER
+        ),
+        NotificationItem(
+            id = "3",
+            title = "系统维护通知",
+            content = "系统将于今晚 00:00-02:00 进行维护，期间无法预约。",
+            time = "2小时前",
+            isRead = true,
+            type = NotificationType.SYSTEM
+        ),
+        NotificationItem(
+            id = "4",
+            title = "优惠活动",
+            content = "新春特惠：充值满 100 送 20，活动截止至 1 月 31 日。",
+            time = "1天前",
+            isRead = true,
+            type = NotificationType.ACTIVITY
+        ),
+        NotificationItem(
+            id = "5",
+            title = "预约取消",
+            content = "您预约的座位 B05 已取消。",
+            time = "2天前",
+            isRead = true,
+            type = NotificationType.BOOKING
+        ),
+        NotificationItem(
+            id = "6",
+            title = "学习成就",
+            content = "恭喜你！本周学习时长达到 20 小时，获得“学习达人”徽章。",
+            time = "3天前",
+            isRead = true,
+            type = NotificationType.ACTIVITY
+        )
     )
 
     fun loadNotifications() {
@@ -73,17 +115,30 @@ class NotificationViewModel(private val repository: MainRepository = MainReposit
                                     type = notificationType
                                 )
                             }
-                            _state.value = NotificationUiState(notifications = notifications, isLoading = false)
+                            _state.value = NotificationUiState(
+                                notifications = notifications,
+                                isLoading = false
+                            )
                         } else {
-                            _state.value = NotificationUiState(notifications = mockNotifications(), isLoading = false)
+                            _state.value = NotificationUiState(
+                                notifications = mockNotifications(),
+                                isLoading = false
+                            )
                         }
                     }
+
                     is ApiResponse.Error -> {
-                        _state.value = NotificationUiState(notifications = mockNotifications(), isLoading = false)
+                        _state.value = NotificationUiState(
+                            notifications = mockNotifications(),
+                            isLoading = false
+                        )
                     }
                 }
             } catch (e: Exception) {
-                _state.value = NotificationUiState(notifications = mockNotifications(), isLoading = false)
+                _state.value = NotificationUiState(
+                    notifications = mockNotifications(),
+                    isLoading = false
+                )
             }
         }
     }

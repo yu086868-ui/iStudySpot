@@ -9,7 +9,7 @@ public class DeepSeekConfig {
     @Value("${deepseek.api.key:sk-your-api-key}")
     private String apiKey;
 
-    @Value("${deepseek.api.url:https://api.deepseek.com/v1}")
+    @Value("${deepseek.api.url:https://api.deepseek.com}")
     private String apiUrl;
 
     public String getApiKey() {

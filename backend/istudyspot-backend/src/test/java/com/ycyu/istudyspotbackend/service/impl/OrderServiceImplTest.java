@@ -268,17 +268,19 @@ public class OrderServiceImplTest {
         seat.setPricePerHour(BigDecimal.valueOf(10.0));
         when(seatMapper.findById(1L)).thenReturn(seat);
 
-        when(orderMapper.updateStatus(1L, "in_use")).thenReturn(1);
+        when(orderMapper.updateRenew(eq(1L), any(LocalDateTime.class), any(BigDecimal.class), any(BigDecimal.class))).thenReturn(1);
 
         LocalDateTime newEndTime = LocalDateTime.now().plusHours(1);
         Map<String, Object> result = orderService.renew(1L, newEndTime);
 
         assertNotNull(result);
         assertEquals("1", result.get("orderId"));
+        assertNotNull(result.get("additionalAmount"));
+        assertNotNull(result.get("newEndTime"));
 
         verify(orderMapper, times(1)).findById(1L);
         verify(seatMapper, times(1)).findById(1L);
-        verify(orderMapper, times(1)).updateStatus(1L, "in_use");
+        verify(orderMapper, times(1)).updateRenew(eq(1L), any(LocalDateTime.class), any(BigDecimal.class), any(BigDecimal.class));
     }
 
     @Test

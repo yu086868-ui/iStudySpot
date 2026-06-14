@@ -20,7 +20,7 @@ sealed class NavRoutes {
         val seatId: Long,
         val studyRoomId: Long,
         val studyRoomName: String,
-        val seatPosition: String,
+        val seatLabel: String,
         val pricePerHour: Double
     ) : NavRoutes()
 
@@ -60,6 +60,9 @@ sealed class NavRoutes {
     data object AiChat : NavRoutes()
 
     @Serializable
+    data object Agent : NavRoutes()
+
+    @Serializable
     data class CharacterSelect(
         val characterId: String? = null,
         val characterName: String? = null,
@@ -84,4 +87,7 @@ sealed class NavRoutes {
 
     @Serializable
     data object Violation : NavRoutes()
+
+    @Serializable
+    data object TodoList : NavRoutes()
 }

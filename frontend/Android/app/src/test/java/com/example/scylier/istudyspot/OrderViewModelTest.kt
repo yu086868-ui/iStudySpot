@@ -1,11 +1,16 @@
 package com.example.scylier.istudyspot
 
 import com.example.scylier.istudyspot.models.ApiResponse
-import com.example.scylier.istudyspot.models.order.*
+import com.example.scylier.istudyspot.models.order.CancelOrderResponse
+import com.example.scylier.istudyspot.models.order.CheckinResponse
+import com.example.scylier.istudyspot.models.order.CheckoutResponse
+import com.example.scylier.istudyspot.models.order.OrderDetail
+import com.example.scylier.istudyspot.models.order.OrderItem
+import com.example.scylier.istudyspot.models.order.OrderListResponse
 import com.example.scylier.istudyspot.repository.MainRepository
-import com.example.scylier.istudyspot.viewmodel.OrderViewModel
-import com.example.scylier.istudyspot.viewmodel.OrderListUiState
 import com.example.scylier.istudyspot.viewmodel.OrderDetailUiState
+import com.example.scylier.istudyspot.viewmodel.OrderListUiState
+import com.example.scylier.istudyspot.viewmodel.OrderViewModel
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -15,7 +20,11 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -53,7 +62,7 @@ class OrderViewModelTest {
         coEvery { mockRepository.payOrder(1L) } returns
             ApiResponse.Success(200, "支付成功", mapOf("orderId" to 1L, "status" to "paid", "paymentStatus" to "success"))
         coEvery { mockRepository.getOrderDetail(1L) } returns
-            ApiResponse.Success(200, "获取成功", OrderDetail(id = 1L, seatId = 1L, userId = 1L, studyRoomName = "自习室1", seatPosition = "1-1", startTime = "2026-10-01T10:00:00", endTime = "2026-10-01T12:00:00", totalPrice = 20.0, status = "paid", createdAt = "2026-10-01T09:00:00"))
+            ApiResponse.Success(200, "获取成功", sampleOrderDetail(status = "paid"))
 
         viewModel.payOrder(1L)
 
@@ -76,7 +85,7 @@ class OrderViewModelTest {
         coEvery { mockRepository.renewOrder(1L, "2026-10-01T13:00:00") } returns
             ApiResponse.Success(200, "续时成功", mapOf("orderId" to 1L, "newEndTime" to "2026-10-01T13:00:00", "additionalAmount" to 10.0))
         coEvery { mockRepository.getOrderDetail(1L) } returns
-            ApiResponse.Success(200, "获取成功", OrderDetail(id = 1L, seatId = 1L, userId = 1L, studyRoomName = "自习室1", seatPosition = "1-1", startTime = "2026-10-01T10:00:00", endTime = "2026-10-01T13:00:00", totalPrice = 30.0, status = "in_use", createdAt = "2026-10-01T09:00:00"))
+            ApiResponse.Success(200, "获取成功", sampleOrderDetail(endTime = "2026-10-01T13:00:00", totalPrice = 30.0, status = "in_use"))
 
         viewModel.renewOrder(1L, "2026-10-01T13:00:00")
 
@@ -99,8 +108,8 @@ class OrderViewModelTest {
     @Test
     fun testLoadOrders_success() = runTest {
         val orders = listOf(
-            OrderItem(id = 1L, seatId = 1L, studyRoomName = "自习室1", seatPosition = "1-1", startTime = "2026-10-01T10:00:00", endTime = "2026-10-01T12:00:00", totalPrice = 20.0, status = "pending", createdAt = "2026-10-01T09:00:00"),
-            OrderItem(id = 2L, seatId = 2L, studyRoomName = "自习室2", seatPosition = "2-3", startTime = "2026-10-02T14:00:00", endTime = "2026-10-02T16:00:00", totalPrice = 20.0, status = "paid", createdAt = "2026-10-02T13:00:00")
+            sampleOrderItem(id = 1L, seatId = 1L, seatPosition = "A01", seatNumber = "A01", status = "pending"),
+            sampleOrderItem(id = 2L, seatId = 2L, seatPosition = "B03", seatNumber = "B03", startTime = "2026-10-02T14:00:00", endTime = "2026-10-02T16:00:00", createdAt = "2026-10-02T13:00:00", status = "paid", roomName = "自习室2")
         )
         coEvery { mockRepository.getUserOrders(any(), any(), any(), any()) } returns
             ApiResponse.Success(200, "获取成功", OrderListResponse(total = 2, list = orders))
@@ -110,6 +119,7 @@ class OrderViewModelTest {
         assertFalse(viewModel.orderListState.value.isLoading)
         assertEquals(2, viewModel.orderListState.value.orders.size)
         assertNull(viewModel.orderListState.value.error)
+        assertEquals("A01", viewModel.orderListState.value.orders.first().displaySeat)
     }
 
     @Test
@@ -126,7 +136,7 @@ class OrderViewModelTest {
 
     @Test
     fun testLoadOrderDetail_success() = runTest {
-        val detail = OrderDetail(id = 1L, seatId = 1L, userId = 1L, studyRoomName = "自习室1", seatPosition = "1-1", startTime = "2026-10-01T10:00:00", endTime = "2026-10-01T12:00:00", totalPrice = 20.0, status = "paid", createdAt = "2026-10-01T09:00:00")
+        val detail = sampleOrderDetail(status = "paid")
         coEvery { mockRepository.getOrderDetail(1L) } returns
             ApiResponse.Success(200, "获取成功", detail)
 
@@ -136,6 +146,7 @@ class OrderViewModelTest {
         assertNotNull(viewModel.orderDetailState.value.order)
         assertEquals(1L, viewModel.orderDetailState.value.order?.id)
         assertEquals("paid", viewModel.orderDetailState.value.order?.status)
+        assertEquals("A01", viewModel.orderDetailState.value.order?.displaySeat)
     }
 
     @Test
@@ -155,7 +166,7 @@ class OrderViewModelTest {
         coEvery { mockRepository.cancelOrder(1L) } returns
             ApiResponse.Success(200, "取消成功", CancelOrderResponse(id = 1L, status = "cancelled"))
         coEvery { mockRepository.getOrderDetail(1L) } returns
-            ApiResponse.Success(200, "获取成功", OrderDetail(id = 1L, seatId = 1L, userId = 1L, studyRoomName = "自习室1", seatPosition = "1-1", startTime = "2026-10-01T10:00:00", endTime = "2026-10-01T12:00:00", totalPrice = 20.0, status = "cancelled", createdAt = "2026-10-01T09:00:00"))
+            ApiResponse.Success(200, "获取成功", sampleOrderDetail(status = "cancelled"))
 
         viewModel.cancelOrder(1L)
 
@@ -177,7 +188,7 @@ class OrderViewModelTest {
         coEvery { mockRepository.checkin(1L, 1L) } returns
             ApiResponse.Success(200, "签到成功", CheckinResponse(id = 1L, checkinTime = "2026-10-01T10:00:00", status = "in_use"))
         coEvery { mockRepository.getOrderDetail(1L) } returns
-            ApiResponse.Success(200, "获取成功", OrderDetail(id = 1L, seatId = 1L, userId = 1L, studyRoomName = "自习室1", seatPosition = "1-1", startTime = "2026-10-01T10:00:00", endTime = "2026-10-01T12:00:00", totalPrice = 20.0, status = "in_use", createdAt = "2026-10-01T09:00:00"))
+            ApiResponse.Success(200, "获取成功", sampleOrderDetail(status = "in_use"))
 
         viewModel.checkin(1L)
 
@@ -189,7 +200,7 @@ class OrderViewModelTest {
         coEvery { mockRepository.checkout(1L) } returns
             ApiResponse.Success(200, "签退成功", CheckoutResponse(id = 1L, checkoutTime = "2026-10-01T12:00:00", actualDuration = 120, actualPrice = 20.0, status = "completed"))
         coEvery { mockRepository.getOrderDetail(1L) } returns
-            ApiResponse.Success(200, "获取成功", OrderDetail(id = 1L, seatId = 1L, userId = 1L, studyRoomName = "自习室1", seatPosition = "1-1", startTime = "2026-10-01T10:00:00", endTime = "2026-10-01T12:00:00", totalPrice = 20.0, status = "completed", createdAt = "2026-10-01T09:00:00"))
+            ApiResponse.Success(200, "获取成功", sampleOrderDetail(status = "completed"))
 
         viewModel.checkout(1L)
 
@@ -201,7 +212,7 @@ class OrderViewModelTest {
         coEvery { mockRepository.payOrder(1L) } returns
             ApiResponse.Success(200, "支付成功", mapOf("orderId" to 1L, "status" to "paid"))
         coEvery { mockRepository.getOrderDetail(1L) } returns
-            ApiResponse.Success(200, "获取成功", OrderDetail(id = 1L, seatId = 1L, userId = 1L, studyRoomName = "自习室1", seatPosition = "1-1", startTime = "2026-10-01T10:00:00", endTime = "2026-10-01T12:00:00", totalPrice = 20.0, status = "paid", createdAt = "2026-10-01T09:00:00"))
+            ApiResponse.Success(200, "获取成功", sampleOrderDetail(status = "paid"))
 
         viewModel.payOrder(1L)
         assertNotNull(viewModel.orderDetailState.value.actionSuccess)
@@ -233,5 +244,58 @@ class OrderViewModelTest {
         assertFalse(state.isLoading)
         assertNull(state.error)
         assertEquals("操作成功", state.actionSuccess)
+    }
+
+    private fun sampleOrderItem(
+        id: Long = 1L,
+        seatId: Long = 1L,
+        roomName: String = "自习室1",
+        seatPosition: String = "A01",
+        seatNumber: String = "A01",
+        startTime: String = "2026-10-01T10:00:00",
+        endTime: String = "2026-10-01T12:00:00",
+        totalPrice: Double = 20.0,
+        status: String = "paid",
+        createdAt: String = "2026-10-01T09:00:00"
+    ): OrderItem {
+        return OrderItem(
+            id = id,
+            seatId = seatId,
+            studyRoomName = roomName,
+            seatPosition = seatPosition,
+            seatNumber = seatNumber,
+            startTime = startTime,
+            endTime = endTime,
+            totalPrice = totalPrice,
+            status = status,
+            createdAt = createdAt
+        )
+    }
+
+    private fun sampleOrderDetail(
+        id: Long = 1L,
+        seatId: Long = 1L,
+        roomName: String = "自习室1",
+        seatPosition: String = "A01",
+        seatNumber: String = "A01",
+        startTime: String = "2026-10-01T10:00:00",
+        endTime: String = "2026-10-01T12:00:00",
+        totalPrice: Double = 20.0,
+        status: String = "paid",
+        createdAt: String = "2026-10-01T09:00:00"
+    ): OrderDetail {
+        return OrderDetail(
+            id = id,
+            seatId = seatId,
+            userId = 1L,
+            studyRoomName = roomName,
+            seatPosition = seatPosition,
+            seatNumber = seatNumber,
+            startTime = startTime,
+            endTime = endTime,
+            totalPrice = totalPrice,
+            status = status,
+            createdAt = createdAt
+        )
     }
 }

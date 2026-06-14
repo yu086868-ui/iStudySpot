@@ -9,8 +9,10 @@ import org.springframework.http.HttpMethod;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
 class JwtInterceptorTest {
 
@@ -20,7 +22,7 @@ class JwtInterceptorTest {
     @Mock
     private JwtUtils jwtUtils;
 
-    public JwtInterceptorTest() {
+    JwtInterceptorTest() {
         MockitoAnnotations.openMocks(this);
     }
 
@@ -28,15 +30,13 @@ class JwtInterceptorTest {
     void testPreHandleWithValidToken() throws Exception {
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
-
-        // 设置请求头
         request.addHeader("Authorization", "Bearer valid-token");
 
-        // 模拟JwtUtils验证token
         when(jwtUtils.validateToken("valid-token")).thenReturn(true);
         when(jwtUtils.getUserIdFromToken("valid-token")).thenReturn(1L);
 
         boolean result = jwtInterceptor.preHandle(request, response, new Object());
+
         assertTrue(result);
         assertEquals(1L, request.getAttribute("userId"));
     }
@@ -45,14 +45,12 @@ class JwtInterceptorTest {
     void testPreHandleWithInvalidToken() throws Exception {
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
-
-        // 设置请求头
         request.addHeader("Authorization", "Bearer invalid-token");
 
-        // 模拟JwtUtils验证token
         when(jwtUtils.validateToken("invalid-token")).thenReturn(false);
 
         boolean result = jwtInterceptor.preHandle(request, response, new Object());
+
         assertFalse(result);
         assertEquals(401, response.getStatus());
     }
@@ -63,19 +61,35 @@ class JwtInterceptorTest {
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         boolean result = jwtInterceptor.preHandle(request, response, new Object());
+
         assertFalse(result);
         assertEquals(401, response.getStatus());
+        assertTrue(response.getContentAsString().contains("未登录或token失效"));
+    }
+
+    @Test
+    void testPreHandleWithoutTokenForAgentApi() throws Exception {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        request.setRequestURI("/api/agent/tools/catalog");
+
+        boolean result = jwtInterceptor.preHandle(request, response, new Object());
+
+        assertFalse(result);
+        assertEquals(401, response.getStatus());
+        assertTrue(response.getContentAsString().contains("\"message\":\"UNAUTHORIZED\""));
+        assertTrue(response.getContentAsString().contains("\"schemaVersion\":\"1.0\""));
+        assertTrue(response.getContentAsString().contains("\"code\":\"UNAUTHORIZED\""));
     }
 
     @Test
     void testPreHandleWithOptionsRequest() throws Exception {
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
-
-        // 设置为OPTIONS请求
         request.setMethod(HttpMethod.OPTIONS.name());
 
         boolean result = jwtInterceptor.preHandle(request, response, new Object());
+
         assertTrue(result);
     }
 }
