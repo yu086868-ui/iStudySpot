@@ -2,8 +2,11 @@ package com.ycyu.istudyspotbackend.service.impl;
 
 import com.ycyu.istudyspotbackend.entity.Order;
 import com.ycyu.istudyspotbackend.entity.Seat;
+import com.ycyu.istudyspotbackend.entity.SeatLayoutItem;
+import com.ycyu.istudyspotbackend.entity.SeatLayoutResponse;
 import com.ycyu.istudyspotbackend.entity.StudyRoom;
 import com.ycyu.istudyspotbackend.mapper.OrderMapper;
+import com.ycyu.istudyspotbackend.mapper.SeatLayoutMapper;
 import com.ycyu.istudyspotbackend.mapper.SeatMapper;
 import com.ycyu.istudyspotbackend.mapper.StudyRoomMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,6 +29,9 @@ public class SeatServiceImplTest {
 
     @Mock
     private SeatMapper seatMapper;
+
+    @Mock
+    private SeatLayoutMapper seatLayoutMapper;
 
     @Mock
     private StudyRoomMapper studyRoomMapper;
@@ -56,6 +62,18 @@ public class SeatServiceImplTest {
         seat.setColNum(colNum);
         seat.setPricePerHour(BigDecimal.TEN);
         return seat;
+    }
+
+    private SeatLayoutItem createLayoutItem(Long roomId, String itemType, Integer rowNum, Integer colNum, Integer widthUnits, Integer heightUnits) {
+        SeatLayoutItem item = new SeatLayoutItem();
+        item.setRoomId(roomId);
+        item.setItemType(itemType);
+        item.setRowNum(rowNum);
+        item.setColNum(colNum);
+        item.setWidthUnits(widthUnits);
+        item.setHeightUnits(heightUnits);
+        item.setZIndex(1);
+        return item;
     }
 
     @Test
@@ -359,6 +377,59 @@ public class SeatServiceImplTest {
         assertEquals(2, result.get("rows"));
         assertEquals(2, result.get("cols"));
         assertNotNull(result.get("seats"));
+    }
+
+    @Test
+    void testGetSeatLayoutWithHybridItems() {
+        when(studyRoomMapper.findById(1L)).thenReturn(testRoom);
+        List<Seat> seats = new ArrayList<>();
+        seats.add(createSeat(1L, "1", 3, 1, 1));
+        seats.add(createSeat(2L, "1", 6, 7, 2));
+        when(seatMapper.findByRoomId(1L)).thenReturn(seats);
+        when(orderMapper.findActiveByRoomId(1L)).thenReturn(new ArrayList<>());
+
+        List<SeatLayoutItem> items = new ArrayList<>();
+        items.add(createLayoutItem(1L, "aisle", 2, 4, 2, 6));
+        items.add(createLayoutItem(1L, "front_desk", 1, 1, 2, 1));
+        when(seatLayoutMapper.findByRoomId(1L)).thenReturn(items);
+
+        SeatLayoutResponse result = seatService.getSeatLayout(1L);
+
+        assertNotNull(result);
+        assertEquals(1L, result.getStudyRoomId());
+        assertEquals("Study Room 1", result.getStudyRoomName());
+        assertEquals("hybrid", result.getLayoutMode());
+        assertEquals(7, result.getCols());
+        assertEquals(7, result.getRows());
+        assertEquals(2, result.getItems().size());
+        assertEquals(2, result.getSeats().size());
+        assertNotNull(result.getLegend());
+    }
+
+    @Test
+    void testGetSeatLayoutFallsBackToGrid() {
+        when(studyRoomMapper.findById(1L)).thenReturn(testRoom);
+        List<Seat> seats = new ArrayList<>();
+        seats.add(createSeat(1L, "1", 2, 3, 1));
+        when(seatMapper.findByRoomId(1L)).thenReturn(seats);
+        when(orderMapper.findActiveByRoomId(1L)).thenReturn(new ArrayList<>());
+        when(seatLayoutMapper.findByRoomId(1L)).thenReturn(new ArrayList<>());
+
+        SeatLayoutResponse result = seatService.getSeatLayout(1L);
+
+        assertEquals("grid", result.getLayoutMode());
+        assertEquals(2, result.getRows());
+        assertEquals(3, result.getCols());
+        assertTrue(result.getItems().isEmpty());
+    }
+
+    @Test
+    void testGetSeatLayoutWithNonExistentRoom() {
+        when(studyRoomMapper.findById(999L)).thenReturn(null);
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> seatService.getSeatLayout(999L));
+
+        assertEquals("自习室不存在", exception.getMessage());
     }
 
     @Test

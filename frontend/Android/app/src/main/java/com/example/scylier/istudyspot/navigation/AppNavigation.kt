@@ -17,6 +17,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -24,8 +26,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.example.scylier.istudyspot.infra.network.ApiClient
+import com.example.scylier.istudyspot.repository.SharedPreferencesAgentConversationStore
 import com.example.scylier.istudyspot.ui.screen.AchievementScreen
+import com.example.scylier.istudyspot.ui.screen.AgentScreen
+import com.example.scylier.istudyspot.ui.screen.AiChatScreen
 import com.example.scylier.istudyspot.ui.screen.BookingScreen
+import com.example.scylier.istudyspot.ui.screen.CardCollectionScreen
+import com.example.scylier.istudyspot.ui.screen.CharacterSelectScreen
+import com.example.scylier.istudyspot.ui.screen.CustomerServiceScreen
 import com.example.scylier.istudyspot.ui.screen.GuideScreen
 import com.example.scylier.istudyspot.ui.screen.HomeScreen
 import com.example.scylier.istudyspot.ui.screen.LoginScreen
@@ -33,23 +41,20 @@ import com.example.scylier.istudyspot.ui.screen.MoreScreen
 import com.example.scylier.istudyspot.ui.screen.NotificationScreen
 import com.example.scylier.istudyspot.ui.screen.OrderDetailScreen
 import com.example.scylier.istudyspot.ui.screen.OrderListScreen
+import com.example.scylier.istudyspot.ui.screen.PointsScreen
+import com.example.scylier.istudyspot.ui.screen.ProfileEditScreen
 import com.example.scylier.istudyspot.ui.screen.ProfileScreen
 import com.example.scylier.istudyspot.ui.screen.RegisterScreen
 import com.example.scylier.istudyspot.ui.screen.RulesScreen
 import com.example.scylier.istudyspot.ui.screen.SeatMapScreen
 import com.example.scylier.istudyspot.ui.screen.StudyRecordScreen
 import com.example.scylier.istudyspot.ui.screen.StudyRoomScreen
-import com.example.scylier.istudyspot.utils.ConfigManager
-import com.example.scylier.istudyspot.ui.screen.AiChatScreen
-import com.example.scylier.istudyspot.ui.screen.CharacterSelectScreen
-import com.example.scylier.istudyspot.ui.screen.PointsScreen
-import com.example.scylier.istudyspot.ui.screen.ProfileEditScreen
-import com.example.scylier.istudyspot.ui.screen.CustomerServiceScreen
-import com.example.scylier.istudyspot.ui.screen.CardCollectionScreen
 import com.example.scylier.istudyspot.ui.screen.TodoListScreen
 import com.example.scylier.istudyspot.ui.screen.ViolationScreen
 import com.example.scylier.istudyspot.ui.theme.ThemeMode
 import com.example.scylier.istudyspot.ui.theme.ThemeState
+import com.example.scylier.istudyspot.utils.ConfigManager
+import com.example.scylier.istudyspot.viewmodel.AgentViewModel
 import com.example.scylier.istudyspot.viewmodel.AiChatViewModel
 import com.example.scylier.istudyspot.viewmodel.AuthViewModel
 import com.example.scylier.istudyspot.viewmodel.BookingViewModel
@@ -110,16 +115,65 @@ fun AppNavigation(
                             "checkin" -> {
                                 navController.navigate(NavRoutes.OrderList)
                                 scope.launch {
-                                    snackbarHostState.showSnackbar("请在订单详情中签到")
+                                    snackbarHostState.showSnackbar("请在订单详情中完成签到")
                                 }
                             }
                             "guide" -> navController.navigate(NavRoutes.Guide)
                             "my_booking" -> navController.navigate(NavRoutes.OrderList)
                             "study_record" -> navController.navigate(NavRoutes.StudyRecord)
+                            "ai_agent" -> navController.navigate(NavRoutes.Agent)
                             "ai_chat" -> navController.navigate(NavRoutes.CharacterSelect())
                             "notification" -> navController.navigate(NavRoutes.Notification)
                             "settings" -> navController.navigate(NavRoutes.More)
                             "customer_service" -> navController.navigate(NavRoutes.CustomerService)
+                        }
+                    }
+                )
+            }
+
+            composable<NavRoutes.Agent> {
+                val context = LocalContext.current
+                val viewModel: AgentViewModel = viewModel(
+                    factory = object : ViewModelProvider.Factory {
+                        @Suppress("UNCHECKED_CAST")
+                        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                            return AgentViewModel(
+                                conversationStore = SharedPreferencesAgentConversationStore(context)
+                            ) as T
+                        }
+                    }
+                )
+                AgentScreen(
+                    viewModel = viewModel,
+                    onBack = { navController.popBackStack() },
+                    onActionNavigate = { route, params ->
+                        when (route) {
+                            "studyroom_list" -> navController.navigate(NavRoutes.StudyRoom)
+                            "studyroom_detail", "seat_list" -> {
+                                val studyRoomId = (params["studyRoomId"] as? Number)?.toLong()
+                                val studyRoomName = params["studyRoomName"]?.toString() ?: "自习室"
+                                if (studyRoomId != null) {
+                                    navController.navigate(
+                                        NavRoutes.Seat(
+                                            studyRoomId = studyRoomId,
+                                            studyRoomName = studyRoomName
+                                        )
+                                    )
+                                } else {
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar("缺少自习室编号，无法跳转")
+                                    }
+                                }
+                            }
+                            "reservation_list" -> navController.navigate(NavRoutes.OrderList)
+                            "reservation_rules" -> navController.navigate(NavRoutes.Rules)
+                            "study_record" -> navController.navigate(NavRoutes.StudyRecord)
+                            "todo_list" -> navController.navigate(NavRoutes.TodoList)
+                            else -> {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar("当前动作暂未映射到页面")
+                                }
+                            }
                         }
                     }
                 )
@@ -179,6 +233,7 @@ fun AppNavigation(
                 SeatMapScreen(
                     studyRoomName = args.studyRoomName,
                     seats = seatMapState.seats,
+                    layout = seatMapState.layout,
                     isLoading = seatMapState.isLoading,
                     onSeatClick = { seat ->
                         if (seat.status == "available") {
@@ -187,13 +242,13 @@ fun AppNavigation(
                                     seatId = seat.id,
                                     studyRoomId = args.studyRoomId,
                                     studyRoomName = args.studyRoomName,
-                                    seatPosition = "${seat.row}-${seat.col}",
+                                    seatLabel = seat.displayLabel,
                                     pricePerHour = seat.pricePerHour
                                 )
                             )
                         } else {
                             scope.launch {
-                                snackbarHostState.showSnackbar("该座位不可预订")
+                                snackbarHostState.showSnackbar("该座位当前不可预约")
                             }
                         }
                     },
@@ -214,9 +269,9 @@ fun AppNavigation(
                 LaunchedEffect(state.isSuccess) {
                     if (state.isSuccess && state.orderId != null) {
                         snackbarHostState.showSnackbar("预约成功")
-                        val oid = state.orderId
-                        if (oid != null) {
-                            navController.navigate(NavRoutes.Order(orderId = oid)) {
+                        val orderId = state.orderId
+                        if (orderId != null) {
+                            navController.navigate(NavRoutes.Order(orderId = orderId)) {
                                 popUpTo(NavRoutes.Home) { inclusive = false }
                             }
                         }
@@ -233,7 +288,7 @@ fun AppNavigation(
 
                 BookingScreen(
                     studyRoomName = args.studyRoomName,
-                    seatPosition = args.seatPosition,
+                    seatLabel = args.seatLabel,
                     pricePerHour = args.pricePerHour,
                     onBook = { startTime, endTime, bookingType ->
                         viewModel.createOrder(args.studyRoomId, args.seatId, startTime, endTime, bookingType)
@@ -303,6 +358,9 @@ fun AppNavigation(
                     onOrderClick = { order ->
                         navController.navigate(NavRoutes.Order(orderId = order.id))
                     },
+                    onBookNowClick = {
+                        navController.navigate(NavRoutes.StudyRoom)
+                    },
                     onBack = { navController.popBackStack() }
                 )
             }
@@ -320,21 +378,11 @@ fun AppNavigation(
                             navController.navigate(NavRoutes.Login)
                         }
                     },
-                    onOrderListClick = {
-                        navController.navigate(NavRoutes.OrderList)
-                    },
-                    onEditProfile = {
-                        navController.navigate(NavRoutes.ProfileEdit)
-                    },
-                    onStudyRecord = {
-                        navController.navigate(NavRoutes.StudyRecord)
-                    },
-                    onCustomerService = {
-                        navController.navigate(NavRoutes.CustomerService)
-                    },
-                    onCardCollection = {
-                        navController.navigate(NavRoutes.CardCollection)
-                    },
+                    onOrderListClick = { navController.navigate(NavRoutes.OrderList) },
+                    onEditProfile = { navController.navigate(NavRoutes.ProfileEdit) },
+                    onStudyRecord = { navController.navigate(NavRoutes.StudyRecord) },
+                    onCustomerService = { navController.navigate(NavRoutes.CustomerService) },
+                    onCardCollection = { navController.navigate(NavRoutes.CardCollection) },
                     onLogout = {
                         configManager.removeToken()
                         navController.navigate(NavRoutes.Login) {
@@ -371,9 +419,7 @@ fun AppNavigation(
                     onLogin = { username, password ->
                         viewModel.login(username, password, configManager)
                     },
-                    onRegisterClick = {
-                        navController.navigate(NavRoutes.Register)
-                    },
+                    onRegisterClick = { navController.navigate(NavRoutes.Register) },
                     isLoading = loginState.isLoading,
                     errorMessage = loginState.error
                 )
@@ -413,7 +459,11 @@ fun AppNavigation(
 
                 LaunchedEffect(Unit) { rulesViewModel.loadRules() }
 
-                RulesScreen(ruleItems = rulesState.ruleItems, groupedItems = rulesViewModel.groupedItems, onBack = { navController.popBackStack() })
+                RulesScreen(
+                    ruleItems = rulesState.ruleItems,
+                    groupedItems = rulesViewModel.groupedItems,
+                    onBack = { navController.popBackStack() }
+                )
             }
 
             composable<NavRoutes.More> {
@@ -472,11 +522,13 @@ fun AppNavigation(
                 popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) }
             ) {
                 val studyRecordViewModel: StudyRecordViewModel = viewModel()
-                val studyRecordState by studyRecordViewModel.state.collectAsState()
 
                 LaunchedEffect(Unit) { studyRecordViewModel.loadStudyRecords() }
 
-                StudyRecordScreen(viewModel = studyRecordViewModel, onBack = { navController.popBackStack() })
+                StudyRecordScreen(
+                    viewModel = studyRecordViewModel,
+                    onBack = { navController.popBackStack() }
+                )
             }
 
             composable<NavRoutes.Notification>(
@@ -506,24 +558,17 @@ fun AppNavigation(
                 AiChatScreen(
                     messages = messages,
                     isLoading = isLoading,
-                    onSendMessage = { message ->
-                        viewModel.sendMessage(message)
-                    },
-                    onBackClick = {
-                        navController.popBackStack()
-                    },
+                    onSendMessage = { message -> viewModel.sendMessage(message) },
+                    onBackClick = { navController.popBackStack() },
                     characterName = selectedCharacter?.name,
                     characterId = selectedCharacter?.id,
                     characterPersona = selectedCharacter?.persona,
                     characterAvatarColor = selectedCharacter?.avatarColor,
-                    onSuggestionClick = { suggestion ->
-                        viewModel.sendMessage(suggestion)
-                    }
+                    onSuggestionClick = { suggestion -> viewModel.sendMessage(suggestion) }
                 )
             }
 
-            composable<NavRoutes.CharacterSelect> { backStackEntry ->
-                val args = backStackEntry.toRoute<NavRoutes.CharacterSelect>()
+            composable<NavRoutes.CharacterSelect> {
                 val viewModel: AiChatViewModel = viewModel()
                 val characters by viewModel.characters.collectAsState()
 

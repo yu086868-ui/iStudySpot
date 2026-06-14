@@ -57,6 +57,12 @@ graph TB
 
 ---
 
+## Structurizr Workspace
+
+- `docs/design/structurizr-backend-android.dsl`
+- `docs/design/structurizr-backend-android.md`
+---
+
 ## 后端架构
 
 ### 后端分层架构

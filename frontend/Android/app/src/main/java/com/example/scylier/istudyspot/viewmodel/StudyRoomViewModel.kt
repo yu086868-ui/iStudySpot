@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.scylier.istudyspot.models.ApiResponse
 import com.example.scylier.istudyspot.models.studyroom.SeatInfo
+import com.example.scylier.istudyspot.models.studyroom.SeatLayoutData
 import com.example.scylier.istudyspot.models.studyroom.StudyRoomItem
 import com.example.scylier.istudyspot.repository.MainRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +21,8 @@ data class SeatMapUiState(
     val seats: List<SeatInfo> = emptyList(),
     val rows: Int = 0,
     val cols: Int = 0,
+    val layout: SeatLayoutData? = null,
+    val layoutMode: String = "grid",
     val isLoading: Boolean = true,
     val error: String? = null
 )
@@ -66,24 +69,50 @@ class StudyRoomViewModel : ViewModel() {
     fun loadSeats(studyRoomId: Long) {
         _seatMapState.value = _seatMapState.value.copy(isLoading = true)
         viewModelScope.launch {
-            when (val response = repository.getStudyRoomSeats(studyRoomId)) {
+            when (val response = repository.getStudyRoomSeatLayout(studyRoomId)) {
                 is ApiResponse.Success -> {
-                    val seats = response.data ?: emptyList()
-                    val maxRow = seats.maxOfOrNull { it.row } ?: 0
-                    val maxCol = seats.maxOfOrNull { it.col } ?: 0
-                    _seatMapState.value = SeatMapUiState(
-                        seats = seats,
-                        rows = maxRow,
-                        cols = maxCol,
-                        isLoading = false
-                    )
+                    val layout = response.data
+                    if (layout != null) {
+                        _seatMapState.value = SeatMapUiState(
+                            seats = layout.seats,
+                            rows = layout.rows,
+                            cols = layout.cols,
+                            layout = layout,
+                            layoutMode = layout.layoutMode,
+                            isLoading = false
+                        )
+                    } else {
+                        loadSeatFallback(studyRoomId, "座位布局为空，已回退普通视图")
+                    }
                 }
                 is ApiResponse.Error -> {
-                    _seatMapState.value = SeatMapUiState(
-                        isLoading = false,
-                        error = response.message
-                    )
+                    loadSeatFallback(studyRoomId, response.message)
                 }
+            }
+        }
+    }
+
+    private suspend fun loadSeatFallback(studyRoomId: Long, fallbackReason: String? = null) {
+        when (val response = repository.getStudyRoomSeats(studyRoomId)) {
+            is ApiResponse.Success -> {
+                val seats = response.data ?: emptyList()
+                val maxRow = seats.maxOfOrNull { it.row } ?: 0
+                val maxCol = seats.maxOfOrNull { it.col } ?: 0
+                _seatMapState.value = SeatMapUiState(
+                    seats = seats,
+                    rows = maxRow,
+                    cols = maxCol,
+                    layout = null,
+                    layoutMode = "grid",
+                    isLoading = false,
+                    error = null
+                )
+            }
+            is ApiResponse.Error -> {
+                _seatMapState.value = SeatMapUiState(
+                    isLoading = false,
+                    error = fallbackReason ?: response.message
+                )
             }
         }
     }

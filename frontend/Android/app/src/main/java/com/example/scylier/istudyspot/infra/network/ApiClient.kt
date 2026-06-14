@@ -62,7 +62,7 @@ object ApiClient {
                 .url("${baseUrl}api/auth/refresh")
                 .post(body)
                 .build()
-            val client = OkHttpClient.Builder().build()
+            val client = newOkHttpClientBuilder().build()
             val refreshResponse = client.newCall(request).execute()
             if (refreshResponse.isSuccessful) {
                 val responseBody = refreshResponse.body?.string()
@@ -85,24 +85,27 @@ object ApiClient {
         override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
     })
 
-    private val okHttpClient: OkHttpClient = if (BuildConfig.DEBUG) {
-        val sslContext = SSLContext.getInstance("TLS").apply {
-            init(null, trustAllCerts, SecureRandom())
+    private fun newOkHttpClientBuilder(): OkHttpClient.Builder {
+        val builder = OkHttpClient.Builder()
+        val usesFrpDebugEndpoint = BuildConfig.DEBUG && baseUrl.startsWith("https://frp-six.com:")
+
+        if (usesFrpDebugEndpoint) {
+            val sslContext = SSLContext.getInstance("TLS").apply {
+                init(null, trustAllCerts, SecureRandom())
+            }
+            builder
+                .sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
+                .hostnameVerifier { hostname, _ -> hostname == "frp-six.com" }
         }
-        OkHttpClient.Builder()
-            .addInterceptor(authInterceptor)
-            .addInterceptor(loggingInterceptor)
-            .authenticator(tokenAuthenticator)
-            .sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
-            .hostnameVerifier { _, _ -> true }
-            .build()
-    } else {
-        OkHttpClient.Builder()
-            .addInterceptor(authInterceptor)
-            .addInterceptor(loggingInterceptor)
-            .authenticator(tokenAuthenticator)
-            .build()
+
+        return builder
     }
+
+    private val okHttpClient: OkHttpClient = newOkHttpClientBuilder()
+        .addInterceptor(authInterceptor)
+        .addInterceptor(loggingInterceptor)
+        .authenticator(tokenAuthenticator)
+        .build()
 
     private val retrofit: Retrofit = Retrofit.Builder()
         .baseUrl(baseUrl)

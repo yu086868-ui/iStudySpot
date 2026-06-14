@@ -1,9 +1,9 @@
 package com.example.scylier.istudyspot
 
-import com.example.scylier.istudyspot.viewmodel.StudyRecordViewModel
-import com.example.scylier.istudyspot.viewmodel.StudyRecordUiState
 import com.example.scylier.istudyspot.models.ApiResponse
 import com.example.scylier.istudyspot.repository.MainRepository
+import com.example.scylier.istudyspot.viewmodel.StudyRecordUiState
+import com.example.scylier.istudyspot.viewmodel.StudyRecordViewModel
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -13,7 +13,9 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -27,8 +29,10 @@ class StudyRecordViewModelTest {
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        coEvery { mockRepository.getCheckinRecords(any(), any(), any(), any()) } returns ApiResponse.Error(500, "Test error")
-        coEvery { mockRepository.getUserOrders(any(), any(), any(), any(), any()) } returns ApiResponse.Error(500, "Test error")
+        coEvery { mockRepository.getCheckinRecords(any(), any(), any(), any()) } returns
+            ApiResponse.Error(500, "Test error")
+        coEvery { mockRepository.getUserOrders(any(), any(), any(), any(), any()) } returns
+            ApiResponse.Error(500, "Test error")
         viewModel = StudyRecordViewModel(mockRepository)
     }
 
@@ -85,10 +89,10 @@ class StudyRecordViewModelTest {
     }
 
     @Test
-    fun testViewModel_mockState_favoriteSeatContainsArea() = runTest {
+    fun testViewModel_mockState_favoriteSeatUsesSeatNumber() = runTest {
         viewModel.loadStudyRecords()
         val state = viewModel.state.value
-        assertTrue(state.favoriteSeat.contains("区"))
+        assertEquals("A12", state.favoriteSeat)
     }
 
     @Test
@@ -107,7 +111,7 @@ class StudyRecordViewModelTest {
             totalBookings = 20,
             streakDays = 5,
             avgStudyDuration = 2.5,
-            favoriteSeat = "A区-1号",
+            favoriteSeat = "A12",
             peakTime = "14:00-17:00",
             isLoading = false
         )
@@ -117,7 +121,7 @@ class StudyRecordViewModelTest {
         assertEquals(20, state.totalBookings)
         assertEquals(5, state.streakDays)
         assertEquals(2.5, state.avgStudyDuration, 0.01)
-        assertEquals("A区-1号", state.favoriteSeat)
+        assertEquals("A12", state.favoriteSeat)
         assertEquals("14:00-17:00", state.peakTime)
         assertFalse(state.isLoading)
     }

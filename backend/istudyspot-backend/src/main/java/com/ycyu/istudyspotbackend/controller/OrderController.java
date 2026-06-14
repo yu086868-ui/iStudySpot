@@ -1,5 +1,6 @@
 package com.ycyu.istudyspotbackend.controller;
 
+import com.ycyu.istudyspotbackend.agent.tool.ReservationRulesProvider;
 import com.ycyu.istudyspotbackend.dto.BookingDTO;
 import com.ycyu.istudyspotbackend.entity.Order;
 import com.ycyu.istudyspotbackend.entity.Result;
@@ -20,6 +21,9 @@ public class OrderController {
 
     @Autowired
     private PaymentService paymentService;
+
+    @Autowired
+    private ReservationRulesProvider reservationRulesProvider;
 
     @PostMapping
     public Result<Map<String, Object>> createReservation(
@@ -101,14 +105,7 @@ public class OrderController {
 
     @GetMapping("/rules")
     public Result<Map<String, Object>> getReservationRules() {
-        Map<String, Object> rules = Map.of(
-                "maxAdvanceDays", 7,
-                "maxDailyReservations", 2,
-                "maxDurationHours", 4,
-                "minDurationMinutes", 30,
-                "cancellationDeadlineMinutes", 15,
-                "noShowPenalty", 5
-        );
+        Map<String, Object> rules = reservationRulesProvider.getRules();
         return Result.success("success", rules);
     }
 }

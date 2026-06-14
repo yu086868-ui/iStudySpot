@@ -207,10 +207,14 @@ CREATE TABLE IF NOT EXISTS `blacklist` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='黑名单表';
 
 -- V11: 初始化数据
-INSERT INTO `study_room` (`name`, `address`, `open_time`, `close_time`, `description`) VALUES
-    ('iStudySpot 学习空间（五道口店）', '北京市海淀区五道口购物中心3F', '08:00:00', '23:00:00', '临近清华北大，考研党聚集地'),
-    ('iStudySpot 静心自习室（中关村店）', '北京市海淀区中关村创业大街B2', '09:00:00', '22:00:00', '互联网人充电好去处'),
-    ('iStudySpot 24h自习舱（望京店）', '北京市朝阳区望京SOHO T2-3F', '00:00:00', '23:59:59', '24小时营业，满足深夜学习需求');
+INSERT INTO `study_room` (`name`, `address`, `open_time`, `close_time`, `description`, `status`) VALUES
+    ('iStudySpot 学习空间（五道口店）', '北京市海淀区五道口购物中心3F', '08:00:00', '23:00:00', '临近清华北大，考研党聚集地', 1),
+    ('iStudySpot 静心自习室（中关村店）', '北京市海淀区中关村创业大街B2', '09:00:00', '22:00:00', '互联网人充电好去处', 1),
+    ('iStudySpot 24h自习舱（望京店）', '北京市朝阳区望京SOHO T2-3F', '00:00:00', '23:59:59', '24小时营业，满足深夜学习需求', 1),
+    ('iStudySpot 安静学习舱（学院路店）', '北京市海淀区学院路37号研学中心2F', '07:30:00', '23:30:00', '适合考研、考公和论文写作的安静学习空间', 1),
+    ('iStudySpot 城市自习室（西二旗店）', '北京市海淀区西二旗大街数字港B座4F', '08:00:00', '22:30:00', '临近地铁，提供标准座、靠窗座和讨论区', 1),
+    ('iStudySpot 深夜学习站（国贸店）', '北京市朝阳区建国门外大街国贸写字楼A座B1', '00:00:00', '23:59:59', '24小时开放，适合晚间复习和弹性学习安排', 1),
+    ('iStudySpot 专注自习馆（望京北店）', '北京市朝阳区望京北路创意园6号楼1F', '08:30:00', '23:00:00', '安静区和轻讨论区分离，提供充足电源', 1);
 
 INSERT INTO `area` (`room_id`, `name`, `description`, `sort_order`) VALUES
     (1, '沉浸学习区', '完全静音，禁止交谈', 1),
@@ -219,7 +223,19 @@ INSERT INTO `area` (`room_id`, `name`, `description`, `sort_order`) VALUES
     (2, '阳光窗景区', '靠窗座位，光线充足', 1),
     (2, '标准学习区', '标准座位', 2),
     (3, '深夜加油区', '24小时开放区域', 1),
-    (3, '休息充电区', '配备沙发和充电桩', 2);
+    (3, '休息充电区', '配备沙发和充电桩', 2),
+    (4, '沉浸自习区', '全程静音，适合长时间专注学习', 1),
+    (4, '靠窗阅读区', '自然光充足，适合阅读和笔记整理', 2),
+    (4, '冲刺隔间区', '半封闭隔间，适合备考冲刺', 3),
+    (5, '标准学习区', '标准桌椅和电源，适合日常学习', 1),
+    (5, '轻讨论区', '允许低声沟通，适合小组复盘', 2),
+    (5, '电脑学习区', '桌面更宽，适合携带笔记本电脑', 3),
+    (6, '深夜专注区', '24小时开放，灯光柔和', 1),
+    (6, '休息缓冲区', '靠近补给点，适合短时学习', 2),
+    (6, '单人隔间区', '独立隔间，适合高强度专注', 3),
+    (7, '静音专注区', '严格静音管理，适合阅读和背诵', 1),
+    (7, '阳光学习区', '靠窗采光好，座位间距更宽', 2),
+    (7, '小组学习区', '适合两到四人低声讨论', 3);
 
 INSERT INTO `seat` (`room_id`, `area_id`, `seat_number`, `seat_type`, `row_num`, `col_num`, `has_power`, `has_lamp`, `is_window`, `is_quiet`) VALUES
     (1, 1, 'A01', 1, 1, 1, 1, 1, 0, 1),
@@ -232,7 +248,55 @@ INSERT INTO `seat` (`room_id`, `area_id`, `seat_number`, `seat_type`, `row_num`,
     (1, 2, 'B03', 2, 2, 3, 1, 1, 0, 0),
     (1, 2, 'B04', 2, 2, 4, 1, 1, 1, 0),
     (1, 3, 'C01', 3, 3, 1, 1, 1, 0, 1),
-    (1, 3, 'C02', 3, 3, 2, 1, 1, 1, 1);
+    (1, 3, 'C02', 3, 3, 2, 1, 1, 1, 1),
+    (2, 4, 'A01', 1, 1, 1, 1, 1, 1, 1),
+    (2, 4, 'A02', 1, 1, 2, 1, 1, 1, 1),
+    (2, 4, 'A03', 1, 1, 3, 1, 1, 1, 1),
+    (2, 4, 'A04', 1, 1, 4, 1, 1, 1, 1),
+    (2, 4, 'A05', 1, 2, 1, 1, 1, 1, 1),
+    (2, 4, 'A06', 1, 2, 2, 1, 1, 1, 1),
+    (2, 4, 'A07', 1, 2, 3, 1, 1, 1, 1),
+    (2, 4, 'A08', 1, 2, 4, 1, 1, 1, 1),
+    (2, 5, 'B01', 1, 3, 1, 1, 1, 0, 1),
+    (2, 5, 'B02', 1, 3, 2, 1, 1, 0, 1),
+    (2, 5, 'B03', 1, 3, 3, 1, 1, 0, 1),
+    (2, 5, 'B04', 1, 3, 4, 1, 1, 0, 1),
+    (2, 5, 'B05', 1, 4, 1, 1, 1, 0, 1),
+    (2, 5, 'B06', 1, 4, 2, 1, 1, 0, 1),
+    (2, 5, 'B07', 1, 4, 3, 1, 1, 0, 1),
+    (2, 5, 'B08', 1, 4, 4, 1, 1, 0, 1),
+    (3, 6, 'A01', 1, 1, 1, 1, 1, 0, 1),
+    (3, 6, 'A02', 1, 1, 2, 1, 1, 0, 1),
+    (3, 6, 'A03', 1, 1, 3, 1, 1, 0, 1),
+    (3, 6, 'A04', 1, 1, 4, 1, 1, 0, 1),
+    (3, 6, 'A05', 1, 2, 1, 1, 1, 0, 1),
+    (3, 6, 'A06', 1, 2, 2, 1, 1, 0, 1),
+    (3, 6, 'A07', 1, 2, 3, 1, 1, 0, 1),
+    (3, 6, 'A08', 1, 2, 4, 1, 1, 0, 1),
+    (3, 7, 'B01', 2, 3, 1, 1, 0, 0, 0),
+    (3, 7, 'B02', 2, 3, 2, 1, 0, 0, 0),
+    (3, 7, 'B03', 2, 3, 3, 1, 0, 0, 0),
+    (3, 7, 'B04', 2, 3, 4, 1, 0, 0, 0),
+    (3, 7, 'B05', 2, 4, 1, 1, 0, 0, 0),
+    (3, 7, 'B06', 2, 4, 2, 1, 0, 0, 0),
+    (3, 7, 'B07', 2, 4, 3, 1, 0, 0, 0),
+    (3, 7, 'B08', 2, 4, 4, 1, 0, 0, 0),
+    (4, 8, 'A01', 1, 1, 1, 1, 1, 0, 1), (4, 8, 'A02', 1, 1, 2, 1, 1, 0, 1), (4, 8, 'A03', 1, 1, 3, 1, 1, 0, 1), (4, 8, 'A04', 1, 1, 4, 1, 1, 0, 1),
+    (4, 8, 'A05', 1, 2, 1, 1, 1, 0, 1), (4, 8, 'A06', 1, 2, 2, 1, 1, 0, 1), (4, 8, 'A07', 1, 2, 3, 1, 1, 0, 1), (4, 8, 'A08', 1, 2, 4, 1, 1, 0, 1),
+    (4, 9, 'B01', 1, 3, 1, 1, 1, 1, 1), (4, 9, 'B02', 1, 3, 2, 1, 1, 1, 1, 1), (4, 9, 'B03', 1, 3, 3, 1, 1, 1, 1, 1), (4, 9, 'B04', 1, 3, 4, 1, 1, 1, 1, 1),
+    (4, 10, 'C01', 3, 4, 1, 1, 1, 0, 1), (4, 10, 'C02', 3, 4, 2, 1, 1, 0, 1, 1), (4, 10, 'C03', 3, 4, 3, 1, 1, 0, 1, 1), (4, 10, 'C04', 3, 4, 4, 1, 1, 0, 1, 1),
+    (5, 11, 'A01', 1, 1, 1, 1, 1, 0, 1), (5, 11, 'A02', 1, 1, 2, 1, 1, 0, 1), (5, 11, 'A03', 1, 1, 3, 1, 1, 0, 1), (5, 11, 'A04', 1, 1, 4, 1, 1, 0, 1),
+    (5, 11, 'A05', 1, 2, 1, 1, 1, 0, 1), (5, 11, 'A06', 1, 2, 2, 1, 1, 0, 1), (5, 11, 'A07', 1, 2, 3, 1, 1, 0, 1), (5, 11, 'A08', 1, 2, 4, 1, 1, 0, 1),
+    (5, 12, 'B01', 2, 3, 1, 1, 1, 0, 0), (5, 12, 'B02', 2, 3, 2, 1, 1, 0, 0, 0), (5, 12, 'B03', 2, 3, 3, 1, 1, 0, 0, 0), (5, 12, 'B04', 2, 3, 4, 1, 1, 0, 0, 0),
+    (5, 13, 'C01', 1, 4, 1, 1, 1, 1, 1), (5, 13, 'C02', 1, 4, 2, 1, 1, 1, 1, 1), (5, 13, 'C03', 1, 4, 3, 1, 1, 1, 1, 1), (5, 13, 'C04', 1, 4, 4, 1, 1, 1, 1, 1),
+    (6, 14, 'A01', 1, 1, 1, 1, 1, 0, 1), (6, 14, 'A02', 1, 1, 2, 1, 1, 0, 1), (6, 14, 'A03', 1, 1, 3, 1, 1, 0, 1), (6, 14, 'A04', 1, 1, 4, 1, 1, 0, 1),
+    (6, 14, 'A05', 1, 2, 1, 1, 1, 0, 1), (6, 14, 'A06', 1, 2, 2, 1, 1, 0, 1), (6, 14, 'A07', 1, 2, 3, 1, 1, 0, 1), (6, 14, 'A08', 1, 2, 4, 1, 1, 0, 1),
+    (6, 15, 'B01', 2, 3, 1, 1, 0, 0, 0), (6, 15, 'B02', 2, 3, 2, 1, 0, 0, 0, 0), (6, 15, 'B03', 2, 3, 3, 1, 0, 0, 0, 0), (6, 15, 'B04', 2, 3, 4, 1, 0, 0, 0, 0),
+    (6, 16, 'C01', 3, 4, 1, 1, 1, 0, 1), (6, 16, 'C02', 3, 4, 2, 1, 1, 0, 1, 1), (6, 16, 'C03', 3, 4, 3, 1, 1, 0, 1, 1), (6, 16, 'C04', 3, 4, 4, 1, 1, 0, 1, 1),
+    (7, 17, 'A01', 1, 1, 1, 1, 1, 0, 1), (7, 17, 'A02', 1, 1, 2, 1, 1, 0, 1), (7, 17, 'A03', 1, 1, 3, 1, 1, 0, 1), (7, 17, 'A04', 1, 1, 4, 1, 1, 0, 1),
+    (7, 17, 'A05', 1, 2, 1, 1, 1, 0, 1), (7, 17, 'A06', 1, 2, 2, 1, 1, 0, 1), (7, 17, 'A07', 1, 2, 3, 1, 1, 0, 1), (7, 17, 'A08', 1, 2, 4, 1, 1, 0, 1),
+    (7, 18, 'B01', 1, 3, 1, 1, 1, 1, 1), (7, 18, 'B02', 1, 3, 2, 1, 1, 1, 1, 1), (7, 18, 'B03', 1, 3, 3, 1, 1, 1, 1, 1), (7, 18, 'B04', 1, 3, 4, 1, 1, 1, 1, 1),
+    (7, 19, 'C01', 2, 4, 1, 1, 1, 0, 0), (7, 19, 'C02', 2, 4, 2, 1, 1, 0, 0, 0), (7, 19, 'C03', 2, 4, 3, 1, 1, 0, 0, 0), (7, 19, 'C04', 2, 4, 4, 1, 1, 0, 0, 0);
 
 INSERT INTO `price_strategy` (`room_id`, `area_id`, `seat_type`, `week_days`, `start_time`, `end_time`, `price`, `is_holiday`, `priority`) VALUES
     (1, NULL, NULL, '1,2,3,4,5', '08:00:00', '18:00:00', 15.00, 0, 1),
@@ -401,3 +465,164 @@ CREATE TABLE IF NOT EXISTS `violation_record` (
     INDEX `idx_user_id` (`user_id`),
     INDEX `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='违规记录表';
+
+-- V25: 座位布局元素表
+CREATE TABLE IF NOT EXISTS `seat_layout_item` (
+    `id` BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '布局元素ID',
+    `room_id` BIGINT NOT NULL COMMENT '自习室ID',
+    `area_id` BIGINT DEFAULT NULL COMMENT '区域ID',
+    `seat_id` BIGINT DEFAULT NULL COMMENT '关联座位ID',
+    `item_type` VARCHAR(32) NOT NULL COMMENT '元素类型',
+    `item_key` VARCHAR(64) DEFAULT NULL COMMENT '布局元素唯一键',
+    `label` VARCHAR(100) DEFAULT NULL COMMENT '元素标签',
+    `row_num` INT NOT NULL COMMENT '起始行',
+    `col_num` INT NOT NULL COMMENT '起始列',
+    `width_units` INT NOT NULL DEFAULT 1 COMMENT '横向占位',
+    `height_units` INT NOT NULL DEFAULT 1 COMMENT '纵向占位',
+    `rotation` INT NOT NULL DEFAULT 0 COMMENT '旋转角度',
+    `z_index` INT NOT NULL DEFAULT 0 COMMENT '渲染层级',
+    `metadata` TEXT DEFAULT NULL COMMENT '额外信息(JSON)',
+    `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    FOREIGN KEY (`room_id`) REFERENCES `study_room` (`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`area_id`) REFERENCES `area` (`id`) ON DELETE SET NULL,
+    FOREIGN KEY (`seat_id`) REFERENCES `seat` (`id`) ON DELETE CASCADE,
+    UNIQUE KEY `uk_layout_item_key` (`room_id`, `item_key`),
+    UNIQUE KEY `uk_layout_seat` (`seat_id`),
+    INDEX `idx_layout_room` (`room_id`, `row_num`, `col_num`),
+    INDEX `idx_layout_type` (`item_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='座位布局元素表';
+
+-- V26: 复杂座位布局种子
+INSERT INTO `seat_layout_item` (`room_id`, `area_id`, `item_type`, `item_key`, `label`, `row_num`, `col_num`, `width_units`, `height_units`, `rotation`, `z_index`, `metadata`) VALUES
+    (2, NULL, 'front_desk', 'room2-front-desk', '前台', 1, 1, 2, 1, 0, 10, '{"color":"wood"}'),
+    (2, NULL, 'door', 'room2-door', '入口', 1, 5, 1, 1, 0, 10, '{"side":"north"}'),
+    (2, NULL, 'window', 'room2-window-west', '落地窗', 2, 1, 5, 1, 0, 5, '{"side":"west"}'),
+    (2, NULL, 'aisle', 'room2-main-aisle', '主走道', 3, 5, 4, 5, 0, 1, '{"orientation":"vertical"}'),
+    (2, NULL, 'table', 'room2-table-a', '共享长桌A', 3, 1, 4, 2, 0, 4, '{"shape":"long"}'),
+    (2, NULL, 'table', 'room2-table-b', '共享长桌B', 6, 6, 4, 2, 0, 4, '{"shape":"long"}'),
+    (2, NULL, 'pillar', 'room2-pillar-1', '承重柱', 5, 4, 1, 1, 0, 8, '{"shape":"square"}'),
+    (2, NULL, 'plant', 'room2-plant-1', '绿植', 8, 1, 1, 1, 0, 8, '{"kind":"ficus"}'),
+    (2, NULL, 'zone_label', 'room2-zone-a', '窗景区', 2, 2, 2, 1, 0, 9, '{"zone":"window"}'),
+    (2, NULL, 'zone_label', 'room2-zone-b', '标准学习区', 7, 7, 2, 1, 0, 9, '{"zone":"standard"}'),
+    (3, NULL, 'front_desk', 'room3-front-desk', '夜间值守台', 1, 2, 2, 1, 0, 10, '{"staffed":"night"}'),
+    (3, NULL, 'door', 'room3-door', '入口', 1, 7, 1, 1, 0, 10, '{"side":"north"}'),
+    (3, NULL, 'window', 'room3-window-east', '街景窗', 2, 9, 1, 6, 0, 5, '{"side":"east"}'),
+    (3, NULL, 'aisle', 'room3-main-aisle', '夜间主通道', 2, 5, 2, 7, 0, 1, '{"orientation":"vertical"}'),
+    (3, NULL, 'table', 'room3-table-a', '深夜长桌A', 3, 1, 4, 2, 0, 4, '{"shape":"long"}'),
+    (3, NULL, 'lounge_counter', 'room3-lounge-b', '充电沙发位', 7, 7, 4, 2, 0, 4, '{"shape":"lounge"}'),
+    (3, NULL, 'pillar', 'room3-pillar-1', '立柱', 4, 4, 1, 1, 0, 8, '{"shape":"round"}'),
+    (3, NULL, 'plant', 'room3-plant-1', '补给台', 8, 8, 1, 1, 0, 8, '{"kind":"supply"}'),
+    (3, NULL, 'zone_label', 'room3-zone-a', '深夜加油区', 2, 2, 2, 1, 0, 9, '{"zone":"focus"}'),
+    (3, NULL, 'zone_label', 'room3-zone-b', '休息充电区', 7, 7, 2, 1, 0, 9, '{"zone":"lounge"}'),
+    (4, NULL, 'front_desk', 'room4-front-desk', '咨询台', 1, 1, 2, 1, 0, 10, '{"color":"walnut"}'),
+    (4, NULL, 'door', 'room4-door', '入口', 1, 8, 1, 1, 0, 10, '{"side":"north"}'),
+    (4, NULL, 'window', 'room4-window', '采光窗', 2, 1, 8, 1, 0, 5, '{"side":"west"}'),
+    (4, NULL, 'aisle', 'room4-main-aisle', '中心走道', 3, 4, 2, 6, 0, 1, '{"orientation":"vertical"}'),
+    (4, NULL, 'table', 'room4-table-a', '双人书桌A', 3, 1, 2, 2, 0, 4, '{"shape":"double"}'),
+    (4, NULL, 'table', 'room4-table-b', '双人书桌B', 3, 6, 2, 2, 0, 4, '{"shape":"double"}'),
+    (4, NULL, 'booth', 'room4-booth-c', '冲刺隔间', 8, 1, 4, 1, 0, 4, '{"shape":"booth"}'),
+    (4, NULL, 'pillar', 'room4-pillar-1', '立柱', 6, 3, 1, 1, 0, 8, '{"shape":"square"}'),
+    (4, NULL, 'zone_label', 'room4-zone-a', '沉浸区', 2, 2, 2, 1, 0, 9, '{"zone":"focus"}'),
+    (4, NULL, 'zone_label', 'room4-zone-b', '隔间区', 8, 6, 2, 1, 0, 9, '{"zone":"booth"}'),
+    (5, NULL, 'front_desk', 'room5-front-desk', '服务台', 1, 1, 2, 1, 0, 10, '{"color":"light"}'),
+    (5, NULL, 'door', 'room5-door', '入口', 1, 9, 1, 1, 0, 10, '{"side":"north"}'),
+    (5, NULL, 'window', 'room5-window', '通长窗', 2, 1, 9, 1, 0, 5, '{"side":"south"}'),
+    (5, NULL, 'aisle', 'room5-main-aisle', '中庭走廊', 3, 5, 2, 6, 0, 1, '{"orientation":"vertical"}'),
+    (5, NULL, 'table', 'room5-table-a', '标准长桌A', 3, 1, 4, 2, 0, 4, '{"shape":"long"}'),
+    (5, NULL, 'table', 'room5-table-b', '标准长桌B', 3, 6, 4, 2, 0, 4, '{"shape":"long"}'),
+    (5, NULL, 'table', 'room5-table-c', '电脑桌C', 8, 1, 4, 1, 0, 4, '{"shape":"pc"}'),
+    (5, NULL, 'plant', 'room5-plant-1', '绿植角', 7, 1, 1, 1, 0, 8, '{"kind":"monstera"}'),
+    (5, NULL, 'zone_label', 'room5-zone-a', '标准区', 2, 2, 2, 1, 0, 9, '{"zone":"standard"}'),
+    (5, NULL, 'zone_label', 'room5-zone-b', '讨论区', 8, 7, 2, 1, 0, 9, '{"zone":"discussion"}'),
+    (6, NULL, 'front_desk', 'room6-front-desk', '夜猫补给台', 1, 1, 2, 1, 0, 10, '{"open":"24h"}'),
+    (6, NULL, 'door', 'room6-door', '入口', 1, 8, 1, 1, 0, 10, '{"side":"north"}'),
+    (6, NULL, 'window', 'room6-window', '夜景窗', 2, 8, 1, 6, 0, 5, '{"side":"east"}'),
+    (6, NULL, 'aisle', 'room6-main-aisle', '补给通道', 3, 4, 2, 6, 0, 1, '{"orientation":"vertical"}'),
+    (6, NULL, 'table', 'room6-table-a', '夜读长桌A', 3, 1, 3, 2, 0, 4, '{"shape":"long"}'),
+    (6, NULL, 'booth', 'room6-booth-c', '独立隔间', 8, 6, 3, 1, 0, 4, '{"shape":"booth"}'),
+    (6, NULL, 'pillar', 'room6-pillar-1', '消防柱', 5, 3, 1, 1, 0, 8, '{"shape":"round"}'),
+    (6, NULL, 'zone_label', 'room6-zone-a', '深夜专注区', 2, 2, 2, 1, 0, 9, '{"zone":"focus"}'),
+    (6, NULL, 'zone_label', 'room6-zone-b', '缓冲区', 8, 6, 2, 1, 0, 9, '{"zone":"buffer"}'),
+    (7, NULL, 'front_desk', 'room7-front-desk', '签到台', 1, 1, 2, 1, 0, 10, '{"color":"dark"}'),
+    (7, NULL, 'door', 'room7-door', '入口', 1, 8, 1, 1, 0, 10, '{"side":"north"}'),
+    (7, NULL, 'window', 'room7-window', '北侧采光', 2, 1, 8, 1, 0, 5, '{"side":"north"}'),
+    (7, NULL, 'aisle', 'room7-main-aisle', '主通道', 3, 4, 2, 6, 0, 1, '{"orientation":"vertical"}'),
+    (7, NULL, 'table', 'room7-table-a', '静音长桌A', 3, 1, 3, 2, 0, 4, '{"shape":"silent"}'),
+    (7, NULL, 'table', 'room7-table-b', '静音长桌B', 3, 6, 3, 2, 0, 4, '{"shape":"silent"}'),
+    (7, NULL, 'table', 'room7-table-c', '小组桌C', 8, 1, 4, 1, 0, 4, '{"shape":"group"}'),
+    (7, NULL, 'plant', 'room7-plant-1', '静音绿植', 8, 1, 1, 1, 0, 8, '{"kind":"fern"}'),
+    (7, NULL, 'zone_label', 'room7-zone-a', '静音专注区', 2, 2, 2, 1, 0, 9, '{"zone":"silent"}'),
+    (7, NULL, 'zone_label', 'room7-zone-b', '小组学习区', 8, 6, 2, 1, 0, 9, '{"zone":"group"}');
+
+INSERT INTO `seat_layout_item` (`room_id`, `area_id`, `seat_id`, `item_type`, `item_key`, `label`, `row_num`, `col_num`, `width_units`, `height_units`, `rotation`, `z_index`, `metadata`)
+SELECT s.room_id, s.area_id, s.id, 'seat', CONCAT('seat-', s.id), s.seat_number,
+       CASE
+           WHEN s.room_id = 2 AND s.seat_number LIKE 'A%' THEN 3
+           WHEN s.room_id = 2 AND s.seat_number LIKE 'B%' THEN 6
+           WHEN s.room_id = 3 AND s.seat_number LIKE 'A%' THEN 3
+           WHEN s.room_id = 3 AND s.seat_number LIKE 'B%' THEN 7
+           WHEN s.room_id = 4 AND s.seat_number LIKE 'A%' THEN 3
+           WHEN s.room_id = 4 AND s.seat_number LIKE 'B%' THEN 6
+           WHEN s.room_id = 4 AND s.seat_number LIKE 'C%' THEN 8
+           WHEN s.room_id = 5 AND s.seat_number LIKE 'A%' THEN 3
+           WHEN s.room_id = 5 AND s.seat_number LIKE 'B%' THEN 6
+           WHEN s.room_id = 5 AND s.seat_number LIKE 'C%' THEN 8
+           WHEN s.room_id = 6 AND s.seat_number LIKE 'A%' THEN 3
+           WHEN s.room_id = 6 AND s.seat_number LIKE 'B%' THEN 6
+           WHEN s.room_id = 6 AND s.seat_number LIKE 'C%' THEN 8
+           WHEN s.room_id = 7 AND s.seat_number LIKE 'A%' THEN 3
+           WHEN s.room_id = 7 AND s.seat_number LIKE 'B%' THEN 6
+           WHEN s.room_id = 7 AND s.seat_number LIKE 'C%' THEN 8
+           ELSE COALESCE(s.row_num, 1)
+       END,
+       CASE
+           WHEN s.room_id = 2 AND s.seat_number = 'A01' THEN 1
+           WHEN s.room_id = 2 AND s.seat_number = 'A02' THEN 2
+           WHEN s.room_id = 2 AND s.seat_number = 'A03' THEN 3
+           WHEN s.room_id = 2 AND s.seat_number = 'A04' THEN 4
+           WHEN s.room_id = 2 AND s.seat_number = 'A05' THEN 1
+           WHEN s.room_id = 2 AND s.seat_number = 'A06' THEN 2
+           WHEN s.room_id = 2 AND s.seat_number = 'A07' THEN 3
+           WHEN s.room_id = 2 AND s.seat_number = 'A08' THEN 4
+           WHEN s.room_id = 2 AND s.seat_number = 'B01' THEN 6
+           WHEN s.room_id = 2 AND s.seat_number = 'B02' THEN 7
+           WHEN s.room_id = 2 AND s.seat_number = 'B03' THEN 8
+           WHEN s.room_id = 2 AND s.seat_number = 'B04' THEN 9
+           WHEN s.room_id = 2 AND s.seat_number = 'B05' THEN 6
+           WHEN s.room_id = 2 AND s.seat_number = 'B06' THEN 7
+           WHEN s.room_id = 2 AND s.seat_number = 'B07' THEN 8
+           WHEN s.room_id = 2 AND s.seat_number = 'B08' THEN 9
+           WHEN s.room_id = 3 AND s.seat_number = 'A01' THEN 1
+           WHEN s.room_id = 3 AND s.seat_number = 'A02' THEN 2
+           WHEN s.room_id = 3 AND s.seat_number = 'A03' THEN 3
+           WHEN s.room_id = 3 AND s.seat_number = 'A04' THEN 4
+           WHEN s.room_id = 3 AND s.seat_number = 'A05' THEN 1
+           WHEN s.room_id = 3 AND s.seat_number = 'A06' THEN 2
+           WHEN s.room_id = 3 AND s.seat_number = 'A07' THEN 3
+           WHEN s.room_id = 3 AND s.seat_number = 'A08' THEN 4
+           WHEN s.room_id = 3 AND s.seat_number = 'B01' THEN 7
+           WHEN s.room_id = 3 AND s.seat_number = 'B02' THEN 8
+           WHEN s.room_id = 3 AND s.seat_number = 'B03' THEN 9
+           WHEN s.room_id = 3 AND s.seat_number = 'B04' THEN 10
+           WHEN s.room_id = 3 AND s.seat_number = 'B05' THEN 7
+           WHEN s.room_id = 3 AND s.seat_number = 'B06' THEN 8
+           WHEN s.room_id = 3 AND s.seat_number = 'B07' THEN 9
+           WHEN s.room_id = 3 AND s.seat_number = 'B08' THEN 10
+           WHEN s.room_id IN (4, 5, 6, 7) AND s.seat_number IN ('A01', 'A05') THEN 1
+           WHEN s.room_id IN (4, 5, 6, 7) AND s.seat_number IN ('A02', 'A06') THEN 2
+           WHEN s.room_id IN (4, 5, 6, 7) AND s.seat_number IN ('A03', 'A07') THEN 6
+           WHEN s.room_id IN (4, 5, 6, 7) AND s.seat_number IN ('A04', 'A08') THEN 7
+           WHEN s.room_id IN (4, 5, 6, 7) AND s.seat_number IN ('B01', 'C01') THEN 1
+           WHEN s.room_id IN (4, 5, 6, 7) AND s.seat_number IN ('B02', 'C02') THEN 2
+           WHEN s.room_id IN (4, 5, 6, 7) AND s.seat_number IN ('B03', 'C03') THEN 6
+           WHEN s.room_id IN (4, 5, 6, 7) AND s.seat_number IN ('B04', 'C04') THEN 7
+           ELSE COALESCE(s.col_num, 1)
+       END,
+       1,
+       1,
+       0,
+       20,
+       CONCAT('{"seatType":', COALESCE(s.seat_type, 1), ',"power":', COALESCE(s.has_power, 0), ',"lamp":', COALESCE(s.has_lamp, 0), ',"window":', COALESCE(s.is_window, 0), '}')
+FROM `seat` s
+WHERE s.room_id IN (2, 3, 4, 5, 6, 7);

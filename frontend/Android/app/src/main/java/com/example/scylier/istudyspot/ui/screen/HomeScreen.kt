@@ -2,10 +2,8 @@ package com.example.scylier.istudyspot.ui.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,12 +16,13 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.BookOnline
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.FormatQuote
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.Card
@@ -57,7 +56,8 @@ val mainFeatures = listOf(
     FunctionItemData("guide", "场馆导览", Icons.Default.Map, PrimaryContainer),
     FunctionItemData("my_booking", "我的预约", Icons.AutoMirrored.Filled.ReceiptLong, PrimaryContainer),
     FunctionItemData("study_record", "学习记录", Icons.Default.Timer, PrimaryContainer),
-    FunctionItemData("ai_chat", "AI咨询", Icons.Default.SmartToy, PrimaryContainer),
+    FunctionItemData("ai_agent", "AI Agent", Icons.Default.AutoAwesome, PrimaryContainer),
+    FunctionItemData("ai_chat", "AI 咨询", Icons.Default.SmartToy, PrimaryContainer),
     FunctionItemData("notification", "通知提醒", Icons.Default.Notifications, PrimaryContainer),
 )
 

@@ -35,7 +35,7 @@ class OrderItem(
     val seatNumber: String? = null
 ) {
     val displayName: String get() = studyRoomName ?: roomName ?: "自习室"
-    val displaySeat: String get() = seatPosition ?: seatNumber ?: "未知座位"
+    val displaySeat: String get() = seatNumber ?: seatPosition ?: "未知座位"
     val displayPrice: Double get() = totalPrice ?: totalAmount ?: 0.0
 }
 
@@ -68,7 +68,7 @@ class OrderDetail(
     val actualEndTime: String? = null
 ) {
     val displayName: String get() = studyRoomName ?: roomName ?: "自习室"
-    val displaySeat: String get() = seatPosition ?: seatNumber ?: "未知座位"
+    val displaySeat: String get() = seatNumber ?: seatPosition ?: "未知座位"
     val displayPrice: Double get() = totalPrice ?: totalAmount ?: 0.0
 }
 

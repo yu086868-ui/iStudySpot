@@ -1,6 +1,11 @@
 package com.example.scylier.istudyspot.infra.network
 
 import com.example.scylier.istudyspot.models.BaseResponse
+import com.example.scylier.istudyspot.models.agent.AgentChatRequest
+import com.example.scylier.istudyspot.models.agent.AgentChatResponse
+import com.example.scylier.istudyspot.models.agent.AgentToolDefinition
+import com.example.scylier.istudyspot.models.agent.AgentToolExecuteRequest
+import com.example.scylier.istudyspot.models.agent.AgentToolExecutionResult
 import com.example.scylier.istudyspot.models.ai.AiChatRequest
 import com.example.scylier.istudyspot.models.auth.LoginRequest
 import com.example.scylier.istudyspot.models.auth.LoginResponse
@@ -21,6 +26,7 @@ import com.example.scylier.istudyspot.models.payment.PaymentStatusResponse
 import com.example.scylier.istudyspot.models.statistics.StudyRoomStatisticsResponse
 import com.example.scylier.istudyspot.models.studyroom.SeatDetail
 import com.example.scylier.istudyspot.models.studyroom.SeatInfo
+import com.example.scylier.istudyspot.models.studyroom.SeatLayoutData
 import com.example.scylier.istudyspot.models.studyroom.StudyRoomDetail
 import com.example.scylier.istudyspot.models.studyroom.StudyRoomListResponse
 import com.example.scylier.istudyspot.models.todo.CreateTodoRequest
@@ -65,6 +71,11 @@ interface ApiService {
         @Query("status") status: String? = null,
         @Query("type") type: String? = null
     ): Response<BaseResponse<List<SeatInfo>>>
+
+    @GET("/api/studyrooms/{studyRoomId}/seat-layout")
+    suspend fun getStudyRoomSeatLayout(
+        @Path("studyRoomId") studyRoomId: Long
+    ): Response<BaseResponse<SeatLayoutData>>
 
     @GET("/api/seats/{id}")
     suspend fun getSeatDetail(@Path("id") id: Long): Response<BaseResponse<SeatDetail>>
@@ -168,6 +179,15 @@ interface ApiService {
 
     @POST("/api/chat")
     suspend fun sendAiMessage(@Body request: AiChatRequest): Response<BaseResponse<Map<String, Any?>>>
+
+    @GET("/api/agent/tools/catalog")
+    suspend fun getAgentToolCatalog(): Response<BaseResponse<List<AgentToolDefinition>>>
+
+    @POST("/api/agent/chat")
+    suspend fun agentChat(@Body request: AgentChatRequest): Response<BaseResponse<AgentChatResponse>>
+
+    @POST("/api/agent/tools/execute")
+    suspend fun executeAgentTool(@Body request: AgentToolExecuteRequest): Response<BaseResponse<AgentToolExecutionResult>>
 
     @GET("/api/card/list")
     suspend fun getCardList(@Query("userID") userId: String): Response<BaseResponse<List<Map<String, Any?>>>>
