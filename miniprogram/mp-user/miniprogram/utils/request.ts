@@ -2,7 +2,7 @@ import type { ApiResponse } from '../typings/api';
 import logger from './logger';
 import metrics from '../services/metrics';
 
-const BASE_URL = 'https://192.168.21.3:8080/api';
+const BASE_URL = 'https://192.168.21.3:8080/api/wx';
 
 // ==================== SSE 相关类型与工具函数 ====================
 
