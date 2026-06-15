@@ -1,4 +1,4 @@
-package com.example.scylier.istudyspot.ui.screen
+﻿package com.example.scylier.istudyspot.ui.screen
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -97,7 +97,7 @@ import com.example.scylier.istudyspot.ui.components.AppTopBar
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun GuideScreen(
+fun LegacyGuideScreen(
     facilities: List<Facility>,
     location: String,
     openingHours: String,

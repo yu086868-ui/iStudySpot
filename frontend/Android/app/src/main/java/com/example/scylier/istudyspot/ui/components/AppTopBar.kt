@@ -18,6 +18,7 @@ import androidx.compose.ui.text.style.TextOverflow
 fun AppTopBar(
     title: String,
     onBack: (() -> Unit)? = null,
+    titleMaxLines: Int = 1,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
     TopAppBar(
@@ -25,7 +26,7 @@ fun AppTopBar(
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleLarge,
-                maxLines = 1,
+                maxLines = titleMaxLines,
                 overflow = TextOverflow.Ellipsis
             )
         },

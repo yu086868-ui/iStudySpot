@@ -51,7 +51,46 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3a6b51a8-f9c9-41fb-82aa-c7da64a37e8a" name="Changes" comment="修改了MoreFragment并把其中一些View进行了解耦" />
+    <list default="true" id="3a6b51a8-f9c9-41fb-82aa-c7da64a37e8a" name="Changes" comment="修改了MoreFragment并把其中一些View进行了解耦">
+      <change beforePath="$PROJECT_DIR$/../../architecture.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../create_card_table.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../docs/design/.structurizr/1/images/android-components-thumbnail.png" beforeDir="false" afterPath="$PROJECT_DIR$/../../docs/design/.structurizr/1/images/android-components-thumbnail.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../docs/design/.structurizr/1/images/backend-components-thumbnail.png" beforeDir="false" afterPath="$PROJECT_DIR$/../../docs/design/.structurizr/1/images/backend-components-thumbnail.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../docs/design/.structurizr/1/images/container-thumbnail.png" beforeDir="false" afterPath="$PROJECT_DIR$/../../docs/design/.structurizr/1/images/container-thumbnail.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../docs/design/.structurizr/1/images/system-context-thumbnail.png" beforeDir="false" afterPath="$PROJECT_DIR$/../../docs/design/.structurizr/1/images/system-context-thumbnail.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../docs/design/.structurizr/1/images/thumbnail.png" beforeDir="false" afterPath="$PROJECT_DIR$/../../docs/design/.structurizr/1/images/thumbnail.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../docs/design/.structurizr/index/_0.cfe" beforeDir="false" afterPath="$PROJECT_DIR$/../../docs/design/.structurizr/index/_0.cfe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../docs/design/.structurizr/index/_0.cfs" beforeDir="false" afterPath="$PROJECT_DIR$/../../docs/design/.structurizr/index/_0.cfs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../docs/design/.structurizr/index/_0.si" beforeDir="false" afterPath="$PROJECT_DIR$/../../docs/design/.structurizr/index/_0.si" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../docs/design/.structurizr/index/segments_1" beforeDir="false" afterPath="$PROJECT_DIR$/../../docs/design/.structurizr/index/segments_1" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../screen.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../screen2.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../test_booking.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../test_card_api.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../test_chat.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../test_checkin.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../test_checkout.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../test_login.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../test_output.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../test_register.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../test_result.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../ui_debug.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../ui_dump.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../ui_search.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../ui_test.bat" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../ui_test.ps1" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../ui_test.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../ui_test.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../uidump_auto.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../uidump_check.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../uidump_nav.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../uidump_nav2.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../uidump_nav3.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../uidump_q.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../uit.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../uit_test.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../局域网后端联调说明书.md" beforeDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
