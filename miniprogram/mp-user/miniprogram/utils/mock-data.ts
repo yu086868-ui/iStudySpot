@@ -14,28 +14,20 @@ export interface MockDataType {
 export const mockData: MockDataType = {
   users: [
     {
-      id: 'user_001',
-      username: 'user001',
+      id: 1,
+      openId: 'mock_open_id_001',
       nickname: '张三',
-      avatar: 'https://example.com/avatar1.jpg',
-      phone: '13800138000',
-      email: 'zhangsan@example.com',
-      studentId: '20240001',
-      creditScore: 100,
-      status: 'active' as const,
+      avatarUrl: 'https://example.com/avatar1.jpg',
+      status: 'normal' as const,
       createdAt: '2024-01-01T00:00:00Z',
       updatedAt: '2024-01-01T00:00:00Z'
     },
     {
-      id: 'user_002',
-      username: 'user002',
+      id: 2,
+      openId: 'mock_open_id_002',
       nickname: '李四',
-      avatar: 'https://example.com/avatar2.jpg',
-      phone: '13800138001',
-      email: 'lisi@example.com',
-      studentId: '20240002',
-      creditScore: 95,
-      status: 'active' as const,
+      avatarUrl: 'https://example.com/avatar2.jpg',
+      status: 'normal' as const,
       createdAt: '2024-01-02T00:00:00Z',
       updatedAt: '2024-01-02T00:00:00Z'
     }
@@ -249,7 +241,7 @@ const generateReservations = (): void => {
     
     mockData.reservations.push({
       id: `res_completed_${i}`,
-      userId: mockData.users[0].id,
+      userId: String(mockData.users[0].id),
       studyRoomId: mockData.studyRooms[i % mockData.studyRooms.length].id,
       seatId: `seat_${mockData.studyRooms[i % mockData.studyRooms.length].id}_${i + 1}_${i + 1}`,
       startTime: startTime.toISOString(),
@@ -268,7 +260,7 @@ const generateReservations = (): void => {
     
     mockData.reservations.push({
       id: `res_cancelled_${i}`,
-      userId: mockData.users[0].id,
+      userId: String(mockData.users[0].id),
       studyRoomId: mockData.studyRooms[i % mockData.studyRooms.length].id,
       seatId: `seat_${mockData.studyRooms[i % mockData.studyRooms.length].id}_${i + 1}_${i + 2}`,
       startTime: startTime.toISOString(),
@@ -546,7 +538,7 @@ const generateInitialCards = (): void => {
 
   const durations = [5, 25, 45, 90, 150, 300];
   durations.forEach((duration, index) => {
-    const card = generateCard(user.id, duration);
+    const card = generateCard(String(user.id), duration);
     card.uuid = `card_init_${index + 1}`;
     card.createTime = new Date(Date.now() - (durations.length - index) * 24 * 60 * 60 * 1000)
       .toISOString().replace('T', ' ').substring(0, 19);

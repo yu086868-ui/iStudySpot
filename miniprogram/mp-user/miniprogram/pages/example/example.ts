@@ -48,16 +48,13 @@ Page({
     }
   },
 
-  async handleLogin() {
+  async handleWxLogin() {
     try {
-      const response = await authApi.login({
-        username: 'user001',
-        password: 'password123'
-      });
+      const response = await authApi.loginWithWx();
 
       if (response.code === 200) {
         wx.showToast({
-          title: '登录成功',
+          title: response.data.isNewUser ? '注册成功' : '登录成功',
           icon: 'success'
         });
         await this.loadUserInfo();
@@ -66,20 +63,6 @@ Page({
           title: response.message,
           icon: 'none'
         });
-      }
-    } catch (error) {
-    }
-  },
-
-  async handleLogout() {
-    try {
-      const response = await authApi.logout();
-      if (response.code === 200) {
-        wx.showToast({
-          title: '登出成功',
-          icon: 'success'
-        });
-        this.setData({ userInfo: null });
       }
     } catch (error) {
     }
@@ -183,11 +166,10 @@ Page({
     }
   },
 
-  async handleUpdateUserInfo() {
+  async handleUpdateNickname() {
     try {
-      const response = await userApi.updateUser({
-        nickname: '新昵称',
-        avatar: 'https://example.com/new-avatar.jpg'
+      const response = await userApi.updateProfile({
+        nickname: '新昵称'
       });
 
       if (response.code === 200) {
