@@ -51,46 +51,7 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3a6b51a8-f9c9-41fb-82aa-c7da64a37e8a" name="Changes" comment="修改了MoreFragment并把其中一些View进行了解耦">
-      <change beforePath="$PROJECT_DIR$/../../architecture.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../create_card_table.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../docs/design/.structurizr/1/images/android-components-thumbnail.png" beforeDir="false" afterPath="$PROJECT_DIR$/../../docs/design/.structurizr/1/images/android-components-thumbnail.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../docs/design/.structurizr/1/images/backend-components-thumbnail.png" beforeDir="false" afterPath="$PROJECT_DIR$/../../docs/design/.structurizr/1/images/backend-components-thumbnail.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../docs/design/.structurizr/1/images/container-thumbnail.png" beforeDir="false" afterPath="$PROJECT_DIR$/../../docs/design/.structurizr/1/images/container-thumbnail.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../docs/design/.structurizr/1/images/system-context-thumbnail.png" beforeDir="false" afterPath="$PROJECT_DIR$/../../docs/design/.structurizr/1/images/system-context-thumbnail.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../docs/design/.structurizr/1/images/thumbnail.png" beforeDir="false" afterPath="$PROJECT_DIR$/../../docs/design/.structurizr/1/images/thumbnail.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../docs/design/.structurizr/index/_0.cfe" beforeDir="false" afterPath="$PROJECT_DIR$/../../docs/design/.structurizr/index/_0.cfe" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../docs/design/.structurizr/index/_0.cfs" beforeDir="false" afterPath="$PROJECT_DIR$/../../docs/design/.structurizr/index/_0.cfs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../docs/design/.structurizr/index/_0.si" beforeDir="false" afterPath="$PROJECT_DIR$/../../docs/design/.structurizr/index/_0.si" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../docs/design/.structurizr/index/segments_1" beforeDir="false" afterPath="$PROJECT_DIR$/../../docs/design/.structurizr/index/segments_1" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../screen.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../screen2.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../test_booking.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../test_card_api.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../test_chat.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../test_checkin.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../test_checkout.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../test_login.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../test_output.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../test_register.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../test_result.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../ui_debug.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../ui_dump.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../ui_search.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../ui_test.bat" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../ui_test.ps1" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../ui_test.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../ui_test.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../uidump_auto.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../uidump_check.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../uidump_nav.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../uidump_nav2.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../uidump_nav3.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../uidump_q.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../uit.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../uit_test.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../局域网后端联调说明书.md" beforeDir="false" />
-    </list>
+    <list default="true" id="3a6b51a8-f9c9-41fb-82aa-c7da64a37e8a" name="Changes" comment="修改了MoreFragment并把其中一些View进行了解耦" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -184,23 +145,23 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Android App.app.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.Android.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.Android:app [testDebugUnitTest].executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
-    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
-    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;joint-debugging3&quot;,
-    &quot;last_opened_file_path&quot;: &quot;F:/Scylier-Project/active/iStudySpot/frontend/Android&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;project.propVCSSupport.DirectoryMappings&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Android App.app.executor": "Run",
+    "Gradle.Android.executor": "Run",
+    "Gradle.Android:app [testDebugUnitTest].executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager": "true",
+    "RunOnceActivity.cidr.known.project.marker": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.readMode.enableVisualFormatting": "true",
+    "cf.first.check.clang-format": "false",
+    "cidr.known.project.marker": "true",
+    "git-widget-placeholder": "joint-debugging4",
+    "last_opened_file_path": "F:/Scylier-Project/active/iStudySpot/frontend/Android",
+    "settings.editor.selected.configurable": "project.propVCSSupport.DirectoryMappings"
   }
-}</component>
+}]]></component>
   <component name="RunAnythingCache">
     <option name="myCommands">
       <command value="gradle --info" />

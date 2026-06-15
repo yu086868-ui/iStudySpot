@@ -9,65 +9,72 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.DeleteOutline
-import androidx.compose.material.icons.filled.ErrorOutline
-import androidx.compose.material.icons.filled.SmartToy
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.scylier.istudyspot.models.agent.AgentMessage
 import com.example.scylier.istudyspot.models.agent.AgentMessageRole
 import com.example.scylier.istudyspot.models.agent.AgentReplyBlock
-import com.example.scylier.istudyspot.models.agent.AgentToolDefinition
 import com.example.scylier.istudyspot.models.agent.AgentToolExecutionResult
 import com.example.scylier.istudyspot.models.agent.AgentUiAction
+import com.example.scylier.istudyspot.repository.AgentConversationSummary
 import com.example.scylier.istudyspot.ui.components.AppTopBar
-import com.example.scylier.istudyspot.ui.theme.LocalExtendedColors
-import com.example.scylier.istudyspot.viewmodel.AgentUiState
 import com.example.scylier.istudyspot.viewmodel.AgentViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -78,17 +85,21 @@ fun AgentScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     val listState = rememberLazyListState()
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val coroutineScope = rememberCoroutineScope()
     val keyboardController = LocalSoftwareKeyboardController.current
     var inputText by remember { mutableStateOf("") }
+    var deleteTarget by remember { mutableStateOf<AgentConversationSummary?>(null) }
 
     LaunchedEffect(Unit) {
-        viewModel.loadCatalog()
+        if (!state.hasActiveConversation) {
+            viewModel.startNewConversation()
+        }
     }
 
-    LaunchedEffect(state.messages.size, state.suggestedPrompts.size) {
+    LaunchedEffect(state.activeConversationId, state.messages.size) {
         if (state.messages.isNotEmpty()) {
-            val extraItems = if (state.suggestedPrompts.isNotEmpty()) 1 else 0
-            listState.animateScrollToItem(state.messages.lastIndex + extraItems)
+            listState.animateScrollToItem(state.messages.lastIndex)
         }
     }
 
@@ -100,337 +111,331 @@ fun AgentScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            AppTopBar(
-                title = "智能助手",
-                onBack = onBack,
-                actions = {
-                    FilledIconButton(
-                        onClick = { viewModel.clearConversation() },
-                        enabled = state.messages.isNotEmpty(),
-                        modifier = Modifier.size(40.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.DeleteOutline,
-                            contentDescription = "清空会话"
-                        )
-                    }
-                }
-            )
-        },
-        bottomBar = {
-            Surface(
-                tonalElevation = 3.dp,
-                color = MaterialTheme.colorScheme.surface
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    OutlinedTextField(
-                        value = inputText,
-                        onValueChange = { inputText = it },
-                        placeholder = { Text("询问自习室、座位、预约或规则") },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(24.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = MaterialTheme.colorScheme.surface,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surface
-                        ),
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
-                        keyboardActions = KeyboardActions(onSend = { sendInput() }),
-                        maxLines = 3
-                    )
-                    Spacer(modifier = Modifier.size(8.dp))
-                    FilledIconButton(
-                        onClick = { sendInput() },
-                        enabled = inputText.isNotBlank() && !state.isExecuting,
-                        modifier = Modifier.size(48.dp)
-                    ) {
-                        if (state.isExecuting) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp),
-                                strokeWidth = 2.dp
-                            )
-                        } else {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.Send,
-                                contentDescription = "发送"
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    ) { paddingValues ->
-        if (state.messages.isEmpty()) {
-            AgentEmptyState(
-                modifier = Modifier.padding(paddingValues),
-                state = state,
-                onSuggestionClick = { viewModel.submitPrompt(it) },
-                onToolClick = { viewModel.triggerToolShortcut(it) }
-            )
-        } else {
-            LazyColumn(
-                state = listState,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .background(MaterialTheme.colorScheme.background),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp)
-            ) {
-                items(state.messages, key = { message -> message.id }) { message ->
-                    AgentMessageCard(
-                        message = message,
-                        viewModel = viewModel,
-                        onActionNavigate = onActionNavigate
-                    )
-                }
-
-                if (state.suggestedPrompts.isNotEmpty()) {
-                    item("suggested_prompts") {
-                        AgentSuggestedPromptBlock(
-                            prompts = state.suggestedPrompts,
-                            onPromptClick = { viewModel.submitPrompt(it) }
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun AgentEmptyState(
-    modifier: Modifier = Modifier,
-    state: AgentUiState,
-    onSuggestionClick: (String) -> Unit,
-    onToolClick: (AgentToolDefinition) -> Unit
-) {
-    val extendedColors = LocalExtendedColors.current
-    LazyColumn(
-        modifier = modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-        contentPadding = PaddingValues(20.dp),
-        verticalArrangement = Arrangement.spacedBy(18.dp)
-    ) {
-        item {
-            Card(
-                shape = RoundedCornerShape(28.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.Transparent)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            brush = Brush.linearGradient(
-                                listOf(extendedColors.gradientStart, extendedColors.gradientEnd)
-                            )
-                        )
-                        .padding(24.dp)
-                ) {
-                    Column {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                modifier = Modifier
-                                    .size(44.dp)
-                                    .clip(CircleShape)
-                                    .background(Color.White.copy(alpha = 0.18f)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.AutoAwesome,
-                                    contentDescription = null,
-                                    tint = Color.White
-                                )
-                            }
-                            Spacer(modifier = Modifier.size(12.dp))
-                            Column {
-                                Text(
-                                    text = "智能助手",
-                                    style = MaterialTheme.typography.titleLarge,
-                                    color = Color.White,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                                Text(
-                                    text = "查询自习室、座位与预约信息",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = Color.White.copy(alpha = 0.88f)
-                                )
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(18.dp))
-                        Text(
-                            text = "你可以查询可用自习室、座位状态、我的预约和预约规则。预约、取消、支付、签到等操作请在对应页面完成。",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = Color.White.copy(alpha = 0.94f)
-                        )
-                    }
-                }
-            }
-        }
-
-        if (state.catalogError != null) {
-            item {
-                Surface(
-                    color = MaterialTheme.colorScheme.errorContainer,
-                    shape = RoundedCornerShape(20.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ErrorOutline,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onErrorContainer
-                        )
-                        Spacer(modifier = Modifier.size(12.dp))
-                        Text(
-                            text = state.catalogError,
-                            color = MaterialTheme.colorScheme.onErrorContainer,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                }
-            }
-        }
-
-        item {
-            AgentSectionTitle("可以这样问")
-        }
-
-        item {
-            AgentPromptChips(
-                prompts = state.suggestedPrompts,
-                onPromptClick = onSuggestionClick
-            )
-        }
-
-        item {
-            AgentSectionTitle("可用查询")
-        }
-
-        if (state.isCatalogLoading) {
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 24.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
-            }
-        } else {
-            items(state.toolCatalog, key = { tool -> tool.name }) { tool ->
-                AgentToolCard(tool = tool, onClick = { onToolClick(tool) })
-            }
-        }
-    }
-}
-
-@Composable
-private fun AgentSectionTitle(title: String) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.titleMedium,
-        color = MaterialTheme.colorScheme.onSurface,
-        fontWeight = FontWeight.SemiBold
-    )
-}
-
-@Composable
-private fun AgentPromptChips(
-    prompts: List<String>,
-    onPromptClick: (String) -> Unit
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        prompts.forEach { prompt ->
-            AssistChip(
-                onClick = { onPromptClick(prompt) },
-                label = { Text(prompt) },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.SmartToy,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                },
-                colors = AssistChipDefaults.assistChipColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    labelColor = MaterialTheme.colorScheme.onSurface
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            ModalDrawerSheet {
+                AgentHistoryDrawer(
+                    conversations = state.conversations,
+                    activeConversationId = state.activeConversationId,
+                    onNewConversation = {
+                        viewModel.startNewConversation()
+                        inputText = ""
+                        coroutineScope.launch { drawerState.close() }
+                    },
+                    onConversationClick = { conversation ->
+                        viewModel.openConversation(conversation.id)
+                        coroutineScope.launch { drawerState.close() }
+                    },
+                    onPinConversation = { viewModel.pinConversation(it.id) },
+                    onDeleteConversation = { deleteTarget = it }
                 )
-            )
+            }
         }
+    ) {
+        Scaffold(
+            topBar = {
+                AppTopBar(
+                    title = "AI Agent",
+                    onBack = onBack,
+                    actions = {
+                        FilledIconButton(
+                            onClick = { coroutineScope.launch { drawerState.open() } },
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Menu,
+                                contentDescription = "历史会话"
+                            )
+                        }
+                    }
+                )
+            },
+            bottomBar = {
+                AgentInputBar(
+                    inputText = inputText,
+                    isExecuting = state.isExecuting,
+                    onInputChange = { inputText = it },
+                    onSend = { sendInput() }
+                )
+            }
+        ) { paddingValues ->
+            if (state.messages.isEmpty()) {
+                AgentMinimalEmptyState(modifier = Modifier.padding(paddingValues))
+            } else {
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                        .background(MaterialTheme.colorScheme.background),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp)
+                ) {
+                    items(state.messages, key = { message -> message.id }) { message ->
+                        AgentMessageCard(
+                            message = message,
+                            viewModel = viewModel,
+                            onActionNavigate = onActionNavigate
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    val target = deleteTarget
+    if (target != null) {
+        AlertDialog(
+            onDismissRequest = { deleteTarget = null },
+            title = { Text("删除会话") },
+            text = { Text("确定要删除「${target.title}」吗？删除后无法恢复。") },
+            confirmButton = {
+                ElevatedButton(
+                    onClick = {
+                        viewModel.deleteConversation(target.id)
+                        deleteTarget = null
+                    }
+                ) {
+                    Text("删除")
+                }
+            },
+            dismissButton = {
+                ElevatedButton(onClick = { deleteTarget = null }) {
+                    Text("取消")
+                }
+            }
+        )
     }
 }
 
 @Composable
-private fun AgentSuggestedPromptBlock(
-    prompts: List<String>,
-    onPromptClick: (String) -> Unit
+private fun AgentInputBar(
+    inputText: String,
+    isExecuting: Boolean,
+    onInputChange: (String) -> Unit,
+    onSend: () -> Unit
 ) {
     Surface(
-        shape = RoundedCornerShape(22.dp),
+        tonalElevation = 3.dp,
         color = MaterialTheme.colorScheme.surface
     ) {
-        Column(
-            modifier = Modifier.padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "你还可以问",
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.SemiBold
+            OutlinedTextField(
+                value = inputText,
+                onValueChange = onInputChange,
+                placeholder = { Text("输入你的问题") },
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(24.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                ),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+                keyboardActions = KeyboardActions(onSend = { onSend() }),
+                maxLines = 3
             )
-            AgentPromptChips(
-                prompts = prompts,
-                onPromptClick = onPromptClick
-            )
+            Spacer(modifier = Modifier.size(8.dp))
+            FilledIconButton(
+                onClick = onSend,
+                enabled = inputText.isNotBlank() && !isExecuting,
+                modifier = Modifier.size(48.dp)
+            ) {
+                if (isExecuting) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.Send,
+                        contentDescription = "发送"
+                    )
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun AgentToolCard(
-    tool: AgentToolDefinition,
-    onClick: () -> Unit
+private fun AgentHistoryDrawer(
+    conversations: List<AgentConversationSummary>,
+    activeConversationId: String?,
+    onNewConversation: () -> Unit,
+    onConversationClick: (AgentConversationSummary) -> Unit,
+    onPinConversation: (AgentConversationSummary) -> Unit,
+    onDeleteConversation: (AgentConversationSummary) -> Unit
 ) {
-    Card(
-        onClick = onClick,
-        shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+        Text(
+            text = "历史会话",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.SemiBold
+        )
+        ElevatedButton(
+            onClick = onNewConversation,
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            Text("新建对话")
+        }
+        if (conversations.isEmpty()) {
+            Text(
+                text = "暂无历史会话",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        } else {
+            conversations.forEach { conversation ->
+                AgentHistoryDrawerItem(
+                    conversation = conversation,
+                    selected = conversation.id == activeConversationId,
+                    onClick = { onConversationClick(conversation) },
+                    onPinConversation = { onPinConversation(conversation) },
+                    onDeleteConversation = { onDeleteConversation(conversation) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AgentHistoryDrawerItem(
+    conversation: AgentConversationSummary,
+    selected: Boolean,
+    onClick: () -> Unit,
+    onPinConversation: () -> Unit,
+    onDeleteConversation: () -> Unit
+) {
+    var menuExpanded by remember(conversation.id) { mutableStateOf(false) }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        NavigationDrawerItem(
+            modifier = Modifier.weight(1f),
+            label = {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = conversation.title,
+                            modifier = Modifier.weight(1f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        if (conversation.isPinned) {
+                            Spacer(modifier = Modifier.size(4.dp))
+                            Icon(
+                                imageVector = Icons.Default.PushPin,
+                                contentDescription = "已置顶",
+                                modifier = Modifier.size(14.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                    Text(
+                        text = conversation.preview.ifBlank { "暂无内容" },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            },
+            selected = selected,
+            onClick = onClick
+        )
+        Box {
+            IconButton(onClick = { menuExpanded = true }) {
+                Icon(
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = "更多操作"
+                )
+            }
+            DropdownMenu(
+                expanded = menuExpanded,
+                onDismissRequest = { menuExpanded = false }
+            ) {
+                DropdownMenuItem(
+                    text = { Text("置顶") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.PushPin,
+                            contentDescription = null
+                        )
+                    },
+                    onClick = {
+                        menuExpanded = false
+                        onPinConversation()
+                    }
+                )
+                DropdownMenuItem(
+                    text = { Text("删除会话") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.DeleteOutline,
+                            contentDescription = null
+                        )
+                    },
+                    onClick = {
+                        menuExpanded = false
+                        onDeleteConversation()
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AgentMinimalEmptyState(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Card(
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = tool.title?.takeIf { it.isNotBlank() } ?: tool.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    text = "AI Agent",
+                    style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
-                    text = if (tool.requiresAuth) "需登录" else "公开",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary
+                    text = "可查询自习室、座位、预约和规则。",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = "直接输入问题开始聊。",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+        }
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
             Text(
-                text = tool.description?.takeIf { it.isNotBlank() } ?: "执行这项查询",
+                text = "从右上角可查看历史会话",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -444,6 +449,11 @@ private fun AgentMessageCard(
     viewModel: AgentViewModel,
     onActionNavigate: (route: String, params: Map<String, Any?>) -> Unit
 ) {
+    val results = message.results.ifEmpty { listOfNotNull(message.result) }
+    var expanded by remember(message.id) {
+        mutableStateOf(!results.any { it.isListResult() })
+    }
+
     val isUser = message.role == AgentMessageRole.USER
     val cardColor = when {
         isUser -> MaterialTheme.colorScheme.primary
@@ -470,18 +480,24 @@ private fun AgentMessageCard(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 AgentMessageContent(message = message, color = textColor)
-                val results = message.results.ifEmpty { listOfNotNull(message.result) }
                 if (!isUser && results.isNotEmpty()) {
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                    results.forEachIndexed { index, result ->
-                        if (index > 0) {
-                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    AgentResultSummaryBar(
+                        summary = resultSummaryText(results),
+                        expanded = expanded,
+                        onToggle = { expanded = !expanded }
+                    )
+                    if (expanded) {
+                        results.forEachIndexed { index, result ->
+                            if (index > 0) {
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                            }
+                            AgentResultBlock(
+                                result = result,
+                                viewModel = viewModel,
+                                onActionNavigate = onActionNavigate
+                            )
                         }
-                        AgentResultBlock(
-                            result = result,
-                            viewModel = viewModel,
-                            onActionNavigate = onActionNavigate
-                        )
                     }
                 }
                 if (!isUser && message.uiAction?.type == "navigate" && !message.uiAction.route.isNullOrBlank()) {
@@ -494,6 +510,39 @@ private fun AgentMessageCard(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun AgentResultSummaryBar(
+    summary: String,
+    expanded: Boolean,
+    onToggle: () -> Unit
+) {
+    Surface(
+        onClick = onToggle,
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = summary,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontWeight = FontWeight.Medium
+            )
+            Icon(
+                imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                contentDescription = if (expanded) "收起" else "展开",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
@@ -547,7 +596,7 @@ private fun AgentReplyBlockView(
         "bullet" -> Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
             block.items.forEach { item ->
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(text = "•", color = color, style = MaterialTheme.typography.bodyLarge)
+                    Text(text = "-", color = color, style = MaterialTheme.typography.bodyLarge)
                     Text(
                         text = item,
                         style = MaterialTheme.typography.bodyLarge,
@@ -643,7 +692,7 @@ private fun AgentStudyRoomItems(
 ) {
     val items = result.data.listOfMaps("items")
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        items.take(4).forEach { room ->
+        items.forEach { room ->
             val roomId = room.longValue("id")
             val roomName = room.stringValue("name").orEmpty()
             Surface(
@@ -750,7 +799,7 @@ private fun AgentStudyRoomDetail(
 private fun AgentSeatItems(result: AgentToolExecutionResult) {
     val items = result.data.listOfMaps("items")
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        items.take(8).forEach { seat ->
+        items.forEach { seat ->
             val row = seat["rowNum"]?.toString()
             val col = seat["colNum"]?.toString()
             val label = seat.stringValue("seatNumber")?.takeIf { it.isNotBlank() }
@@ -762,7 +811,7 @@ private fun AgentSeatItems(result: AgentToolExecutionResult) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = if (label.isBlank()) "??" else "?? $label",
+                    text = if (label.isBlank()) "--" else "座位 $label",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -776,13 +825,6 @@ private fun AgentSeatItems(result: AgentToolExecutionResult) {
                     }
                 )
             }
-            if (!row.isNullOrBlank() && !col.isNullOrBlank() && label != "$row-$col") {
-                Text(
-                    text = "${row}?${col}?",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
         }
     }
 }
@@ -794,7 +836,7 @@ private fun AgentReservationItems(
 ) {
     val items = result.data.listOfMaps("items")
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        items.take(4).forEach { order ->
+        items.forEach { order ->
             Surface(
                 shape = RoundedCornerShape(18.dp),
                 color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
@@ -804,7 +846,7 @@ private fun AgentReservationItems(
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     Text(
-                        text = order.stringValue("roomName").orEmpty(),
+                        text = order.stringValue("roomName").orEmpty().ifBlank { "预约订单" },
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -871,6 +913,22 @@ private fun AgentJsonFallback(result: AgentToolExecutionResult) {
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant
     )
+}
+
+private fun AgentToolExecutionResult.isListResult(): Boolean {
+    val items = data["items"]
+    if (items is List<*>) {
+        return items.size > 1
+    }
+    return tool in setOf("list_study_rooms", "list_room_seats", "get_my_reservations")
+}
+
+private fun resultSummaryText(results: List<AgentToolExecutionResult>): String {
+    return when {
+        results.size > 1 -> "已返回 ${results.size} 个结果"
+        results.firstOrNull()?.isListResult() == true -> "已返回列表结果"
+        else -> "已返回 1 个结果"
+    }
 }
 
 private fun readableSeatStatus(status: String): String {

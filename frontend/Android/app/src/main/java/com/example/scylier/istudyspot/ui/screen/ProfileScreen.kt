@@ -21,7 +21,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
-import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Edit
@@ -171,13 +170,6 @@ fun ProfileScreen(
                         label = "我的订单",
                         onClick = onOrderListClick
                     )
-                    MenuDivider()
-                    MenuItemRow(
-                        icon = Icons.Default.AccountBalanceWallet,
-                        label = "我的钱包",
-                        onClick = onCardCollection
-                    )
-                    MenuDivider()
                     MenuItemRow(
                         icon = Icons.AutoMirrored.Filled.TrendingUp,
                         label = "学习报告",

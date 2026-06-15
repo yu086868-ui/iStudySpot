@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -35,10 +37,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ErrorOutline
-import com.example.scylier.istudyspot.ui.components.AppTopBar
 import com.example.scylier.istudyspot.models.order.OrderDetail
+import com.example.scylier.istudyspot.ui.components.AppTopBar
 import com.example.scylier.istudyspot.ui.theme.LocalExtendedColors
 
 @Composable
@@ -120,7 +120,7 @@ fun OrderDetailScreen(
                     OrderDetailRow(label = "座位", value = order.displaySeat)
                     OrderDetailRow(label = "开始时间", value = order.startTime ?: "")
                     OrderDetailRow(label = "结束时间", value = order.endTime ?: "")
-                    OrderDetailRow(label = "总价", value = "¥${order.displayPrice}", isHighlight = true)
+                    OrderDetailRow(label = "总价", value = "￥${order.displayPrice}", isHighlight = true)
                 }
             }
             Spacer(modifier = Modifier.height(28.dp))
@@ -168,30 +168,6 @@ fun OrderDetailScreen(
                         )
                     ) {
                         Text("签退", style = MaterialTheme.typography.labelLarge)
-                    }
-                }
-                if (order.status == "in_use") {
-                    Button(
-                        onClick = {
-                            val currentEnd = order.endTime
-                            val newEnd = try {
-                                val formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
-                                val endTime = java.time.LocalDateTime.parse(currentEnd, formatter)
-                                endTime.plusHours(1).format(formatter)
-                            } catch (e: Exception) {
-                                (currentEnd ?: "") + " (+1h)"
-                            }
-                            onRenew(newEnd)
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(48.dp),
-                        shape = RoundedCornerShape(14.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.tertiary
-                        )
-                    ) {
-                        Text("续时1小时", style = MaterialTheme.typography.labelLarge)
                     }
                 }
                 if (order.status == "paid" || order.status == "pending") {
@@ -256,8 +232,7 @@ private fun OrderDetailRow(
         Text(
             text = value,
             style = MaterialTheme.typography.bodyMedium,
-            color = if (isHighlight) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurface,
+            color = if (isHighlight) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
             fontWeight = if (isHighlight) FontWeight.SemiBold else FontWeight.Normal
         )
     }
@@ -268,25 +243,21 @@ private fun DetailStatusBadge(
     status: String,
     extendedColors: com.example.scylier.istudyspot.ui.theme.ExtendedColors
 ) {
-    val (color, label) = when (status ?: "") {
-        "pending" -> extendedColors.warning to "待支付"
-        "paid" -> extendedColors.info to "已支付"
-        "in_use" -> extendedColors.success to "使用中"
-        "completed" -> MaterialTheme.colorScheme.onSurfaceVariant to "已完成"
-        "cancelled" -> MaterialTheme.colorScheme.error to "已取消"
-        else -> MaterialTheme.colorScheme.onSurfaceVariant to (status ?: "未知")
+    val (bg, fg, label) = when (status) {
+        "pending" -> Triple(MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.onSecondaryContainer, "待支付")
+        "paid" -> Triple(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer, "已支付")
+        "in_use" -> Triple(extendedColors.success.copy(alpha = 0.18f), extendedColors.success, "使用中")
+        "completed" -> Triple(MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onTertiaryContainer, "已完成")
+        "cancelled" -> Triple(MaterialTheme.colorScheme.errorContainer, MaterialTheme.colorScheme.onErrorContainer, "已取消")
+        else -> Triple(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.onSurfaceVariant, status)
     }
+
     Box(
         modifier = Modifier
-            .clip(RoundedCornerShape(10.dp))
-            .background(color.copy(alpha = 0.12f))
-            .padding(horizontal = 10.dp, vertical = 4.dp)
+            .clip(RoundedCornerShape(999.dp))
+            .background(bg)
+            .padding(horizontal = 12.dp, vertical = 6.dp)
     ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = color,
-            fontWeight = FontWeight.Medium
-        )
+        Text(text = label, color = fg, style = MaterialTheme.typography.labelSmall)
     }
 }

@@ -74,7 +74,10 @@ fun StudyRoomScreen(
         )
         OutlinedTextField(
             value = keyword,
-            onValueChange = { keyword = it; onSearch(it) },
+            onValueChange = {
+                keyword = it
+                onSearch(it)
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 12.dp),
@@ -83,44 +86,50 @@ fun StudyRoomScreen(
             shape = RoundedCornerShape(14.dp),
             singleLine = true
         )
-        if (isLoading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-        } else if (studyRooms.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        imageVector = Icons.Default.MeetingRoom,
-                        contentDescription = null,
-                        modifier = Modifier.size(72.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = "暂无自习室",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "请稍后再试",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                    )
+        when {
+            isLoading -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
                 }
             }
-        } else {
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(14.dp),
-                contentPadding = PaddingValues(bottom = 16.dp)
-            ) {
-                items(studyRooms) { room ->
-                    StudyRoomCard(
-                        studyRoom = room,
-                        extendedColors = extendedColors,
-                        onClick = { onStudyRoomClick(room) }
-                    )
+
+            studyRooms.isEmpty() -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = Icons.Default.MeetingRoom,
+                            contentDescription = null,
+                            modifier = Modifier.size(72.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "暂无自习室",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "请稍后再试",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                        )
+                    }
+                }
+            }
+
+            else -> {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(14.dp),
+                    contentPadding = PaddingValues(bottom = 16.dp)
+                ) {
+                    items(studyRooms) { room ->
+                        StudyRoomCard(
+                            studyRoom = room,
+                            extendedColors = extendedColors,
+                            onClick = { onStudyRoomClick(room) }
+                        )
+                    }
                 }
             }
         }
@@ -137,14 +146,13 @@ private fun StudyRoomCard(
     var isFavorite by remember { mutableStateOf(false) }
     val tags = generateTags(studyRoom.name)
     val statusLabel = when (studyRoom.status) {
-        0 -> "开放中"
-        1 -> "已关闭"
+        1 -> "开放中"
+        0 -> "已关闭"
         else -> "未知"
     }
-    val errorColor = MaterialTheme.colorScheme.error
     val statusColor = when (studyRoom.status) {
-        0 -> extendedColors.success
-        1 -> errorColor
+        1 -> extendedColors.success
+        0 -> MaterialTheme.colorScheme.error
         else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 
@@ -179,8 +187,11 @@ private fun StudyRoomCard(
                     Icon(
                         imageVector = Icons.Default.Bookmark,
                         contentDescription = if (isFavorite) "取消收藏" else "收藏",
-                        tint = if (isFavorite) extendedColors.warning
-                        else MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f)
+                        tint = if (isFavorite) {
+                            extendedColors.warning
+                        } else {
+                            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f)
+                        }
                     )
                 }
             }
@@ -297,6 +308,6 @@ private fun generateTags(name: String): List<String> {
     if (name.contains("静音")) tags.add("安静区")
     if (name.contains("讨论")) tags.add("讨论区")
     if (name.contains("多媒体") || name.contains("电脑")) tags.add("多媒体区")
-    if (name.contains("VIP") || name.contains("vip")) tags.add("VIP区")
+    if (name.contains("VIP", ignoreCase = true)) tags.add("VIP区")
     return tags
 }

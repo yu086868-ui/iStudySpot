@@ -12,6 +12,7 @@ import com.example.scylier.istudyspot.models.agent.AgentToolExecutionResult
 import com.example.scylier.istudyspot.models.agent.AgentUiAction
 import com.example.scylier.istudyspot.repository.AgentConversationSnapshot
 import com.example.scylier.istudyspot.repository.AgentConversationStore
+import com.example.scylier.istudyspot.repository.AgentConversationSummary
 import com.example.scylier.istudyspot.repository.InMemoryAgentConversationStore
 import com.example.scylier.istudyspot.repository.MainRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,12 +23,16 @@ import java.util.UUID
 
 data class AgentUiState(
     val toolCatalog: List<AgentToolDefinition> = emptyList(),
+    val conversations: List<AgentConversationSummary> = emptyList(),
+    val activeConversationId: String? = null,
     val messages: List<AgentMessage> = emptyList(),
     val suggestedPrompts: List<String> = defaultAgentPrompts(),
     val isCatalogLoading: Boolean = false,
     val isExecuting: Boolean = false,
     val catalogError: String? = null
-)
+) {
+    val hasActiveConversation: Boolean get() = activeConversationId != null
+}
 
 class AgentViewModel(
     private val repository: MainRepository = MainRepository(),
@@ -40,7 +45,7 @@ class AgentViewModel(
     private var sessionId: String? = null
 
     init {
-        restoreConversation()
+        refreshConversationList()
     }
 
     fun loadCatalog(forceRefresh: Boolean = false) {
@@ -72,18 +77,79 @@ class AgentViewModel(
         }
     }
 
+    fun startNewConversation() {
+        val conversationId = "local-${UUID.randomUUID()}"
+        sessionId = null
+        _uiState.update {
+            it.copy(
+                activeConversationId = conversationId,
+                messages = emptyList(),
+                suggestedPrompts = defaultAgentPrompts(),
+                isExecuting = false
+            )
+        }
+        refreshConversationList()
+    }
+
+    fun openConversation(id: String) {
+        val snapshot = conversationStore.loadConversation(id) ?: return
+        sessionId = snapshot.sessionId
+        _uiState.update {
+            it.copy(
+                activeConversationId = snapshot.id,
+                messages = snapshot.messages,
+                suggestedPrompts = snapshot.suggestedPrompts.ifEmpty { defaultAgentPrompts() },
+                isExecuting = false
+            )
+        }
+        refreshConversationList()
+    }
+
+    fun closeConversation() {
+        sessionId = null
+        _uiState.update {
+            it.copy(
+                activeConversationId = null,
+                messages = emptyList(),
+                suggestedPrompts = defaultAgentPrompts(),
+                isExecuting = false
+            )
+        }
+        refreshConversationList()
+    }
+
+    fun deleteConversation(id: String) {
+        conversationStore.deleteConversation(id)
+        val activeId = _uiState.value.activeConversationId
+        if (activeId == id) {
+            sessionId = null
+            _uiState.update {
+                it.copy(
+                    activeConversationId = null,
+                    messages = emptyList(),
+                    suggestedPrompts = defaultAgentPrompts(),
+                    isExecuting = false
+                )
+            }
+        }
+        refreshConversationList()
+    }
+
+    fun pinConversation(id: String) {
+        conversationStore.pinConversation(id)
+        refreshConversationList()
+    }
+
     fun submitPrompt(prompt: String) {
         val text = prompt.trim()
         if (text.isBlank()) return
+        ensureActiveConversation()
         appendMessage(AgentMessageRole.USER, text)
 
         _uiState.update { it.copy(isExecuting = true) }
         viewModelScope.launch {
             when (val response = repository.sendAgentMessage(text, sessionId)) {
-                is ApiResponse.Success -> {
-                    handleAgentChatSuccess(response.data)
-                }
-
+                is ApiResponse.Success -> handleAgentChatSuccess(response.data)
                 is ApiResponse.Error -> {
                     appendMessage(
                         role = AgentMessageRole.ASSISTANT,
@@ -98,6 +164,7 @@ class AgentViewModel(
                     suggestedPrompts = state.suggestedPrompts.ifEmpty { defaultAgentPrompts() }
                 )
             }
+            persistConversation()
         }
     }
 
@@ -105,22 +172,22 @@ class AgentViewModel(
         tool: String,
         arguments: Map<String, Any?> = emptyMap()
     ) {
+        ensureActiveConversation()
         _uiState.update { it.copy(isExecuting = true) }
         viewModelScope.launch {
             when (val response = repository.executeAgentTool(tool, arguments)) {
                 is ApiResponse.Success -> {
-            val result = response.data
-            if (result != null) {
-                appendMessage(
-                    role = AgentMessageRole.ASSISTANT,
-                    content = result.summary ?: buildReadableSummary(result),
-                    result = result,
-                    results = listOf(result)
-                )
-                _uiState.update {
-                    it.copy(suggestedPrompts = buildToolSuggestions(result))
-                }
-                        persistConversation()
+                    val result = response.data
+                    if (result != null) {
+                        appendMessage(
+                            role = AgentMessageRole.ASSISTANT,
+                            content = result.summary ?: buildReadableSummary(result),
+                            result = result,
+                            results = listOf(result)
+                        )
+                        _uiState.update {
+                            it.copy(suggestedPrompts = buildToolSuggestions(result))
+                        }
                     } else {
                         appendMessage(
                             role = AgentMessageRole.ASSISTANT,
@@ -139,19 +206,16 @@ class AgentViewModel(
                 }
             }
             _uiState.update { it.copy(isExecuting = false) }
+            persistConversation()
         }
     }
 
     fun clearConversation() {
-        sessionId = null
-        conversationStore.clear()
-        _uiState.update {
-            it.copy(
-                messages = emptyList(),
-                suggestedPrompts = defaultAgentPrompts(),
-                isExecuting = false
-            )
+        val activeId = _uiState.value.activeConversationId
+        if (activeId != null) {
+            deleteConversation(activeId)
         }
+        startNewConversation()
     }
 
     fun triggerToolShortcut(tool: AgentToolDefinition) {
@@ -239,25 +303,33 @@ class AgentViewModel(
         persistConversation()
     }
 
-    private fun restoreConversation() {
-        val snapshot = conversationStore.load() ?: return
-        sessionId = snapshot.sessionId
+    private fun refreshConversationList() {
         _uiState.update {
-            it.copy(
-                messages = snapshot.messages,
-                suggestedPrompts = snapshot.suggestedPrompts.ifEmpty { defaultAgentPrompts() }
-            )
+            it.copy(conversations = conversationStore.listConversations())
+        }
+    }
+
+    private fun ensureActiveConversation() {
+        if (_uiState.value.activeConversationId == null) {
+            startNewConversation()
         }
     }
 
     private fun persistConversation() {
-        conversationStore.save(
-            AgentConversationSnapshot(
-                sessionId = sessionId,
-                messages = _uiState.value.messages.takeLast(MAX_LOCAL_MESSAGES),
-                suggestedPrompts = _uiState.value.suggestedPrompts
-            )
+        val activeId = _uiState.value.activeConversationId ?: return
+        val messages = _uiState.value.messages.takeLast(MAX_LOCAL_MESSAGES)
+        if (messages.isEmpty()) {
+            return
+        }
+        val snapshot = AgentConversationSnapshot(
+            id = activeId,
+            sessionId = sessionId,
+            messages = messages,
+            suggestedPrompts = _uiState.value.suggestedPrompts,
+            updatedAt = System.currentTimeMillis()
         )
+        conversationStore.save(snapshot)
+        refreshConversationList()
     }
 
     private fun AgentChatResponse.displayText(): String {
