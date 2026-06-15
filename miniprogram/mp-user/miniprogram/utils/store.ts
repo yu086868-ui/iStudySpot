@@ -142,7 +142,7 @@ class Store {
   }
 
   isLoggedIn(): boolean {
-    return this.state.isLoggedIn;
+    return this.state.isLoggedIn && this.state.user !== null;
   }
 
   clearUser(): void {

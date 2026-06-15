@@ -1,5 +1,6 @@
 import logger from '../utils/logger';
 import request from '../utils/request';
+import store from '../utils/store';
 
 type HealthStatus = 'healthy' | 'degraded' | 'unhealthy';
 
@@ -92,8 +93,7 @@ class HealthCheckService {
 
   private async checkLoginStatus(): Promise<HealthCheckResult> {
     var start = Date.now();
-    var token = wx.getStorageSync('access_token') || '';
-    var isLoggedIn = !!token;
+    var isLoggedIn = store.isLoggedIn();
 
     var status: HealthStatus = isLoggedIn ? 'healthy' : 'degraded';
     var message = isLoggedIn
@@ -158,7 +158,7 @@ class HealthCheckService {
     var start = Date.now();
 
     try {
-      var response = await request.get<unknown>('/health', undefined, false);
+      var response = await request.get<unknown>('/health');
       var duration = Date.now() - start;
 
       if (response && response.code === 200) {
