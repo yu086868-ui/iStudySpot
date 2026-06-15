@@ -63,11 +63,11 @@ export const userApi = {
 
   async uploadAvatar(filePath: string): Promise<ApiResponse<AvatarUploadResponse>> {
     if (mockManager.isEnabled()) {
-      const mockAvatarUrl = '/avatar/avatar_mock.jpg';
+      // Mock 模式直接使用本地临时路径，避免返回不存在的服务端路径
       const response: ApiResponse<AvatarUploadResponse> = {
         code: 200,
         message: '上传成功',
-        data: { avatarUrl: mockAvatarUrl },
+        data: { avatarUrl: filePath },
         timestamp: Date.now()
       };
       if (response.code === 200 && response.data) {

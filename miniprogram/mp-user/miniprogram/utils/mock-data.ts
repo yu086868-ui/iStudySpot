@@ -17,7 +17,7 @@ export const mockData: MockDataType = {
       id: 1,
       openId: 'mock_open_id_001',
       nickname: '张三',
-      avatarUrl: 'https://example.com/avatar1.jpg',
+      avatarUrl: '/assets/avatar-placeholder.png',
       status: 'normal' as const,
       createdAt: '2024-01-01T00:00:00Z',
       updatedAt: '2024-01-01T00:00:00Z'
@@ -26,7 +26,7 @@ export const mockData: MockDataType = {
       id: 2,
       openId: 'mock_open_id_002',
       nickname: '李四',
-      avatarUrl: 'https://example.com/avatar2.jpg',
+      avatarUrl: '/assets/avatar-placeholder.png',
       status: 'normal' as const,
       createdAt: '2024-01-02T00:00:00Z',
       updatedAt: '2024-01-02T00:00:00Z'

@@ -169,10 +169,18 @@ class MockManager {
     }
 
     if (url === '/user/avatar' && method === 'POST') {
+      const users = (mockData && mockData.users) ? mockData.users : [];
+      const user = users[0] || null;
+      const newAvatarUrl = '/avatar/avatar_' + Date.now() + '.jpg';
+
+      if (user) {
+        user.avatarUrl = newAvatarUrl;
+      }
+
       return {
         code: 200,
         message: '上传成功',
-        data: { avatarUrl: '/avatar/avatar_mock.jpg' } as T,
+        data: { avatarUrl: newAvatarUrl } as T,
         timestamp
       };
     }

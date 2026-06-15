@@ -1,7 +1,7 @@
 <view class="container">
   <view class="profile-card">
     <view class="avatar-wrapper" bindtap="handleChooseAvatar">
-      <image class="avatar" src="{{userInfo.avatarUrl || '/assets/avatar-placeholder.png'}}" mode="aspectFill"></image>
+      <image class="avatar" src="{{userInfo.avatarUrl || '/assets/avatar-placeholder.png'}}" mode="aspectFill" binderror="onAvatarError"></image>
     </view>
     <text class="username" bindtap="handleEditNickname">{{userInfo.nickname || '未设置昵称'}}</text>
     <view class="stats">

@@ -120,11 +120,14 @@ Page({
       sourceType: ['album', 'camera'],
       success: async (res) => {
         const tempFilePath = res.tempFiles[0].tempFilePath
+        // 先立即用本地临时路径更新显示
+        this.setData({ 'userInfo.avatarUrl': tempFilePath })
         wx.showLoading({ title: '上传中...' })
         try {
           const uploadRes = await userApi.uploadAvatar(tempFilePath)
           wx.hideLoading()
           if (uploadRes.code === 200 && uploadRes.data) {
+            // 上传成功后用服务端返回的路径更新
             this.setData({ 'userInfo.avatarUrl': uploadRes.data.avatarUrl })
             wx.showToast({ title: '头像已更新', icon: 'success' })
           } else {
@@ -136,5 +139,9 @@ Page({
         }
       }
     })
+  },
+
+  onAvatarError() {
+    this.setData({ 'userInfo.avatarUrl': '/assets/avatar-placeholder.png' })
   }
 })
