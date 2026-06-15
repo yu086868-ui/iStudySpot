@@ -17,21 +17,22 @@
     "strict": true,
     "strictPropertyInitialization": true,
     "lib": ["ES2020"],
-    "typeRoots": [
-      "./typings",
-      "./node_modules/@types",
-      "./tests/types"
-    ],
-    "types": ["jest", "node"],
+    "types": [],
     "moduleResolution": "bundler",
     "skipLibCheck": true,
     "isolatedModules": true,
     "ignoreDeprecations": "6.0"
   },
+  "files": [
+    "./typings/index.d.ts"
+  ],
   "include": [
-    "./**/*.ts"
+    "./miniprogram/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "tests",
+    "dist",
+    "dist-test"
   ]
 }

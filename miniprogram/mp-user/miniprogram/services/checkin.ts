@@ -18,7 +18,7 @@ export const checkInApi = {
       if (response.code === 200 && response.data) {
         const checkInRecord: CheckInRecord = {
           id: response.data.checkInRecordId,
-          userId: currentUser && currentUser.id ? currentUser.id : '',
+          userId: currentUser && currentUser.id ? String(currentUser.id) : '',
           reservationId: response.data.reservationId,
           studyRoomId: reservation && reservation.studyRoomId ? reservation.studyRoomId : '',
           seatId: response.data.seatId,
@@ -49,7 +49,7 @@ export const checkInApi = {
     if (response.code === 200 && response.data) {
       const checkInRecord: CheckInRecord = {
         id: response.data.checkInRecordId,
-        userId: currentUser && currentUser.id ? currentUser.id : '',
+        userId: currentUser && currentUser.id ? String(currentUser.id) : '',
         reservationId: response.data.reservationId,
         studyRoomId: reservation && reservation.studyRoomId ? reservation.studyRoomId : '',
         seatId: response.data.seatId,
@@ -93,7 +93,7 @@ export const checkInApi = {
         });
 
         if (currentCheckIn.checkInRecord) {
-          const reservation = reservations.find(r => r.id === currentCheckIn.checkInRecord.reservationId);
+          const reservation = reservations.find(r => r.id === currentCheckIn.checkInRecord!.reservationId);
           if (reservation) {
             store.updateReservation({
               ...reservation,
@@ -115,7 +115,7 @@ export const checkInApi = {
       });
 
       if (currentCheckIn.checkInRecord) {
-        const reservation = reservations.find(r => r.id === currentCheckIn.checkInRecord.reservationId);
+        const reservation = reservations.find(r => r.id === currentCheckIn.checkInRecord!.reservationId);
         if (reservation) {
           store.updateReservation({
             ...reservation,

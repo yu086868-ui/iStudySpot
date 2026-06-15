@@ -118,7 +118,7 @@ class MockManager {
       return {
         code: 10001,
         message: '登录失败',
-        data: null,
+        data: null as unknown as T,
         timestamp
       };
     }
@@ -131,7 +131,7 @@ class MockManager {
         return {
           code: 10002,
           message: '用户不存在',
-          data: null,
+          data: null as unknown as T,
           timestamp
         };
       }
@@ -153,7 +153,7 @@ class MockManager {
         return {
           code: 10002,
           message: '用户不存在',
-          data: null,
+          data: null as unknown as T,
           timestamp
         };
       }
@@ -193,7 +193,7 @@ class MockManager {
         return {
           code: 10002,
           message: '用户不存在',
-          data: null,
+          data: null as unknown as T,
           timestamp
         };
       }
@@ -306,7 +306,7 @@ class MockManager {
       return {
         code: 20001,
         message: '自习室不存在',
-        data: null,
+        data: null as unknown as T,
         timestamp
       };
     }
@@ -328,7 +328,7 @@ class MockManager {
       return {
         code: 30001,
         message: '座位不存在',
-        data: null,
+        data: null as unknown as T,
         timestamp
       };
     }
@@ -344,13 +344,13 @@ class MockManager {
         return {
           code: 50001,
           message: '用户数据不存在',
-          data: null,
+          data: null as unknown as T,
           timestamp
         };
       }
 
       const activeReservations = reservations.filter(
-        r => r.userId === currentUser.id && 
+        r => String(r.userId) === String(currentUser.id) && 
              (r.status === 'confirmed' || r.status === 'checked_in')
       );
       
@@ -358,7 +358,7 @@ class MockManager {
         return {
           code: 40001,
           message: '您已有进行中的预约，请先取消或完成',
-          data: null,
+          data: null as unknown as T,
           timestamp
         };
       }
@@ -368,14 +368,14 @@ class MockManager {
         return {
           code: 30002,
           message: '该座位已被占用或预约',
-          data: null,
+          data: null as unknown as T,
           timestamp
         };
       }
 
       const newReservation = {
         id: `res_${reservations.length + 1}`,
-        userId: currentUser.id,
+        userId: String(currentUser.id),
         studyRoomId: params.studyRoomId || '',
         seatId: params.seatId || '',
         startTime: params.startTime || '',
@@ -410,7 +410,7 @@ class MockManager {
       const reservations = (mockData && mockData.reservations) ? mockData.reservations : [];
 
       let filteredReservations = currentUser
-        ? reservations.filter(r => r.userId === currentUser.id)
+        ? reservations.filter(r => String(r.userId) === String(currentUser.id))
         : [];
 
       if (params.status) {
@@ -454,7 +454,7 @@ class MockManager {
           return {
             code: 40007,
             message: '预约已签到，无法取消',
-            data: null,
+            data: null as unknown as T,
             timestamp
           };
         }
@@ -470,7 +470,7 @@ class MockManager {
         return {
           code: 200,
           message: '预约已取消',
-          data: null,
+          data: null as unknown as T,
           timestamp
         };
       }
@@ -478,7 +478,7 @@ class MockManager {
       return {
         code: 40004,
         message: '预约不存在',
-        data: null,
+        data: null as unknown as T,
         timestamp
       };
     }
@@ -512,20 +512,20 @@ class MockManager {
         return {
           code: 50001,
           message: '用户数据不存在',
-          data: null,
+          data: null as unknown as T,
           timestamp
         };
       }
 
       const activeCheckIn = checkInRecords.find(
-        r => r.userId === currentUser.id && r.status === 'active'
+        r => String(r.userId) === String(currentUser.id) && r.status === 'active'
       );
       
       if (activeCheckIn) {
         return {
           code: 50002,
           message: '已经签到，无需重复签到',
-          data: null,
+          data: null as unknown as T,
           timestamp
         };
       }
@@ -545,7 +545,7 @@ class MockManager {
 
       const newCheckInRecord = {
         id: `checkin_${checkInRecords.length + 1}`,
-        userId: currentUser.id,
+        userId: String(currentUser.id),
         reservationId: params.reservationId || '',
         studyRoomId: reservation && reservation.studyRoomId ? reservation.studyRoomId : '',
         seatId: params.seatId || '',
@@ -585,7 +585,7 @@ class MockManager {
           return {
             code: 50004,
             message: '已经签退',
-            data: null,
+            data: null as unknown as T,
             timestamp
           };
         }
@@ -620,7 +620,7 @@ class MockManager {
       return {
         code: 50003,
         message: '签到记录不存在',
-        data: null,
+        data: null as unknown as T,
         timestamp
       };
     }
@@ -632,7 +632,7 @@ class MockManager {
       const checkInRecords = (mockData && mockData.checkInRecords) ? mockData.checkInRecords : [];
 
       let filteredRecords = currentUser
-        ? checkInRecords.filter(r => r.userId === currentUser.id)
+        ? checkInRecords.filter(r => String(r.userId) === String(currentUser.id))
         : [];
 
       if (params.startDate) {
@@ -666,7 +666,7 @@ class MockManager {
       const currentUser = users[0] || null;
       const checkInRecords = (mockData && mockData.checkInRecords) ? mockData.checkInRecords : [];
       const activeRecord = currentUser
-        ? checkInRecords.find(r => r.userId === currentUser.id && r.status === 'active')
+        ? checkInRecords.find(r => String(r.userId) === String(currentUser.id) && r.status === 'active')
         : undefined;
 
       return {
@@ -727,7 +727,7 @@ class MockManager {
       return {
         code: 60001,
         message: '公告不存在',
-        data: null,
+        data: null as unknown as T,
         timestamp
       };
     }
@@ -769,7 +769,7 @@ class MockManager {
       return {
         code: 70001,
         message: '规则不存在',
-        data: null,
+        data: null as unknown as T,
         timestamp
       };
     }
@@ -784,7 +784,7 @@ class MockManager {
         return {
           code: 80001,
           message: '参数错误：缺少userID',
-          data: null,
+          data: null as unknown as T,
           timestamp
         };
       }
@@ -793,7 +793,7 @@ class MockManager {
         return {
           code: 80001,
           message: '参数错误：studyDuration必须大于0',
-          data: null,
+          data: null as unknown as T,
           timestamp
         };
       }
@@ -803,7 +803,7 @@ class MockManager {
         return {
           code: 50001,
           message: '用户数据不存在',
-          data: null,
+          data: null as unknown as T,
           timestamp
         };
       }
@@ -831,7 +831,7 @@ class MockManager {
         return {
           code: 80001,
           message: '参数错误：缺少id',
-          data: null,
+          data: null as unknown as T,
           timestamp
         };
       }
@@ -849,7 +849,7 @@ class MockManager {
       return {
         code: 80002,
         message: '卡片不存在',
-        data: null,
+        data: null as unknown as T,
         timestamp
       };
     }
@@ -878,7 +878,7 @@ class MockManager {
     return {
       code: 404,
       message: '接口未找到',
-      data: null,
+      data: null as unknown as T,
       timestamp
     };
   }
