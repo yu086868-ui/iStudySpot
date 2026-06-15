@@ -19,8 +19,20 @@ public interface UserMapper {
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(User user);
 
-    @Update("UPDATE user SET nickname = #{nickname}, avatar = #{avatar}, phone = #{phone}, " +
-            "email = #{email}, update_time = NOW() WHERE id = #{id}")
+    @Update("<script>" +
+            "UPDATE user SET " +
+            "<trim suffixOverrides=\",\">" +
+            "<if test=\"nickname != null\">nickname = #{nickname},</if>" +
+            "<if test=\"avatar != null\">avatar = #{avatar},</if>" +
+            "<if test=\"phone != null\">phone = #{phone},</if>" +
+            "<if test=\"email != null\">email = #{email},</if>" +
+            "<if test=\"status != null\">status = #{status},</if>" +
+            "<if test=\"creditScore != null\">credit_score = #{creditScore},</if>" +
+            "<if test=\"violationCount != null\">violation_count = #{violationCount},</if>" +
+            "update_time = NOW()" +
+            "</trim>" +
+            "WHERE id = #{id}" +
+            "</script>")
     int update(User user);
 
     @Update("UPDATE user SET password = #{password} WHERE id = #{id}")
@@ -31,4 +43,12 @@ public interface UserMapper {
 
     @Update("UPDATE user SET balance = balance + #{amount} WHERE id = #{id}")
     int addBalance(@Param("id") Long id, @Param("amount") BigDecimal amount);
+
+    @Select("SELECT * FROM user WHERE openid = #{openId}")
+    User findByOpenId(String openId);
+
+    @Insert("INSERT INTO user(openid, nickname, avatar, status, create_time) " +
+            "VALUES(#{openId}, #{nickname}, #{avatar}, #{status}, NOW())")
+    @Options(useGeneratedKeys = true, keyProperty = "id")
+    int insertWxUser(User user);
 }
