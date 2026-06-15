@@ -1,0 +1,1491 @@
+# 小程序端 API 设计文档 V5.0
+
+> 说明：本文档为 iStudySpot 小程序的完整 API 设计，包含微信登录、自习室管理、座位预约、签到打卡、公告规则、AI卡片系统等核心功能模块。
+
+---
+
+## 一、API 设计规范
+
+### 1.1 响应格式
+
+所有接口统一返回 JSON 格式：
+
+```json
+{
+  "code": number,
+  "message": "string",
+  "data": {},
+  "timestamp": number
+}
+```
+
+**字段说明：**
+- `code`: 业务状态码（见状态码说明）
+- `message`: 响应消息描述
+- `data`: 业务数据，成功时返回具体数据，失败时可为 null
+- `timestamp`: 服务器时间戳（毫秒）
+
+---
+
+### 1.2 状态码说明
+
+#### 业务状态码（code）
+
+| 状态码 | 说明 |
+|--------|------|
+| 200 | 请求成功 |
+| 400 | 请求参数错误 |
+| 401 | 未登录 |
+| 403 | 无权限访问 |
+| 404 | 资源不存在 |
+| 409 | 资源冲突（如重复预约） |
+| 422 | 业务逻辑错误（如座位不可用） |
+| 500 | 服务器内部错误 |
+
+#### HTTP 状态码
+
+- 200: 成功响应
+- 400: 客户端请求错误
+- 401: 未授权
+- 403: 禁止访问
+- 404: 资源未找到
+- 500: 服务器错误
+
+---
+
+### 1.3 认证方式
+
+采用微信小程序登录机制，通过 `wx.login()` 获取临时 code，调用后端登录接口完成认证。
+
+后端根据 code 获取 openId，查询用户是否存在，不存在则自动创建用户（自动注册机制）。
+
+无需账号密码，无需 Token 管理。
+
+---
+
+### 1.4 分页参数
+
+列表接口统一使用以下分页参数：
+
+| 参数名 | 类型 | 必填 | 说明 |
+|--------|------|------|------|
+| page | number | 否 | 页码，默认 1 |
+| pageSize | number | 否 | 每页数量，默认 20 |
+
+**响应格式：**
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "list": [],
+    "total": 100,
+    "page": 1,
+    "pageSize": 20
+  }
+}
+```
+
+---
+
+## 二、数据结构设计
+
+### 2.1 用户（User）
+
+```typescript
+interface User {
+  id: number;
+
+  // 微信用户唯一标识
+  openId: string;
+
+  // 用户昵称
+  nickname: string;
+
+  // 用户头像
+  avatarUrl: string;
+
+  // 用户状态
+  status: 'normal' | 'disabled';
+
+  createdAt: string;
+  updatedAt: string;
+}
+```
+
+---
+
+### 2.2 自习室（StudyRoom）
+
+```typescript
+interface StudyRoom {
+  id: string;
+  name: string;
+  description: string;
+  location: string;
+  floor: number;
+  capacity: number;
+  openTime: string;
+  closeTime: string;
+  facilities: string[];
+  image: string;
+  status: 'open' | 'closed' | 'maintenance';
+  rules: Rule[];
+  createdAt: string;
+  updatedAt: string;
+}
+```
+
+---
+
+### 2.3 座位（Seat）
+
+```typescript
+interface Seat {
+  id: string;
+  studyRoomId: string;
+  row: number;
+  col: number;
+  seatNumber: string;
+  type: 'normal' | 'vip' | 'quiet';
+  status: 'available' | 'occupied' | 'reserved' | 'maintenance';
+  facilities: string[];
+  lastUsedAt: string;
+}
+```
+
+---
+
+### 2.4 预约（Reservation）
+
+```typescript
+interface Reservation {
+  id: string;
+  userId: string;
+  studyRoomId: string;
+  seatId: string;
+  startTime: string;
+  endTime: string;
+  status: 'pending' | 'confirmed' | 'checked_in' | 'completed' | 'cancelled' | 'expired';
+  checkInTime: string | null;
+  checkOutTime: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+```
+
+---
+
+### 2.5 签到记录（CheckInRecord）
+
+```typescript
+interface CheckInRecord {
+  id: string;
+  userId: string;
+  reservationId: string;
+  studyRoomId: string;
+  seatId: string;
+  checkInTime: string;
+  checkOutTime: string | null;
+  duration: number;
+  status: 'active' | 'completed';
+}
+```
+
+---
+
+### 2.6 公告（Announcement）
+
+```typescript
+interface Announcement {
+  id: string;
+  title: string;
+  content: string;
+  type: 'notice' | 'maintenance' | 'event' | 'emergency';
+  priority: 'low' | 'medium' | 'high';
+  publishTime: string;
+  expireTime: string | null;
+  author: string;
+  status: 'published' | 'draft' | 'archived';
+}
+```
+
+---
+
+### 2.7 规则（Rule）
+
+```typescript
+interface Rule {
+  id: string;
+  studyRoomId: string | null;
+  category: 'booking' | 'usage' | 'penalty' | 'general';
+  title: string;
+  content: string;
+  priority: number;
+  createdAt: string;
+  updatedAt: string;
+}
+```
+
+---
+
+### 2.8 卡片（Card）
+
+```typescript
+interface Card {
+  uuid: string;           // 卡片唯一标识
+  rarity: string;         // 稀有度（N/R/SR/SSR/UR/LR）
+  borderTheme: string;    // 边框主题颜色
+  cardTheme: string;      // 卡片主题类型
+  themeCategory: string;  // 主题类别
+  markdown: string;       // 卡片文案内容
+  imageURL: string;       // 图片访问路径
+  createTime: string;     // 创建时间
+  studyDuration: number;  // 学习时长（分钟）
+}
+```
+
+#### 稀有度说明
+
+| 稀有度 | 边框主题 | 卡片主题 | 获取概率 |
+|--------|----------|----------|----------|
+| N | 白/灰 | 普通 | 常见 |
+| R | 绿 | 普通 | 较常见 |
+| SR | 蓝 | 普通 | 中等 |
+| SSR | 紫 | 普通 | 稀有 |
+| UR | 金 | 特殊 | 非常稀有 |
+| LR | 红 | 特殊 | 极其稀有 |
+
+#### 主题类别
+
+- 励志成长
+- 名人与历史
+- 哲思感悟
+- 自然意象
+- 科技未来
+- 温柔陪伴
+- 隐藏主题（仅 UR/LR 稀有度可获得）
+
+---
+
+## 三、API 接口文档
+
+### 3.1 用户模块
+
+#### 3.1.1 微信登录
+
+- **URL**: `/api/user/login`
+- **方法**: POST
+
+**请求参数：**
+
+```json
+{
+  "code": "wx_login_code"
+}
+```
+
+**响应（首次登录）：**
+
+```json
+{
+  "code": 200,
+  "message": "登录成功",
+  "data": {
+    "isNewUser": true,
+    "user": {
+      "id": 1,
+      "nickname": "微信用户",
+      "avatarUrl": "",
+      "status": "normal"
+    }
+  }
+}
+```
+
+**响应（老用户）：**
+
+```json
+{
+  "code": 200,
+  "message": "登录成功",
+  "data": {
+    "isNewUser": false,
+    "user": {
+      "id": 1,
+      "nickname": "Theresa",
+      "avatarUrl": "/avatar/avatar_1.jpg",
+      "status": "normal"
+    }
+  }
+}
+```
+
+---
+
+#### 3.1.2 获取当前用户信息
+
+- **URL**: `/api/user/profile`
+- **方法**: GET
+
+**响应：**
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "id": 1,
+    "nickname": "Theresa",
+    "avatarUrl": "/avatar/avatar_1.jpg",
+    "status": "normal",
+    "createdAt": "2026-06-15T10:00:00",
+    "updatedAt": "2026-06-15T10:00:00"
+  }
+}
+```
+
+---
+
+#### 3.1.3 修改用户信息
+
+- **URL**: `/api/user/profile`
+- **方法**: PUT
+
+**请求参数：**
+
+```json
+{
+  "nickname": "新昵称"
+}
+```
+
+**响应：**
+
+```json
+{
+  "code": 200,
+  "message": "更新成功"
+}
+```
+
+---
+
+#### 3.1.4 修改头像
+
+- **URL**: `/api/user/avatar`
+- **方法**: POST
+- **Content-Type**: `multipart/form-data`
+
+**请求参数：**
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| file | image | 头像图片 |
+
+**响应：**
+
+```json
+{
+  "code": 200,
+  "message": "上传成功",
+  "data": {
+    "avatarUrl": "/avatar/avatar_1.jpg"
+  }
+}
+```
+
+---
+
+#### 3.1.5 获取用户首页信息
+
+用于 User 页面一次性加载。
+
+- **URL**: `/api/user/home`
+- **方法**: GET
+
+**响应：**
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "user": {
+      "id": 1,
+      "nickname": "Theresa",
+      "avatarUrl": "/avatar/avatar_1.jpg"
+    },
+    "reservationCount": 12,
+    "studyHours": 156,
+    "creditScore": 100
+  }
+}
+```
+
+---
+
+### 3.2 自习室模块
+
+#### 3.2.1 获取自习室列表
+
+- **URL**: `/api/studyrooms`
+- **方法**: GET
+
+**请求参数：**
+
+| 参数名 | 类型 | 必填 | 说明 |
+|--------|------|------|------|
+| status | string | 否 | 状态筛选：open/closed |
+| floor | number | 否 | 楼层筛选 |
+| keyword | string | 否 | 关键词搜索 |
+| page | number | 否 | 页码 |
+| pageSize | number | 否 | 每页数量 |
+
+**响应：**
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "list": [
+      {
+        "id": "string",
+        "name": "string",
+        "description": "string",
+        "location": "string",
+        "floor": 1,
+        "capacity": 50,
+        "openTime": "08:00",
+        "closeTime": "22:00",
+        "facilities": ["WiFi", "空调", "插座"],
+        "image": "string",
+        "status": "open"
+      }
+    ],
+    "total": 10,
+    "page": 1,
+    "pageSize": 20
+  }
+}
+```
+
+---
+
+#### 3.2.2 获取自习室详情
+
+- **URL**: `/api/studyrooms/{id}`
+- **方法**: GET
+
+**响应：**
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "id": "string",
+    "name": "string",
+    "description": "string",
+    "location": "string",
+    "floor": 1,
+    "capacity": 50,
+    "openTime": "08:00",
+    "closeTime": "22:00",
+    "facilities": ["WiFi", "空调", "插座"],
+    "image": "string",
+    "status": "open",
+    "rules": [
+      {
+        "id": "string",
+        "category": "booking",
+        "title": "string",
+        "content": "string",
+        "priority": 1
+      }
+    ],
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-01T00:00:00Z"
+  }
+}
+```
+
+---
+
+### 3.3 座位模块
+
+#### 3.3.1 获取座位列表
+
+- **URL**: `/api/studyrooms/{studyRoomId}/seats`
+- **方法**: GET
+
+**请求参数：**
+
+| 参数名 | 类型 | 必填 | 说明 |
+|--------|------|------|------|
+| status | string | 否 | 状态筛选：available/occupied/reserved |
+| type | string | 否 | 类型筛选：normal/vip/quiet |
+| row | number | 否 | 行号筛选 |
+| col | number | 否 | 列号筛选 |
+
+**响应：**
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": [
+    {
+      "id": "string",
+      "studyRoomId": "string",
+      "row": 1,
+      "col": 1,
+      "seatNumber": "A1",
+      "type": "normal",
+      "status": "available",
+      "facilities": ["插座", "台灯"],
+      "lastUsedAt": "2024-01-01T00:00:00Z"
+    }
+  ]
+}
+```
+
+---
+
+#### 3.3.2 获取座位详情
+
+- **URL**: `/api/seats/{id}`
+- **方法**: GET
+
+**响应：**
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "id": "string",
+    "studyRoomId": "string",
+    "row": 1,
+    "col": 1,
+    "seatNumber": "A1",
+    "type": "normal",
+    "status": "available",
+    "facilities": ["插座", "台灯"],
+    "lastUsedAt": "2024-01-01T00:00:00Z"
+  }
+}
+```
+
+---
+
+### 3.4 预约模块
+
+#### 3.4.1 创建预约
+
+- **URL**: `/api/reservations`
+- **方法**: POST
+
+**请求参数：**
+
+```json
+{
+  "studyRoomId": "string",
+  "seatId": "string",
+  "startTime": "2024-01-01T09:00:00Z",
+  "endTime": "2024-01-01T12:00:00Z"
+}
+```
+
+**响应：**
+
+```json
+{
+  "code": 200,
+  "message": "预约成功",
+  "data": {
+    "id": "string",
+    "userId": "string",
+    "studyRoomId": "string",
+    "seatId": "string",
+    "startTime": "2024-01-01T09:00:00Z",
+    "endTime": "2024-01-01T12:00:00Z",
+    "status": "confirmed",
+    "checkInTime": null,
+    "checkOutTime": null,
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-01T00:00:00Z"
+  }
+}
+```
+
+---
+
+#### 3.4.2 获取我的预约列表
+
+- **URL**: `/api/reservations/my`
+- **方法**: GET
+
+**请求参数：**
+
+| 参数名 | 类型 | 必填 | 说明 |
+|--------|------|------|------|
+| status | string | 否 | 状态筛选 |
+| startDate | string | 否 | 开始日期 |
+| endDate | string | 否 | 结束日期 |
+| page | number | 否 | 页码 |
+| pageSize | number | 否 | 每页数量 |
+
+**响应：**
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "list": [
+      {
+        "id": "string",
+        "userId": "string",
+        "studyRoomId": "string",
+        "seatId": "string",
+        "startTime": "2024-01-01T09:00:00Z",
+        "endTime": "2024-01-01T12:00:00Z",
+        "status": "confirmed",
+        "checkInTime": null,
+        "checkOutTime": null,
+        "createdAt": "2024-01-01T00:00:00Z",
+        "updatedAt": "2024-01-01T00:00:00Z"
+      }
+    ],
+    "total": 10,
+    "page": 1,
+    "pageSize": 20
+  }
+}
+```
+
+---
+
+#### 3.4.3 获取预约详情
+
+- **URL**: `/api/reservations/{id}`
+- **方法**: GET
+
+**响应：**
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "id": "string",
+    "userId": "string",
+    "studyRoomId": "string",
+    "seatId": "string",
+    "startTime": "2024-01-01T09:00:00Z",
+    "endTime": "2024-01-01T12:00:00Z",
+    "status": "confirmed",
+    "checkInTime": null,
+    "checkOutTime": null,
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-01T00:00:00Z"
+  }
+}
+```
+
+---
+
+#### 3.4.4 取消预约
+
+- **URL**: `/api/reservations/{id}/cancel`
+- **方法**: POST
+
+**响应：**
+
+```json
+{
+  "code": 200,
+  "message": "预约已取消"
+}
+```
+
+---
+
+#### 3.4.5 获取预约规则
+
+- **URL**: `/api/reservations/rules`
+- **方法**: GET
+
+**响应：**
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "maxAdvanceDays": 7,
+    "maxDailyReservations": 2,
+    "maxDurationHours": 4,
+    "minDurationMinutes": 30,
+    "cancellationDeadlineMinutes": 15,
+    "noShowPenalty": 5
+  }
+}
+```
+
+---
+
+### 3.5 签到模块
+
+#### 3.5.1 签到
+
+- **URL**: `/api/checkin`
+- **方法**: POST
+
+**请求参数：**
+
+```json
+{
+  "reservationId": "string",
+  "seatId": "string"
+}
+```
+
+**响应：**
+
+```json
+{
+  "code": 200,
+  "message": "签到成功",
+  "data": {
+    "checkInRecordId": "string",
+    "checkInTime": "2024-01-01T09:00:00Z",
+    "reservationId": "string",
+    "seatId": "string"
+  }
+}
+```
+
+---
+
+#### 3.5.2 签退
+
+- **URL**: `/api/checkout`
+- **方法**: POST
+
+**请求参数：**
+
+```json
+{
+  "checkInRecordId": "string"
+}
+```
+
+**响应：**
+
+```json
+{
+  "code": 200,
+  "message": "签退成功",
+  "data": {
+    "checkOutTime": "2024-01-01T12:00:00Z",
+    "duration": 180
+  }
+}
+```
+
+---
+
+#### 3.5.3 获取我的签到记录
+
+- **URL**: `/api/checkin/records`
+- **方法**: GET
+
+**请求参数：**
+
+| 参数名 | 类型 | 必填 | 说明 |
+|--------|------|------|------|
+| startDate | string | 否 | 开始日期 |
+| endDate | string | 否 | 结束日期 |
+| page | number | 否 | 页码 |
+| pageSize | number | 否 | 每页数量 |
+
+**响应：**
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "list": [
+      {
+        "id": "string",
+        "userId": "string",
+        "reservationId": "string",
+        "studyRoomId": "string",
+        "seatId": "string",
+        "checkInTime": "2024-01-01T09:00:00Z",
+        "checkOutTime": "2024-01-01T12:00:00Z",
+        "duration": 180,
+        "status": "completed"
+      }
+    ],
+    "total": 20,
+    "page": 1,
+    "pageSize": 20
+  }
+}
+```
+
+---
+
+#### 3.5.4 获取当前签到状态
+
+- **URL**: `/api/checkin/current`
+- **方法**: GET
+
+**响应：**
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "isCheckedIn": true,
+    "checkInRecord": {
+      "id": "string",
+      "userId": "string",
+      "reservationId": "string",
+      "studyRoomId": "string",
+      "seatId": "string",
+      "checkInTime": "2024-01-01T09:00:00Z",
+      "checkOutTime": null,
+      "duration": 0,
+      "status": "active"
+    }
+  }
+}
+```
+
+---
+
+### 3.6 公告模块
+
+#### 3.6.1 获取公告列表
+
+- **URL**: `/api/announcements`
+- **方法**: GET
+
+**请求参数：**
+
+| 参数名 | 类型 | 必填 | 说明 |
+|--------|------|------|------|
+| type | string | 否 | 类型筛选 |
+| priority | string | 否 | 优先级筛选 |
+| page | number | 否 | 页码 |
+| pageSize | number | 否 | 每页数量 |
+
+**响应：**
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "list": [
+      {
+        "id": "string",
+        "title": "string",
+        "content": "string",
+        "type": "notice",
+        "priority": "high",
+        "publishTime": "2024-01-01T00:00:00Z",
+        "expireTime": "2024-01-31T23:59:59Z",
+        "author": "管理员",
+        "status": "published"
+      }
+    ],
+    "total": 10,
+    "page": 1,
+    "pageSize": 20
+  }
+}
+```
+
+---
+
+#### 3.6.2 获取公告详情
+
+- **URL**: `/api/announcements/{id}`
+- **方法**: GET
+
+**响应：**
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "id": "string",
+    "title": "string",
+    "content": "string",
+    "type": "notice",
+    "priority": "high",
+    "publishTime": "2024-01-01T00:00:00Z",
+    "expireTime": "2024-01-31T23:59:59Z",
+    "author": "管理员",
+    "status": "published"
+  }
+}
+```
+
+---
+
+### 3.7 规则模块
+
+#### 3.7.1 获取规则列表
+
+- **URL**: `/api/rules`
+- **方法**: GET
+
+**请求参数：**
+
+| 参数名 | 类型 | 必填 | 说明 |
+|--------|------|------|------|
+| studyRoomId | string | 否 | 自习室ID，不传则获取通用规则 |
+| category | string | 否 | 规则分类 |
+
+**响应：**
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": [
+    {
+      "id": "string",
+      "studyRoomId": null,
+      "category": "booking",
+      "title": "预约规则",
+      "content": "string",
+      "priority": 1,
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    }
+  ]
+}
+```
+
+---
+
+#### 3.7.2 获取规则详情
+
+- **URL**: `/api/rules/{id}`
+- **方法**: GET
+
+**响应：**
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "id": "string",
+    "studyRoomId": null,
+    "category": "booking",
+    "title": "预约规则",
+    "content": "string",
+    "priority": 1,
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-01T00:00:00Z"
+  }
+}
+```
+
+---
+
+### 3.8 卡片模块
+
+卡片系统作为主学习系统的扩展模块，根据一次有效学习记录，自动生成可收藏的 AI 卡片。
+
+**基础路径**：`/api/card`
+
+**接口列表：**
+
+| 接口 | 方法 | 说明 |
+|------|------|------|
+| `/generate` | POST | 同步生成卡片（一次性返回） |
+| `/generate/stream` | POST | SSE 流式生成卡片（逐字返回） |
+| `/detail` | GET | 获取单张卡片详情 |
+| `/list` | GET | 获取用户卡片列表 |
+| `/image/{path}` | GET | 获取卡片图片 |
+
+---
+
+#### 3.8.1 同步生成卡片
+
+- **URL**: `/api/card/generate`
+- **方法**: POST
+
+**请求参数：**
+
+```json
+{
+  "userID": "string (必填，用户ID)",
+  "studyDuration": "integer (必填，学习时长，单位：分钟)"
+}
+```
+
+**成功响应：**
+
+```json
+{
+  "success": true,
+  "message": "generate success",
+  "card": {
+    "uuid": "string",
+    "rarity": "string",
+    "borderTheme": "string",
+    "cardTheme": "string",
+    "themeCategory": "string",
+    "markdown": "string",
+    "imageURL": "string",
+    "createTime": "string",
+    "studyDuration": 0
+  }
+}
+```
+
+**失败响应：**
+
+```json
+{
+  "success": false,
+  "message": "error description"
+}
+```
+
+**示例：**
+
+```bash
+curl -X POST http://localhost:8080/api/card/generate \
+  -H "Content-Type: application/json" \
+  -d '{"userID": "user_001", "studyDuration": 60}'
+```
+
+---
+
+#### 3.8.2 流式生成卡片（SSE）
+
+- **URL**: `/api/card/generate/stream`
+- **方法**: POST
+- **协议**: SSE (Server-Sent Events)
+- **超时时间**: 120秒
+
+**请求参数：**
+
+```json
+{
+  "userID": "string (必填，用户ID)",
+  "studyDuration": "integer (必填，学习时长，单位：分钟)"
+}
+```
+
+**响应事件类型：**
+
+| 事件名 | 数据结构 | 说明 |
+|--------|----------|------|
+| `data` | `InitEvent` | 卡片初始化信息 |
+| `data` | `TextEvent` | 流式文本内容（逐字返回） |
+| `complete` | `CompleteEvent` | 最终完整卡片数据 |
+| `error` | `ErrorEvent` | 错误信息 |
+
+**InitEvent - 初始化事件：**
+
+```json
+{
+  "type": "init",
+  "rarity": "string (N/R/SR/SSR/UR/LR)",
+  "themeCategory": "string (主题类别)",
+  "borderTheme": "string (边框主题)",
+  "cardTheme": "string (卡片主题)"
+}
+```
+
+**TextEvent - 文本流式事件：**
+
+```json
+{
+  "type": "text",
+  "content": "string (单个字符或文本片段)"
+}
+```
+
+**CompleteEvent - 完成事件：**
+
+```json
+{
+  "success": true,
+  "message": "generate success",
+  "card": {
+    "uuid": "string",
+    "rarity": "string",
+    "borderTheme": "string",
+    "cardTheme": "string",
+    "themeCategory": "string",
+    "markdown": "string",
+    "imageURL": "string",
+    "createTime": "string",
+    "studyDuration": 0
+  }
+}
+```
+
+**ErrorEvent - 错误事件：**
+
+```json
+{
+  "success": false,
+  "message": "string (错误描述)"
+}
+```
+
+**完整响应示例：**
+
+```
+event: data
+data: {"type":"init","rarity":"UR","themeCategory":"励志成长","borderTheme":"金","cardTheme":"特殊"}
+
+event: data
+data: {"type":"text","content":"#"}
+
+event: data
+data: {"type":"text","content":"自"}
+
+event: data
+data: {"type":"text","content":"律"}
+
+event: complete
+data: {"success":true,"message":"generate success","card":{"uuid":"xxx","rarity":"UR","markdown":"# 自律\n> 时间是最好的见证\n---\n每一次坚持，都是对未来的投资。","imageURL":"/api/card/image/xxx.png",...}}
+```
+
+**前端对接示例：**
+
+```javascript
+async function generateCardStream(userId, studyDuration) {
+  const response = await fetch('/api/card/generate/stream', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId, studyDuration })
+  });
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder('utf-8');
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+
+    while (buffer.includes('\n\n')) {
+      const idx = buffer.indexOf('\n\n');
+      const eventStr = buffer.substring(0, idx);
+      buffer = buffer.substring(idx + 2);
+
+      const lines = eventStr.split('\n');
+      let eventName = 'message';
+      let eventData = '';
+
+      for (const line of lines) {
+        if (line.startsWith('event:')) eventName = line.slice(6).trim();
+        if (line.startsWith('data:')) eventData = line.slice(5);
+      }
+
+      const data = JSON.parse(eventData);
+
+      if (eventName === 'data') {
+        if (data.type === 'init') console.log('初始化:', data);
+        if (data.type === 'text') console.log('收到文本:', data.content);
+      } else if (eventName === 'complete') {
+        console.log('完成:', data.card);
+      } else if (eventName === 'error') {
+        console.error('错误:', data.message);
+      }
+    }
+  }
+}
+```
+
+**同步与流式接口对比：**
+
+| 特性 | `/generate` | `/generate/stream` |
+|------|-------------|---------------------|
+| 响应方式 | 一次性返回 | 流式逐步返回 |
+| 等待体验 | 长时间等待 | 实时显示进度 |
+| 文本体验 | 直接显示 | 打字机效果 |
+| 适用场景 | 批量生成 | 用户交互 |
+| 连接方式 | 短连接 | 长连接（SSE） |
+
+---
+
+#### 3.8.3 获取卡片详情
+
+- **URL**: `/api/card/detail`
+- **方法**: GET
+
+**请求参数：**
+
+| 参数名 | 类型 | 必填 | 说明 |
+|--------|------|------|------|
+| id | string | 是 | 卡片 UUID |
+
+**成功响应：**
+
+```json
+{
+  "success": true,
+  "card": {
+    "uuid": "string",
+    "rarity": "string",
+    "borderTheme": "string",
+    "cardTheme": "string",
+    "themeCategory": "string",
+    "markdown": "string",
+    "imageURL": "string",
+    "createTime": "string",
+    "studyDuration": 0
+  }
+}
+```
+
+**失败响应：**
+
+```json
+{
+  "success": false,
+  "message": "card not found"
+}
+```
+
+**示例：**
+
+```bash
+curl http://localhost:8080/api/card/detail?id=xxx-xxx-xxx
+```
+
+---
+
+#### 3.8.4 获取用户卡片列表
+
+- **URL**: `/api/card/list`
+- **方法**: GET
+
+**请求参数：**
+
+| 参数名 | 类型 | 必填 | 说明 |
+|--------|------|------|------|
+| userID | string | 是 | 用户 ID |
+
+**成功响应：**
+
+```json
+{
+  "success": true,
+  "list": [
+    {
+      "uuid": "string",
+      "rarity": "string",
+      "borderTheme": "string",
+      "cardTheme": "string",
+      "themeCategory": "string",
+      "markdown": "string",
+      "imageURL": "string",
+      "createTime": "string",
+      "studyDuration": 0
+    }
+  ]
+}
+```
+
+**示例：**
+
+```bash
+curl http://localhost:8080/api/card/list?userID=user_001
+```
+
+---
+
+#### 3.8.5 获取卡片图片
+
+- **URL**: `/api/card/image/{path}`
+- **方法**: GET
+- **Content-Type**: `image/png`
+
+**路径参数：**
+
+| 参数 | 说明 |
+|------|------|
+| path | 图片相对路径，如 `2024/01/01/xxx.png` |
+
+**响应：**
+
+- **成功**：返回 PNG 图片二进制数据
+- **失败**：404 Not Found
+
+**示例：**
+
+```bash
+curl http://localhost:8080/api/card/image/2024/01/01/card_xxx.png
+```
+
+---
+
+## 四、错误码说明
+
+### 4.1 业务错误码
+
+| 错误码 | 说明 |
+|--------|------|
+| 10001 | 微信登录 code 无效 |
+| 10002 | 用户不存在 |
+| 10003 | 用户已被禁用 |
+| 20001 | 自习室不存在 |
+| 20002 | 自习室已关闭 |
+| 30001 | 座位不存在 |
+| 30002 | 座位已被占用 |
+| 30003 | 座位已被预约 |
+| 40001 | 预约时间冲突 |
+| 40002 | 超过最大预约时长 |
+| 40003 | 超过每日预约次数限制 |
+| 40004 | 预约不存在 |
+| 40005 | 预约已取消 |
+| 40006 | 预约已过期 |
+| 40007 | 预约已签到，无法取消 |
+| 50001 | 未找到有效预约 |
+| 50002 | 已经签到，无需重复签到 |
+| 50003 | 签到记录不存在 |
+| 50004 | 已经签退 |
+| 60001 | 公告不存在 |
+| 70001 | 规则不存在 |
+| 80001 | 卡片生成失败 |
+| 80002 | 卡片不存在 |
+| 80003 | AI 文本生成超时 |
+| 80004 | AI 图片生成失败 |
+| 80005 | 卡片参数错误 |
+
+---
+
+### 4.2 卡片模块 HTTP 错误码
+
+| HTTP状态码 | 场景 | 响应 |
+|------------|------|------|
+| 400 | 参数错误 | `{"success":false,"message":"userID is required"}` |
+| 404 | 卡片不存在 | `{"success":false,"message":"card not found"}` |
+| 500 | 服务器错误 | `{"success":false,"message":"具体错误描述"}` |
+
+---
+
+## 五、开发说明
+
+### 5.1 接口调用示例
+
+#### 微信登录示例
+
+```javascript
+// 微信登录
+wx.login({
+  success: async (res) => {
+    const loginResponse = await fetch('/api/user/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        code: res.code
+      })
+    });
+
+    const loginData = await loginResponse.json();
+    console.log('登录结果:', loginData.data);
+  }
+});
+```
+
+---
+
+### 5.2 注意事项
+
+1. **时间格式**: 所有时间字段使用 ISO 8601 格式（如：`2024-01-01T09:00:00Z`）
+2. **分页**: 列表接口默认返回 20 条数据，最大不超过 100 条
+3. **并发控制**: 同一用户同一时间段只能有一个有效预约
+4. **签到时效**: 预约开始时间后 15 分钟内可签到，超时自动取消
+5. **卡片认证**: 卡片接口已添加到白名单，无需登录即可访问
+6. **卡片图片存储**: 生成的图片存储在服务器本地，通过 `/api/card/image/` 访问
+7. **SSE 超时**: 流式接口超时时间为 120 秒
+8. **编码格式**: 所有响应编码为 UTF-8
+
+---
+
+### 5.3 Mock 数据建议
+
+开发阶段建议使用 Mock 数据进行接口模拟，可使用以下工具：
+- Mock.js
+- JSON Server
+- Postman Mock Server
+
+---
+
+## 六、版本历史
+
+| 版本 | 日期 | 说明 |
+|------|------|------|
+| 4.2.0 | 2024-03-31 | 完整 API 设计，包含预约、签到、公告、规则模块 |
+| 5.0.0 | 2026-06-15 | 合并卡片系统、流式生成、微信登录模块；移除账号密码认证 |
+
+---
+
+## 七、后续扩展
+
+### 7.1 计划扩展功能
+
+- 支付模块（预约付费）
+- 评价模块（自习室评价）
+- 统计模块（使用数据统计）
+- 消息通知模块（预约提醒、公告推送）
+- 社交模块（好友、分享）
+- 登录态校验与 Token/JWT
+- 手机号绑定
+- 管理员权限
+- 数据同步
+
+---
+
+### 7.2 性能优化
+
+- 接口缓存策略
+- 数据库索引优化
+- 分页加载优化
+- 图片懒加载
+
+---
+
+## 八、推荐数据库结构
+
+### 用户表
+
+```sql
+CREATE TABLE user (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    open_id VARCHAR(64) NOT NULL UNIQUE,
+    nickname VARCHAR(50) DEFAULT '微信用户',
+    avatar_url VARCHAR(255) DEFAULT '',
+    status VARCHAR(20) DEFAULT 'normal',
+    created_at DATETIME,
+    updated_at DATETIME
+);
+```
