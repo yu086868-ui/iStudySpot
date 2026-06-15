@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/card")
+@RequestMapping("/api/wx/card")
 public class CardController {
 
     @Autowired
@@ -182,7 +182,7 @@ public class CardController {
     public ResponseEntity<Resource> getImage(HttpServletRequest request) {
         try {
             String requestUri = request.getRequestURI();
-            String imagePath = requestUri.replace("/api/card/image/", "");
+            String imagePath = requestUri.replace("/api/wx/card/image/", "");
             
             File file = new File(storagePath, imagePath);
             if (!file.exists()) {

@@ -20,6 +20,9 @@ public class User {
     private LocalDateTime lastLoginTime;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
+    
+    // 微信用户唯一标识
+    private String openId;
 
     // Getter and Setter
     public Long getId() { return id; }
@@ -69,4 +72,7 @@ public class User {
 
     public LocalDateTime getUpdateTime() { return updateTime; }
     public void setUpdateTime(LocalDateTime updateTime) { this.updateTime = updateTime; }
+
+    public String getOpenId() { return openId; }
+    public void setOpenId(String openId) { this.openId = openId; }
 }

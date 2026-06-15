@@ -31,7 +31,7 @@ public class CardServiceImpl implements CardService {
     @Value("${card.image.storage-path:./uploads/cards}")
     private String storagePath;
 
-    @Value("${card.image.base-url:/api/card/image}")
+    @Value("${card.image.base-url:/api/wx/card/image}")
     private String baseUrl;
 
     private static final String[] RARITIES = {"N", "R", "SR", "SSR", "UR", "LR"};

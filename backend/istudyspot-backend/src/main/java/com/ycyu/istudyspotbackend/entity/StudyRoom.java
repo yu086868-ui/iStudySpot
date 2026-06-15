@@ -18,6 +18,11 @@ public class StudyRoom {
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
 
+    // 微信小程序接口新增字段
+    private Integer floor;
+    private Integer capacity;
+    private String facilities;
+
     // Getter and Setter
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -57,4 +62,13 @@ public class StudyRoom {
 
     public LocalDateTime getUpdateTime() { return updateTime; }
     public void setUpdateTime(LocalDateTime updateTime) { this.updateTime = updateTime; }
+
+    public Integer getFloor() { return floor; }
+    public void setFloor(Integer floor) { this.floor = floor; }
+
+    public Integer getCapacity() { return capacity; }
+    public void setCapacity(Integer capacity) { this.capacity = capacity; }
+
+    public String getFacilities() { return facilities; }
+    public void setFacilities(String facilities) { this.facilities = facilities; }
 }

@@ -1,0 +1,44 @@
+package com.ycyu.istudyspotbackend.controller;
+
+import com.ycyu.istudyspotbackend.dto.WxSeatDTO;
+import com.ycyu.istudyspotbackend.entity.Result;
+import com.ycyu.istudyspotbackend.entity.Seat;
+import com.ycyu.istudyspotbackend.entity.SeatLayoutResponse;
+import com.ycyu.istudyspotbackend.service.SeatService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping("/api/wx")
+public class WxSeatController {
+
+    @Autowired
+    private SeatService seatService;
+
+    @GetMapping("/studyrooms/{studyRoomId}/seats")
+    public Result<List<WxSeatDTO>> getSeatList(
+            @PathVariable Long studyRoomId,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) Integer row,
+            @RequestParam(required = false) Integer col) {
+        List<Seat> seats = seatService.getSeatList(studyRoomId, status, type, row, col);
+        List<WxSeatDTO> dtos = seats.stream().map(WxSeatDTO::fromEntity).collect(Collectors.toList());
+        return Result.success("success", dtos);
+    }
+
+    @GetMapping("/studyrooms/{studyRoomId}/seat-layout")
+    public Result<SeatLayoutResponse> getSeatLayout(@PathVariable Long studyRoomId) {
+        SeatLayoutResponse layout = seatService.getSeatLayout(studyRoomId);
+        return Result.success("success", layout);
+    }
+
+    @GetMapping("/seats/{id}")
+    public Result<WxSeatDTO> getSeatDetail(@PathVariable Long id) {
+        Seat seat = seatService.getSeatDetail(id);
+        return Result.success("success", WxSeatDTO.fromEntity(seat));
+    }
+}
