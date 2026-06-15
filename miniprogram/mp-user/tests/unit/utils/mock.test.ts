@@ -351,11 +351,11 @@ describe('MockManager', () => {
         const res = await flushRequest({
           url: '/card/generate',
           method: 'POST',
-          data: { userID: 'user_001', studyDuration: 60 },
+          data: { userID: '1', studyDuration: 60 },
         });
         expect(res.code).toBe(200);
         expect(res.data.uuid).toBeDefined();
-        expect(res.data.userID).toBe('user_001');
+        expect(res.data.userID).toBe('1');
         expect(res.data.studyDuration).toBe(60);
       });
 
@@ -372,7 +372,7 @@ describe('MockManager', () => {
         const res = await flushRequest({
           url: '/card/generate',
           method: 'POST',
-          data: { userID: 'user_001', studyDuration: 0 },
+          data: { userID: '1', studyDuration: 0 },
         });
         expect(res.code).toBe(80001);
       });

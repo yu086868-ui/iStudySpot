@@ -211,10 +211,10 @@ describe('userApi.uploadAvatar', () => {
     const result = await userApi.uploadAvatar('/tmp/avatar.jpg');
 
     expect(result.code).toBe(200);
-    expect(result.data).toEqual({ avatarUrl: '/avatar/avatar_mock.jpg' });
+    expect(result.data).toEqual({ avatarUrl: '/tmp/avatar.jpg' });
     expect(mockedStore.setUser).toHaveBeenCalledWith({
       ...existingUser,
-      avatarUrl: '/avatar/avatar_mock.jpg'
+      avatarUrl: '/tmp/avatar.jpg'
     });
   });
 
