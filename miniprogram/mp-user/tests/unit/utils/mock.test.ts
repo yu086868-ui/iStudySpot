@@ -44,48 +44,119 @@ describe('MockManager', () => {
     });
   });
 
-  describe('Auth', () => {
-    describe('POST /auth/login', () => {
+  describe('User', () => {
+    describe('POST /user/login', () => {
       it('succeeds for existing user', async () => {
         const res = await flushRequest({
-          url: '/auth/login',
+          url: '/user/login',
           method: 'POST',
-          data: { username: 'user001', password: 'any' },
+          data: { code: 'mock_wx_code' },
         });
         expect(res.code).toBe(200);
-        expect(res.data.token).toBe('mock_token_user_001');
-        expect(res.data.user.username).toBe('user001');
+        expect(res.data.isNewUser).toBe(false);
+        expect(res.data.user.nickname).toBe('张三');
       });
 
-      it('fails for non-existent user', async () => {
+      it('fails when no user data', async () => {
+        const originalUsers = mockData.users;
+        mockData.users = [];
         const res = await flushRequest({
-          url: '/auth/login',
+          url: '/user/login',
           method: 'POST',
-          data: { username: 'nobody', password: 'any' },
+          data: { code: 'mock_wx_code' },
         });
         expect(res.code).toBe(10001);
         expect(res.data).toBeNull();
+        mockData.users = originalUsers;
       });
     });
 
-    describe('POST /auth/register', () => {
-      it('succeeds with new username', async () => {
+    describe('GET /user/profile', () => {
+      it('returns current user profile', async () => {
         const res = await flushRequest({
-          url: '/auth/register',
-          method: 'POST',
-          data: { username: 'newuser', password: 'pass', nickname: 'New User' },
+          url: '/user/profile',
+          method: 'GET',
         });
         expect(res.code).toBe(200);
-        expect(res.data.userId).toBeDefined();
+        expect(res.data.id).toBe(1);
+        expect(res.data.openId).toBe('mock_open_id_001');
+        expect(res.data.nickname).toBe('张三');
+        expect(res.data.status).toBe('normal');
       });
 
-      it('fails with duplicate username', async () => {
+      it('fails when user does not exist', async () => {
+        const originalUsers = mockData.users;
+        mockData.users = [];
         const res = await flushRequest({
-          url: '/auth/register',
-          method: 'POST',
-          data: { username: 'user001', password: 'pass' },
+          url: '/user/profile',
+          method: 'GET',
         });
         expect(res.code).toBe(10002);
+        expect(res.data).toBeNull();
+        mockData.users = originalUsers;
+      });
+    });
+
+    describe('PUT /user/profile', () => {
+      it('updates nickname successfully', async () => {
+        const res = await flushRequest({
+          url: '/user/profile',
+          method: 'PUT',
+          data: { nickname: '新昵称' },
+        });
+        expect(res.code).toBe(200);
+        expect(mockData.users[0].nickname).toBe('新昵称');
+      });
+
+      it('fails when user does not exist', async () => {
+        const originalUsers = mockData.users;
+        mockData.users = [];
+        const res = await flushRequest({
+          url: '/user/profile',
+          method: 'PUT',
+          data: { nickname: '测试' },
+        });
+        expect(res.code).toBe(10002);
+        expect(res.data).toBeNull();
+        mockData.users = originalUsers;
+      });
+    });
+
+    describe('POST /user/avatar', () => {
+      it('returns avatar url', async () => {
+        const res = await flushRequest({
+          url: '/user/avatar',
+          method: 'POST',
+        });
+        expect(res.code).toBe(200);
+        expect(res.data.avatarUrl).toBeDefined();
+      });
+    });
+
+    describe('GET /user/home', () => {
+      it('returns home data with user info', async () => {
+        const res = await flushRequest({
+          url: '/user/home',
+          method: 'GET',
+        });
+        expect(res.code).toBe(200);
+        expect(res.data.user).toBeDefined();
+        expect(res.data.user.nickname).toBe('张三');
+        expect(res.data.reservationCount).toBeDefined();
+        expect(res.data.studyHours).toBeDefined();
+        expect(res.data.creditScore).toBeDefined();
+      });
+
+      it('fails when user does not exist', async () => {
+        const originalUsers = mockData.users;
+        mockData.users = [];
+        const res = await flushRequest({
+          url: '/user/home',
+          method: 'GET',
+        });
+        expect(res.code).toBe(10002);
+        expect(res.data).toBeNull();
+        mockData.users = originalUsers;
       });
     });
   });
@@ -280,11 +351,11 @@ describe('MockManager', () => {
         const res = await flushRequest({
           url: '/card/generate',
           method: 'POST',
-          data: { userID: 'user_001', studyDuration: 60 },
+          data: { userID: '1', studyDuration: 60 },
         });
         expect(res.code).toBe(200);
         expect(res.data.uuid).toBeDefined();
-        expect(res.data.userID).toBe('user_001');
+        expect(res.data.userID).toBe('1');
         expect(res.data.studyDuration).toBe(60);
       });
 
@@ -301,7 +372,7 @@ describe('MockManager', () => {
         const res = await flushRequest({
           url: '/card/generate',
           method: 'POST',
-          data: { userID: 'user_001', studyDuration: 0 },
+          data: { userID: '1', studyDuration: 0 },
         });
         expect(res.code).toBe(80001);
       });

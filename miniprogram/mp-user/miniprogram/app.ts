@@ -2,6 +2,8 @@ import logger from './utils/logger';
 import errorMonitor from './utils/error-monitor';
 import metrics from './services/metrics';
 import healthCheck from './services/health-check';
+import { authApi } from './services/auth';
+import store from './utils/store';
 
 App<IAppOption>({
   globalData: {},
@@ -19,14 +21,16 @@ App<IAppOption>({
     logs.unshift(Date.now());
     wx.setStorageSync('logs', logs);
 
-    wx.login({
-      success: () => {
-        logger.info('App', '微信登录成功');
-      },
-      fail: () => {
-        logger.warn('App', '微信登录失败');
-      }
-    });
+    // 自动微信登录
+    if (!store.isLoggedIn()) {
+      authApi.loginWithWx().then(function(res) {
+        if (res.code === 200) {
+          logger.info('App', '微信自动登录成功');
+        } else {
+          logger.warn('App', '微信自动登录失败: ' + res.message);
+        }
+      });
+    }
 
     healthCheck.runAllChecks().then(function(report) {
       if (report.overallStatus === 'unhealthy') {

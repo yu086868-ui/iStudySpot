@@ -507,11 +507,17 @@ Page({
   parseQrCode(qrContent: string): QrCodeParams | null {
     try {
       if (qrContent.includes('studyRoomId=') && qrContent.includes('seatId=')) {
-        const url = new URL(qrContent)
-        const studyRoomId = url.searchParams.get('studyRoomId')
-        const seatId = url.searchParams.get('seatId')
+        const queryStr = qrContent.includes('?') ? qrContent.split('?')[1] : qrContent;
+        const pairs = queryStr.split('&');
+        let studyRoomId = '';
+        let seatId = '';
+        for (const pair of pairs) {
+          const [key, value] = pair.split('=');
+          if (key === 'studyRoomId') studyRoomId = decodeURIComponent(value || '');
+          if (key === 'seatId') seatId = decodeURIComponent(value || '');
+        }
         if (studyRoomId && seatId) {
-          return { studyRoomId, seatId }
+          return { studyRoomId, seatId };
         }
       }
 

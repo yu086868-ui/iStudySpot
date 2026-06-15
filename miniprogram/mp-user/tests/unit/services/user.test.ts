@@ -5,8 +5,7 @@ jest.mock('../../../miniprogram/utils/request', () => ({
     post: jest.fn(),
     put: jest.fn(),
     delete: jest.fn(),
-    saveTokens: jest.fn(),
-    clearTokens: jest.fn()
+    getBaseURL: jest.fn().mockReturnValue('https://api.example.com')
   }
 }));
 
@@ -22,33 +21,7 @@ jest.mock('../../../miniprogram/utils/store', () => ({
   __esModule: true,
   default: {
     getUser: jest.fn(),
-    setUser: jest.fn(),
-    clearUser: jest.fn(),
-    getMyReservations: jest.fn().mockReturnValue([]),
-    setMyReservations: jest.fn(),
-    addReservation: jest.fn(),
-    updateReservation: jest.fn(),
-    removeReservation: jest.fn(),
-    getCurrentCheckIn: jest.fn().mockReturnValue({ isCheckedIn: false, checkInRecord: null }),
-    setCurrentCheckIn: jest.fn(),
-    getCheckInRecords: jest.fn().mockReturnValue([]),
-    setCheckInRecords: jest.fn(),
-    getStudyRooms: jest.fn().mockReturnValue([]),
-    setStudyRooms: jest.fn(),
-    getStudyRoomDetail: jest.fn().mockReturnValue(null),
-    setStudyRoomDetail: jest.fn(),
-    getSeats: jest.fn().mockReturnValue(null),
-    setSeats: jest.fn(),
-    getAnnouncements: jest.fn().mockReturnValue([]),
-    setAnnouncements: jest.fn(),
-    getRules: jest.fn().mockReturnValue([]),
-    setRules: jest.fn(),
-    getReservationRules: jest.fn().mockReturnValue(null),
-    setReservationRules: jest.fn(),
-    getCards: jest.fn().mockReturnValue([]),
-    setCards: jest.fn(),
-    addCard: jest.fn(),
-    getCardById: jest.fn().mockReturnValue(null)
+    setUser: jest.fn()
   }
 }));
 
@@ -67,15 +40,11 @@ beforeEach(() => {
 
 describe('userApi.getCurrentUser', () => {
   const mockUser = {
-    id: 'u1',
-    username: 'testuser',
+    id: 1,
+    openId: 'o123',
     nickname: 'Test',
-    avatar: '',
-    phone: '13800000000',
-    email: 'test@test.com',
-    studentId: 'S001',
-    creditScore: 100,
-    status: 'active' as const,
+    avatarUrl: '',
+    status: 'normal' as const,
     createdAt: '2024-01-01T00:00:00.000Z',
     updatedAt: '2024-01-01T00:00:00.000Z'
   };
@@ -107,7 +76,7 @@ describe('userApi.getCurrentUser', () => {
     const result = await userApi.getCurrentUser();
 
     expect(mockedMock.request).toHaveBeenCalledWith({
-      url: '/users/me',
+      url: '/user/profile',
       method: 'GET'
     });
     expect(mockedStore.setUser).toHaveBeenCalledWith(mockUser);
@@ -121,7 +90,7 @@ describe('userApi.getCurrentUser', () => {
 
     const result = await userApi.getCurrentUser();
 
-    expect(mockedRequest.get).toHaveBeenCalledWith('/users/me');
+    expect(mockedRequest.get).toHaveBeenCalledWith('/user/profile');
     expect(mockedStore.setUser).toHaveBeenCalledWith(mockUser);
     expect(result).toEqual(apiResponse);
   });
@@ -133,7 +102,7 @@ describe('userApi.getCurrentUser', () => {
 
     await userApi.getCurrentUser(true);
 
-    expect(mockedRequest.get).toHaveBeenCalledWith('/users/me');
+    expect(mockedRequest.get).toHaveBeenCalledWith('/user/profile');
   });
 
   it('does not store user when response code is not 200', async () => {
@@ -152,56 +121,54 @@ describe('userApi.getCurrentUser', () => {
   });
 });
 
-describe('userApi.updateUser', () => {
-  const params = { nickname: 'NewNick', avatar: 'new.png' };
-  const updatedUser = {
-    id: 'u1',
-    username: 'testuser',
-    nickname: 'NewNick',
-    avatar: 'new.png',
-    phone: '13800000000',
-    email: 'test@test.com',
-    studentId: 'S001',
-    creditScore: 100,
-    status: 'active' as const,
+describe('userApi.updateProfile', () => {
+  const params = { nickname: 'NewNick' };
+  const existingUser = {
+    id: 1,
+    openId: 'o123',
+    nickname: 'OldNick',
+    avatarUrl: '',
+    status: 'normal' as const,
     createdAt: '2024-01-01T00:00:00.000Z',
-    updatedAt: '2024-01-02T00:00:00.000Z'
+    updatedAt: '2024-01-01T00:00:00.000Z'
   };
 
   const apiResponse = {
     code: 200,
     message: 'success',
-    data: updatedUser,
+    data: null,
     timestamp: Date.now()
   };
 
-  it('calls mockManager.request when mock is enabled and stores user on success', async () => {
+  it('calls mockManager.request when mock is enabled and updates user on success', async () => {
     (mockedMock.isEnabled as jest.Mock).mockReturnValue(true);
     (mockedMock.request as jest.Mock).mockResolvedValue(apiResponse);
+    (mockedStore.getUser as jest.Mock).mockReturnValue(existingUser);
 
-    const result = await userApi.updateUser(params);
+    const result = await userApi.updateProfile(params);
 
     expect(mockedMock.request).toHaveBeenCalledWith({
-      url: '/users/me',
+      url: '/user/profile',
       method: 'PUT',
       data: params
     });
-    expect(mockedStore.setUser).toHaveBeenCalledWith(updatedUser);
+    expect(mockedStore.setUser).toHaveBeenCalledWith({ ...existingUser, nickname: 'NewNick' });
     expect(result).toEqual(apiResponse);
   });
 
-  it('calls request.put when mock is disabled and stores user on success', async () => {
+  it('calls request.put when mock is disabled and updates user on success', async () => {
     (mockedMock.isEnabled as jest.Mock).mockReturnValue(false);
     (mockedRequest.put as jest.Mock).mockResolvedValue(apiResponse);
+    (mockedStore.getUser as jest.Mock).mockReturnValue(existingUser);
 
-    const result = await userApi.updateUser(params);
+    const result = await userApi.updateProfile(params);
 
-    expect(mockedRequest.put).toHaveBeenCalledWith('/users/me', params);
-    expect(mockedStore.setUser).toHaveBeenCalledWith(updatedUser);
+    expect(mockedRequest.put).toHaveBeenCalledWith('/user/profile', params);
+    expect(mockedStore.setUser).toHaveBeenCalledWith({ ...existingUser, nickname: 'NewNick' });
     expect(result).toEqual(apiResponse);
   });
 
-  it('does not store user when response code is not 200', async () => {
+  it('does not update user when response code is not 200', async () => {
     (mockedMock.isEnabled as jest.Mock).mockReturnValue(false);
     (mockedRequest.put as jest.Mock).mockResolvedValue({
       code: 400,
@@ -210,18 +177,118 @@ describe('userApi.updateUser', () => {
       timestamp: Date.now()
     });
 
-    await userApi.updateUser(params);
+    await userApi.updateProfile(params);
+
+    expect(mockedStore.setUser).not.toHaveBeenCalled();
+  });
+
+  it('does not update user when nickname is not provided in params', async () => {
+    (mockedMock.isEnabled as jest.Mock).mockReturnValue(false);
+    (mockedRequest.put as jest.Mock).mockResolvedValue(apiResponse);
+    (mockedStore.getUser as jest.Mock).mockReturnValue(existingUser);
+
+    await userApi.updateProfile({});
 
     expect(mockedStore.setUser).not.toHaveBeenCalled();
   });
 });
 
-describe('userApi.changePassword', () => {
-  const params = { oldPassword: 'old123', newPassword: 'new456' };
+describe('userApi.uploadAvatar', () => {
+  const existingUser = {
+    id: 1,
+    openId: 'o123',
+    nickname: 'Test',
+    avatarUrl: '',
+    status: 'normal' as const,
+    createdAt: '2024-01-01T00:00:00.000Z',
+    updatedAt: '2024-01-01T00:00:00.000Z'
+  };
+
+  it('returns mock avatar URL when mock is enabled and updates user', async () => {
+    (mockedMock.isEnabled as jest.Mock).mockReturnValue(true);
+    (mockedStore.getUser as jest.Mock).mockReturnValue(existingUser);
+
+    const result = await userApi.uploadAvatar('/tmp/avatar.jpg');
+
+    expect(result.code).toBe(200);
+    expect(result.data).toEqual({ avatarUrl: '/tmp/avatar.jpg' });
+    expect(mockedStore.setUser).toHaveBeenCalledWith({
+      ...existingUser,
+      avatarUrl: '/tmp/avatar.jpg'
+    });
+  });
+
+  it('calls wx.uploadFile when mock is disabled and updates user on success', async () => {
+    (mockedMock.isEnabled as jest.Mock).mockReturnValue(false);
+    (mockedRequest.getBaseURL as jest.Mock).mockReturnValue('https://api.example.com');
+    (mockedStore.getUser as jest.Mock).mockReturnValue(existingUser);
+
+    const uploadResponse = {
+        code: 200,
+        message: '上传成功',
+        data: { avatarUrl: '/avatar/new.jpg' },
+        timestamp: Date.now()
+      };
+    (wx.uploadFile as jest.Mock).mockImplementation(({ success }: any) => {
+      success({ data: JSON.stringify(uploadResponse) });
+    });
+
+    const result = await userApi.uploadAvatar('/tmp/avatar.jpg');
+
+    expect(wx.uploadFile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: 'https://api.example.com/user/avatar',
+        filePath: '/tmp/avatar.jpg',
+        name: 'file'
+      })
+    );
+    expect(result.code).toBe(200);
+    expect(result.data).toEqual({ avatarUrl: '/avatar/new.jpg' });
+    expect(mockedStore.setUser).toHaveBeenCalledWith({
+      ...existingUser,
+      avatarUrl: '/avatar/new.jpg'
+    });
+  });
+
+  it('returns error when wx.uploadFile fails', async () => {
+    (mockedMock.isEnabled as jest.Mock).mockReturnValue(false);
+    (mockedRequest.getBaseURL as jest.Mock).mockReturnValue('https://api.example.com');
+    (wx.uploadFile as jest.Mock).mockImplementation(({ fail }: any) => {
+      fail({ errMsg: 'upload failed' });
+    });
+
+    const result = await userApi.uploadAvatar('/tmp/avatar.jpg');
+
+    expect(result.code).toBe(500);
+    expect(result.message).toBe('上传失败');
+  });
+
+  it('returns error when wx.uploadFile response cannot be parsed', async () => {
+    (mockedMock.isEnabled as jest.Mock).mockReturnValue(false);
+    (mockedRequest.getBaseURL as jest.Mock).mockReturnValue('https://api.example.com');
+    (wx.uploadFile as jest.Mock).mockImplementation(({ success }: any) => {
+      success({ data: 'invalid json' });
+    });
+
+    const result = await userApi.uploadAvatar('/tmp/avatar.jpg');
+
+    expect(result.code).toBe(500);
+    expect(result.message).toBe('上传失败');
+  });
+});
+
+describe('userApi.getUserHome', () => {
+  const homeData = {
+    user: { id: 1, nickname: 'Test', avatarUrl: '' },
+    reservationCount: 5,
+    studyHours: 12,
+    creditScore: 100
+  };
+
   const apiResponse = {
     code: 200,
     message: 'success',
-    data: null,
+    data: homeData,
     timestamp: Date.now()
   };
 
@@ -229,23 +296,22 @@ describe('userApi.changePassword', () => {
     (mockedMock.isEnabled as jest.Mock).mockReturnValue(true);
     (mockedMock.request as jest.Mock).mockResolvedValue(apiResponse);
 
-    const result = await userApi.changePassword(params);
+    const result = await userApi.getUserHome();
 
     expect(mockedMock.request).toHaveBeenCalledWith({
-      url: '/users/me/password',
-      method: 'PUT',
-      data: params
+      url: '/user/home',
+      method: 'GET'
     });
     expect(result).toEqual(apiResponse);
   });
 
-  it('calls request.put when mock is disabled', async () => {
+  it('calls request.get when mock is disabled', async () => {
     (mockedMock.isEnabled as jest.Mock).mockReturnValue(false);
-    (mockedRequest.put as jest.Mock).mockResolvedValue(apiResponse);
+    (mockedRequest.get as jest.Mock).mockResolvedValue(apiResponse);
 
-    const result = await userApi.changePassword(params);
+    const result = await userApi.getUserHome();
 
-    expect(mockedRequest.put).toHaveBeenCalledWith('/users/me/password', params);
+    expect(mockedRequest.get).toHaveBeenCalledWith('/user/home');
     expect(result).toEqual(apiResponse);
   });
 });

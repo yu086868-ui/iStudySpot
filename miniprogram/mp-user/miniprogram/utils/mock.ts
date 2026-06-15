@@ -55,7 +55,7 @@ class MockManager {
   ): () => void {
     if (url === '/card/generate/stream' && method === 'POST') {
       var params = (data || {}) as { userID?: string; studyDuration?: number };
-      var card = generateCard(params.userID || 'user_001', params.studyDuration || 30);
+      var card = generateCard(String(params.userID || 1), params.studyDuration || 30);
 
       // 模拟 init 事件
       setTimeout(function () {
@@ -99,24 +99,17 @@ class MockManager {
   private handleRequest<T = unknown>(url: string, method: string, data?: unknown): ApiResponse<T> {
     const timestamp = Date.now();
 
-    if (url === '/auth/login' && method === 'POST') {
-      const params = (data || {}) as { username?: string; password?: string };
+    if (url === '/user/login' && method === 'POST') {
       const users = (mockData && mockData.users) ? mockData.users : [];
-      const user = users.find(u => u.username === params.username);
+      const user = users[0] || null;
 
       if (user) {
         return {
           code: 200,
           message: '登录成功',
           data: {
-            token: `mock_token_${user.id}`,
-            refreshToken: `mock_refresh_token_${user.id}`,
-            user: {
-              id: user.id,
-              username: user.username,
-              nickname: user.nickname,
-              avatar: user.avatar
-            }
+            isNewUser: false,
+            user: user
           } as T,
           timestamp
         };
@@ -124,81 +117,20 @@ class MockManager {
 
       return {
         code: 10001,
-        message: '用户名或密码错误',
+        message: '登录失败',
         data: null as unknown as T,
         timestamp
       };
     }
 
-    if (url === '/auth/register' && method === 'POST') {
-      const params = (data || {}) as { username?: string; password?: string; nickname?: string; phone?: string; studentId?: string };
-      const users = (mockData && mockData.users) ? mockData.users : [];
-      const existingUser = users.find(u => u.username === params.username);
-
-      if (existingUser) {
-        return {
-          code: 10002,
-          message: '用户已存在',
-          data: null as unknown as T,
-          timestamp
-        };
-      }
-
-      const newUser = {
-        id: `user_${(users && users.length) ? users.length + 1 : 1}`,
-        username: params.username || '',
-        nickname: params.nickname || '',
-        avatar: 'https://example.com/default-avatar.jpg',
-        phone: params.phone || '',
-        email: '',
-        studentId: params.studentId || '',
-        creditScore: 100,
-        status: 'active' as const,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-
-      if (mockData && mockData.users) {
-        mockData.users.push(newUser);
-      }
-
-      return {
-        code: 200,
-        message: '注册成功',
-        data: { userId: newUser.id } as T,
-        timestamp
-      };
-    }
-
-    if (url === '/auth/refresh' && method === 'POST') {
-      return {
-        code: 200,
-        message: '刷新成功',
-        data: {
-          token: 'new_mock_token',
-          refreshToken: 'new_mock_refresh_token'
-        } as T,
-        timestamp
-      };
-    }
-
-    if (url === '/auth/logout' && method === 'POST') {
-      return {
-        code: 200,
-        message: '登出成功',
-        data: null as unknown as T,
-        timestamp
-      };
-    }
-
-    if (url === '/users/me' && method === 'GET') {
+    if (url === '/user/profile' && method === 'GET') {
       const users = (mockData && mockData.users) ? mockData.users : [];
       const currentUser = users[0] || null;
 
       if (!currentUser) {
         return {
-          code: 50001,
-          message: '用户数据不存在',
+          code: 10002,
+          message: '用户不存在',
           data: null as unknown as T,
           timestamp
         };
@@ -212,38 +144,73 @@ class MockManager {
       };
     }
 
-    if (url === '/users/me' && method === 'PUT') {
-      const params = (data || {}) as { nickname?: string; avatar?: string; phone?: string; email?: string };
+    if (url === '/user/profile' && method === 'PUT') {
+      const params = (data || {}) as { nickname?: string };
       const users = (mockData && mockData.users) ? mockData.users : [];
       const user = users[0] || null;
 
       if (!user) {
         return {
-          code: 50001,
-          message: '用户数据不存在',
+          code: 10002,
+          message: '用户不存在',
           data: null as unknown as T,
           timestamp
         };
       }
 
       if (params.nickname) user.nickname = params.nickname;
-      if (params.avatar) user.avatar = params.avatar;
-      if (params.phone) user.phone = params.phone;
-      if (params.email) user.email = params.email;
 
       return {
         code: 200,
         message: '更新成功',
-        data: user as T,
+        data: null as T,
         timestamp
       };
     }
 
-    if (url === '/users/me/password' && method === 'PUT') {
+    if (url === '/user/avatar' && method === 'POST') {
+      const users = (mockData && mockData.users) ? mockData.users : [];
+      const user = users[0] || null;
+      const newAvatarUrl = '/avatar/avatar_' + Date.now() + '.jpg';
+
+      if (user) {
+        user.avatarUrl = newAvatarUrl;
+      }
+
       return {
         code: 200,
-        message: '密码修改成功',
-        data: null as unknown as T,
+        message: '上传成功',
+        data: { avatarUrl: newAvatarUrl } as T,
+        timestamp
+      };
+    }
+
+    if (url === '/user/home' && method === 'GET') {
+      const users = (mockData && mockData.users) ? mockData.users : [];
+      const currentUser = users[0] || null;
+
+      if (!currentUser) {
+        return {
+          code: 10002,
+          message: '用户不存在',
+          data: null as unknown as T,
+          timestamp
+        };
+      }
+
+      return {
+        code: 200,
+        message: 'success',
+        data: {
+          user: {
+            id: currentUser.id,
+            nickname: currentUser.nickname,
+            avatarUrl: currentUser.avatarUrl
+          },
+          reservationCount: 12,
+          studyHours: 156,
+          creditScore: 100
+        } as T,
         timestamp
       };
     }
@@ -383,7 +350,7 @@ class MockManager {
       }
 
       const activeReservations = reservations.filter(
-        r => r.userId === currentUser.id && 
+        r => String(r.userId) === String(currentUser.id) && 
              (r.status === 'confirmed' || r.status === 'checked_in')
       );
       
@@ -408,7 +375,7 @@ class MockManager {
 
       const newReservation = {
         id: `res_${reservations.length + 1}`,
-        userId: currentUser.id,
+        userId: String(currentUser.id),
         studyRoomId: params.studyRoomId || '',
         seatId: params.seatId || '',
         startTime: params.startTime || '',
@@ -443,7 +410,7 @@ class MockManager {
       const reservations = (mockData && mockData.reservations) ? mockData.reservations : [];
 
       let filteredReservations = currentUser
-        ? reservations.filter(r => r.userId === currentUser.id)
+        ? reservations.filter(r => String(r.userId) === String(currentUser.id))
         : [];
 
       if (params.status) {
@@ -551,7 +518,7 @@ class MockManager {
       }
 
       const activeCheckIn = checkInRecords.find(
-        r => r.userId === currentUser.id && r.status === 'active'
+        r => String(r.userId) === String(currentUser.id) && r.status === 'active'
       );
       
       if (activeCheckIn) {
@@ -578,7 +545,7 @@ class MockManager {
 
       const newCheckInRecord = {
         id: `checkin_${checkInRecords.length + 1}`,
-        userId: currentUser.id,
+        userId: String(currentUser.id),
         reservationId: params.reservationId || '',
         studyRoomId: reservation && reservation.studyRoomId ? reservation.studyRoomId : '',
         seatId: params.seatId || '',
@@ -665,7 +632,7 @@ class MockManager {
       const checkInRecords = (mockData && mockData.checkInRecords) ? mockData.checkInRecords : [];
 
       let filteredRecords = currentUser
-        ? checkInRecords.filter(r => r.userId === currentUser.id)
+        ? checkInRecords.filter(r => String(r.userId) === String(currentUser.id))
         : [];
 
       if (params.startDate) {
@@ -699,7 +666,7 @@ class MockManager {
       const currentUser = users[0] || null;
       const checkInRecords = (mockData && mockData.checkInRecords) ? mockData.checkInRecords : [];
       const activeRecord = currentUser
-        ? checkInRecords.find(r => r.userId === currentUser.id && r.status === 'active')
+        ? checkInRecords.find(r => String(r.userId) === String(currentUser.id) && r.status === 'active')
         : undefined;
 
       return {
@@ -817,7 +784,7 @@ class MockManager {
         return {
           code: 80001,
           message: '参数错误：缺少userID',
-          data: null,
+          data: null as unknown as T,
           timestamp
         };
       }
@@ -826,22 +793,22 @@ class MockManager {
         return {
           code: 80001,
           message: '参数错误：studyDuration必须大于0',
-          data: null,
+          data: null as unknown as T,
           timestamp
         };
       }
 
-      const user = users.find(u => u.id === params.userID);
+      const user = users.find(u => String(u.id) === String(params.userID));
       if (!user) {
         return {
           code: 50001,
           message: '用户数据不存在',
-          data: null,
+          data: null as unknown as T,
           timestamp
         };
       }
 
-      const card = generateCard(params.userID, params.studyDuration);
+      const card = generateCard(String(params.userID), params.studyDuration);
 
       if (mockData && mockData.cards) {
         mockData.cards.unshift(card);
@@ -864,7 +831,7 @@ class MockManager {
         return {
           code: 80001,
           message: '参数错误：缺少id',
-          data: null,
+          data: null as unknown as T,
           timestamp
         };
       }
@@ -882,18 +849,18 @@ class MockManager {
       return {
         code: 80002,
         message: '卡片不存在',
-        data: null,
+        data: null as unknown as T,
         timestamp
       };
     }
 
     if (url.startsWith('/card/list') && method === 'GET') {
       const params = (data || {}) as { userID?: string };
-      const userID = params.userID || '';
+      const userID = params.userID ? String(params.userID) : '';
       const cards = (mockData && mockData.cards) ? mockData.cards : [];
 
       let filteredCards = userID
-        ? cards.filter(c => c.userID === userID)
+        ? cards.filter(c => String(c.userID) === userID)
         : cards;
 
       filteredCards = filteredCards.sort((a, b) =>

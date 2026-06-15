@@ -102,7 +102,9 @@ function processContent(contentMd: string): ProcessedBlock[] {
 export {
   splitByDivider,
   validateBlock,
-  processContent,
+  processContent
+}
+export type {
   ContractWarning,
   ProcessedBlock
 }

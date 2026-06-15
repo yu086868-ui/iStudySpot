@@ -10,13 +10,32 @@ jest.mock('../../../../miniprogram/utils/markdown-engine', () => ({
 
 require('../../../../miniprogram/components/card-popup/index');
 
-function createInstance() {
+function createInstance(overrides?: { data?: Record<string, unknown>; properties?: Record<string, unknown> }) {
   const setData = jest.fn();
   const triggerEvent = jest.fn();
   const instance = {
     setData,
     triggerEvent,
-    properties: { card: {} as Record<string, unknown> },
+    data: {
+      animating: false,
+      isStreaming: false,
+      displayHtml: '',
+      displayRarity: 'N',
+      displayImageURL: '',
+      displayCreateTime: '',
+      displayStudyDuration: 0,
+      displayThemeCategory: '',
+      displayThemeLabel: '',
+      ...overrides?.data
+    },
+    properties: {
+      card: {} as Record<string, unknown>,
+      streaming: false,
+      streamingHtml: '',
+      streamingRarity: 'N',
+      streamingThemeCategory: '',
+      ...overrides?.properties
+    } as Record<string, unknown>,
     ...componentDef.methods
   };
   return instance;
@@ -32,17 +51,26 @@ describe('card-popup component', () => {
     expect(componentDef.properties.showAction.value).toBe(false);
     expect(componentDef.properties.actionText.type).toBe(String);
     expect(componentDef.properties.actionText.value).toBe('收下卡片');
+    expect(componentDef.properties.streaming.type).toBe(Boolean);
+    expect(componentDef.properties.streaming.value).toBe(false);
+    expect(componentDef.properties.streamingHtml.type).toBe(String);
+    expect(componentDef.properties.streamingHtml.value).toBe('');
+    expect(componentDef.properties.streamingRarity.type).toBe(String);
+    expect(componentDef.properties.streamingRarity.value).toBe('N');
+    expect(componentDef.properties.streamingThemeCategory.type).toBe(String);
+    expect(componentDef.properties.streamingThemeCategory.value).toBe('');
   });
 
   it('has correct data defaults', () => {
     expect(componentDef.data.animating).toBe(false);
-    expect(componentDef.data.html).toBe('');
-    expect(componentDef.data.rarity).toBe('N');
-    expect(componentDef.data.imageURL).toBe('');
-    expect(componentDef.data.createTime).toBe('');
-    expect(componentDef.data.studyDuration).toBe(0);
-    expect(componentDef.data.themeCategory).toBe('');
-    expect(componentDef.data.themeLabel).toBe('');
+    expect(componentDef.data.isStreaming).toBe(false);
+    expect(componentDef.data.displayHtml).toBe('');
+    expect(componentDef.data.displayRarity).toBe('N');
+    expect(componentDef.data.displayImageURL).toBe('');
+    expect(componentDef.data.displayCreateTime).toBe('');
+    expect(componentDef.data.displayStudyDuration).toBe(0);
+    expect(componentDef.data.displayThemeCategory).toBe('');
+    expect(componentDef.data.displayThemeLabel).toBe('');
   });
 
   it('RARITY_BORDER_COLOR maps all rarities to valid colors', () => {
@@ -79,7 +107,7 @@ describe('card-popup component', () => {
     cardObserver.call(instance, testCard);
     const setDataCalls = instance.setData.mock.calls;
     const lastCall = setDataCalls[setDataCalls.length - 1][0];
-    expect(lastCall.themeLabel).toBe(expectedLabels.growth);
+    expect(lastCall.displayThemeLabel).toBe(expectedLabels.growth);
   });
 
   it('close sets animating to false and triggers close event after 300ms', () => {
@@ -132,13 +160,14 @@ describe('card-popup component', () => {
     componentDef.observers.card.call(instance, testCard);
     expect(render).toHaveBeenCalledWith('# hello');
     expect(instance.setData).toHaveBeenCalledWith({
-      html: '<p>test</p>',
-      rarity: 'SSR',
-      imageURL: 'https://example.com/img.png',
-      createTime: '2025-01-01',
-      studyDuration: 3600,
-      themeCategory: 'philosophy',
-      themeLabel: '哲思感悟'
+      isStreaming: false,
+      displayHtml: '<p>test</p>',
+      displayRarity: 'SSR',
+      displayImageURL: 'https://example.com/img.png',
+      displayCreateTime: '2025-01-01',
+      displayStudyDuration: 3600,
+      displayThemeCategory: 'philosophy',
+      displayThemeLabel: '哲思感悟'
     });
   });
 
@@ -161,8 +190,8 @@ describe('card-popup component', () => {
     componentDef.observers.card.call(instance, testCard);
     expect(instance.setData).toHaveBeenCalledWith(
       expect.objectContaining({
-        themeCategory: '',
-        themeLabel: ''
+        displayThemeCategory: '',
+        displayThemeLabel: ''
       })
     );
   });
@@ -183,7 +212,7 @@ describe('card-popup component', () => {
     expect(instance.setData).toHaveBeenCalledWith({ animating: false });
   });
 
-  it('visible observer renders card data when visible is true and card has uuid', () => {
+  it('visible observer renders card data when visible is true, card has uuid, and not streaming', () => {
     jest.useFakeTimers();
     const { render } = require('../../../../miniprogram/utils/markdown-engine');
     const instance = createInstance();
@@ -200,16 +229,139 @@ describe('card-popup component', () => {
     componentDef.observers.visible.call(instance, true);
     expect(render).toHaveBeenCalledWith('## hi');
     expect(instance.setData).toHaveBeenCalledWith({
-      html: '<p>test</p>',
-      rarity: 'UR',
-      imageURL: 'https://img.com/a.png',
-      createTime: '2025-06-01',
-      studyDuration: 7200,
-      themeCategory: 'nature',
-      themeLabel: '自然意象'
+      displayHtml: '<p>test</p>',
+      displayRarity: 'UR',
+      displayImageURL: 'https://img.com/a.png',
+      displayCreateTime: '2025-06-01',
+      displayStudyDuration: 7200,
+      displayThemeCategory: 'nature',
+      displayThemeLabel: '自然意象'
     });
     jest.advanceTimersByTime(50);
     expect(instance.setData).toHaveBeenCalledWith({ animating: true });
     jest.useRealTimers();
+  });
+
+  it('visible observer does not render card data when isStreaming is true', () => {
+    jest.useFakeTimers();
+    const instance = createInstance({ data: { isStreaming: true } });
+    const testCard = {
+      uuid: 'test-uuid',
+      markdown: '## hi',
+      rarity: 'UR',
+      imageURL: 'https://img.com/a.png',
+      createTime: '2025-06-01',
+      studyDuration: 7200,
+      themeCategory: 'nature'
+    };
+    instance.properties.card = testCard;
+    componentDef.observers.visible.call(instance, true);
+    // Should NOT call setData with card display data, only animating
+    const setDataCalls = instance.setData.mock.calls;
+    const cardDataCalls = setDataCalls.filter((call: any[]) =>
+      call[0].displayHtml !== undefined
+    );
+    expect(cardDataCalls.length).toBe(0);
+    jest.advanceTimersByTime(50);
+    expect(instance.setData).toHaveBeenCalledWith({ animating: true });
+    jest.useRealTimers();
+  });
+
+  // streaming observer tests
+  it('streaming observer sets isStreaming to true when streaming is true', () => {
+    const instance = createInstance({
+      properties: {
+        streamingRarity: 'SR',
+        streamingThemeCategory: 'tech'
+      }
+    });
+    componentDef.observers.streaming.call(instance, true);
+    expect(instance.setData).toHaveBeenCalledWith({ isStreaming: true });
+    expect(instance.setData).toHaveBeenCalledWith({
+      displayRarity: 'SR',
+      displayThemeCategory: 'tech',
+      displayThemeLabel: '科技未来',
+      displayImageURL: '',
+      displayCreateTime: '',
+      displayStudyDuration: 0
+    });
+  });
+
+  it('streaming observer sets isStreaming to false when streaming is false', () => {
+    const instance = createInstance();
+    componentDef.observers.streaming.call(instance, false);
+    expect(instance.setData).toHaveBeenCalledWith({ isStreaming: false });
+    // Should not set display fields when streaming is false
+    const setDataCalls = instance.setData.mock.calls;
+    expect(setDataCalls.length).toBe(1);
+  });
+
+  it('streaming observer uses default rarity when streamingRarity is empty', () => {
+    const instance = createInstance({
+      properties: {
+        streamingRarity: '',
+        streamingThemeCategory: ''
+      }
+    });
+    componentDef.observers.streaming.call(instance, true);
+    expect(instance.setData).toHaveBeenCalledWith({
+      displayRarity: 'N',
+      displayThemeCategory: '',
+      displayThemeLabel: '',
+      displayImageURL: '',
+      displayCreateTime: '',
+      displayStudyDuration: 0
+    });
+  });
+
+  // streamingHtml observer tests
+  it('streamingHtml observer updates displayHtml when isStreaming is true', () => {
+    const instance = createInstance({ data: { isStreaming: true } });
+    componentDef.observers.streamingHtml.call(instance, '<p>streaming content</p>');
+    expect(instance.setData).toHaveBeenCalledWith({ displayHtml: '<p>streaming content</p>' });
+  });
+
+  it('streamingHtml observer does nothing when isStreaming is false', () => {
+    const instance = createInstance({ data: { isStreaming: false } });
+    componentDef.observers.streamingHtml.call(instance, '<p>streaming content</p>');
+    expect(instance.setData).not.toHaveBeenCalled();
+  });
+
+  // streamingRarity observer tests
+  it('streamingRarity observer updates displayRarity when isStreaming is true', () => {
+    const instance = createInstance({ data: { isStreaming: true } });
+    componentDef.observers.streamingRarity.call(instance, 'SSR');
+    expect(instance.setData).toHaveBeenCalledWith({ displayRarity: 'SSR' });
+  });
+
+  it('streamingRarity observer does nothing when isStreaming is false', () => {
+    const instance = createInstance({ data: { isStreaming: false } });
+    componentDef.observers.streamingRarity.call(instance, 'SSR');
+    expect(instance.setData).not.toHaveBeenCalled();
+  });
+
+  // streamingThemeCategory observer tests
+  it('streamingThemeCategory observer updates display fields when isStreaming is true', () => {
+    const instance = createInstance({ data: { isStreaming: true } });
+    componentDef.observers.streamingThemeCategory.call(instance, 'companion');
+    expect(instance.setData).toHaveBeenCalledWith({
+      displayThemeCategory: 'companion',
+      displayThemeLabel: '温柔陪伴'
+    });
+  });
+
+  it('streamingThemeCategory observer does nothing when isStreaming is false', () => {
+    const instance = createInstance({ data: { isStreaming: false } });
+    componentDef.observers.streamingThemeCategory.call(instance, 'companion');
+    expect(instance.setData).not.toHaveBeenCalled();
+  });
+
+  it('streamingThemeCategory observer handles unknown category gracefully', () => {
+    const instance = createInstance({ data: { isStreaming: true } });
+    componentDef.observers.streamingThemeCategory.call(instance, 'unknown');
+    expect(instance.setData).toHaveBeenCalledWith({
+      displayThemeCategory: 'unknown',
+      displayThemeLabel: ''
+    });
   });
 });
