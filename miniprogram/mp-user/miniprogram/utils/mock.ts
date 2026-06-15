@@ -848,11 +848,11 @@ class MockManager {
 
     if (url.startsWith('/card/list') && method === 'GET') {
       const params = (data || {}) as { userID?: string };
-      const userID = params.userID || '';
+      const userID = params.userID ? String(params.userID) : '';
       const cards = (mockData && mockData.cards) ? mockData.cards : [];
 
       let filteredCards = userID
-        ? cards.filter(c => c.userID === userID)
+        ? cards.filter(c => String(c.userID) === userID)
         : cards;
 
       filteredCards = filteredCards.sort((a, b) =>
