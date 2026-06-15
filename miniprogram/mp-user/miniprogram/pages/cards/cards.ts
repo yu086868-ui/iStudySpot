@@ -232,7 +232,7 @@ Page({
     this.setData({ loading: true })
     try {
       const user = store.getUser()
-      const res = await cardApi.getCardList({ userID: user ? user.id : 'user_001' })
+      const res = await cardApi.getCardList({ userID: user ? String(user.id) : '1' })
       if (res.code === 200 && res.data) {
         this.setData({ cards: res.data })
         this.applySort()
@@ -299,7 +299,7 @@ Page({
     this.setData({ loading: true })
     try {
       const user = store.getUser()
-      const res = await cardApi.getCardList({ userID: user ? user.id : 'user_001' }, true)
+      const res = await cardApi.getCardList({ userID: user ? String(user.id) : '1' }, true)
       if (res.code === 200 && res.data) {
         this.setData({ cards: res.data })
         this.applySort()

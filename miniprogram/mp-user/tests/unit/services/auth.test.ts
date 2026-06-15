@@ -4,9 +4,7 @@ jest.mock('../../../miniprogram/utils/request', () => ({
     get: jest.fn(),
     post: jest.fn(),
     put: jest.fn(),
-    delete: jest.fn(),
-    saveTokens: jest.fn(),
-    clearTokens: jest.fn()
+    delete: jest.fn()
   }
 }));
 
@@ -22,33 +20,7 @@ jest.mock('../../../miniprogram/utils/store', () => ({
   __esModule: true,
   default: {
     getUser: jest.fn(),
-    setUser: jest.fn(),
-    clearUser: jest.fn(),
-    getMyReservations: jest.fn().mockReturnValue([]),
-    setMyReservations: jest.fn(),
-    addReservation: jest.fn(),
-    updateReservation: jest.fn(),
-    removeReservation: jest.fn(),
-    getCurrentCheckIn: jest.fn().mockReturnValue({ isCheckedIn: false, checkInRecord: null }),
-    setCurrentCheckIn: jest.fn(),
-    getCheckInRecords: jest.fn().mockReturnValue([]),
-    setCheckInRecords: jest.fn(),
-    getStudyRooms: jest.fn().mockReturnValue([]),
-    setStudyRooms: jest.fn(),
-    getStudyRoomDetail: jest.fn().mockReturnValue(null),
-    setStudyRoomDetail: jest.fn(),
-    getSeats: jest.fn().mockReturnValue(null),
-    setSeats: jest.fn(),
-    getAnnouncements: jest.fn().mockReturnValue([]),
-    setAnnouncements: jest.fn(),
-    getRules: jest.fn().mockReturnValue([]),
-    setRules: jest.fn(),
-    getReservationRules: jest.fn().mockReturnValue(null),
-    setReservationRules: jest.fn(),
-    getCards: jest.fn().mockReturnValue([]),
-    setCards: jest.fn(),
-    addCard: jest.fn(),
-    getCardById: jest.fn().mockReturnValue(null)
+    setUser: jest.fn()
   }
 }));
 
@@ -61,53 +33,60 @@ const mockedRequest = request as jest.Mocked<typeof request>;
 const mockedMock = mockManager as jest.Mocked<typeof mockManager>;
 const mockedStore = store as jest.Mocked<typeof store>;
 
+const mockUser = {
+  id: 1,
+  openId: 'oTest123',
+  nickname: '测试用户',
+  avatarUrl: 'https://example.com/avatar.png',
+  status: 'normal' as const,
+  createdAt: '2026-01-01T00:00:00.000Z',
+  updatedAt: '2026-01-01T00:00:00.000Z'
+};
+
 beforeEach(() => {
   jest.clearAllMocks();
 });
 
-describe('authApi.login', () => {
-  const params = { username: 'testuser', password: '123456' };
-  const loginResponse = {
+describe('authApi.wxLogin', () => {
+  const params = { code: 'wx_code_123' };
+  const wxLoginResponse = {
     code: 200,
     message: 'success',
     data: {
-      token: 'token123',
-      refreshToken: 'refresh123',
-      user: { id: 'u1', username: 'testuser', nickname: 'Test', avatar: '' }
+      isNewUser: true,
+      user: mockUser
     },
     timestamp: Date.now()
   };
 
-  it('calls mockManager.request when mock is enabled and stores user + tokens on success', async () => {
+  it('mock 启用时调用 mockManager.request 并在成功时存储用户', async () => {
     (mockedMock.isEnabled as jest.Mock).mockReturnValue(true);
-    (mockedMock.request as jest.Mock).mockResolvedValue(loginResponse);
+    (mockedMock.request as jest.Mock).mockResolvedValue(wxLoginResponse);
 
-    const result = await authApi.login(params);
+    const result = await authApi.wxLogin(params);
 
     expect(mockedMock.isEnabled).toHaveBeenCalled();
     expect(mockedMock.request).toHaveBeenCalledWith({
-      url: '/auth/login',
+      url: '/user/login',
       method: 'POST',
       data: params
     });
-    expect(mockedRequest.saveTokens).toHaveBeenCalledWith('token123', 'refresh123');
-    expect(mockedStore.setUser).toHaveBeenCalled();
-    expect(result).toEqual(loginResponse);
+    expect(mockedStore.setUser).toHaveBeenCalledWith(mockUser);
+    expect(result).toEqual(wxLoginResponse);
   });
 
-  it('calls request.post when mock is disabled and stores user + tokens on success', async () => {
+  it('mock 未启用时调用 request.post 并在成功时存储用户', async () => {
     (mockedMock.isEnabled as jest.Mock).mockReturnValue(false);
-    (mockedRequest.post as jest.Mock).mockResolvedValue(loginResponse);
+    (mockedRequest.post as jest.Mock).mockResolvedValue(wxLoginResponse);
 
-    const result = await authApi.login(params);
+    const result = await authApi.wxLogin(params);
 
-    expect(mockedRequest.post).toHaveBeenCalledWith('/auth/login', params, false);
-    expect(mockedRequest.saveTokens).toHaveBeenCalledWith('token123', 'refresh123');
-    expect(mockedStore.setUser).toHaveBeenCalled();
-    expect(result).toEqual(loginResponse);
+    expect(mockedRequest.post).toHaveBeenCalledWith('/user/login', params);
+    expect(mockedStore.setUser).toHaveBeenCalledWith(mockUser);
+    expect(result).toEqual(wxLoginResponse);
   });
 
-  it('does not store user or tokens when mock response code is not 200', async () => {
+  it('mock 启用时响应 code 非 200 不存储用户', async () => {
     (mockedMock.isEnabled as jest.Mock).mockReturnValue(true);
     (mockedMock.request as jest.Mock).mockResolvedValue({
       code: 401,
@@ -116,13 +95,12 @@ describe('authApi.login', () => {
       timestamp: Date.now()
     });
 
-    await authApi.login(params);
+    await authApi.wxLogin(params);
 
-    expect(mockedRequest.saveTokens).not.toHaveBeenCalled();
     expect(mockedStore.setUser).not.toHaveBeenCalled();
   });
 
-  it('does not store user or tokens when real response code is not 200', async () => {
+  it('mock 未启用时响应 code 非 200 不存储用户', async () => {
     (mockedMock.isEnabled as jest.Mock).mockReturnValue(false);
     (mockedRequest.post as jest.Mock).mockResolvedValue({
       code: 401,
@@ -131,128 +109,77 @@ describe('authApi.login', () => {
       timestamp: Date.now()
     });
 
-    await authApi.login(params);
+    await authApi.wxLogin(params);
 
-    expect(mockedRequest.saveTokens).not.toHaveBeenCalled();
+    expect(mockedStore.setUser).not.toHaveBeenCalled();
+  });
+
+  it('响应 data 中无 user 时不存储用户', async () => {
+    (mockedMock.isEnabled as jest.Mock).mockReturnValue(true);
+    (mockedMock.request as jest.Mock).mockResolvedValue({
+      code: 200,
+      message: 'success',
+      data: { isNewUser: true },
+      timestamp: Date.now()
+    });
+
+    await authApi.wxLogin(params);
+
     expect(mockedStore.setUser).not.toHaveBeenCalled();
   });
 });
 
-describe('authApi.register', () => {
-  const params = { username: 'newuser', password: '123456', nickname: 'New', phone: '13800000000', studentId: 'S001' };
-  const registerResponse = {
+describe('authApi.loginWithWx', () => {
+  const wxLoginResponse = {
     code: 200,
     message: 'success',
-    data: { userId: 'u2' },
+    data: {
+      isNewUser: false,
+      user: mockUser
+    },
     timestamp: Date.now()
   };
 
-  it('calls mockManager.request when mock is enabled', async () => {
+  it('wx.login 成功时调用 wxLogin 并返回结果', async () => {
+    (wx.login as jest.Mock).mockImplementation(({ success }: any) => {
+      success({ code: 'wx_code_456' });
+    });
     (mockedMock.isEnabled as jest.Mock).mockReturnValue(true);
-    (mockedMock.request as jest.Mock).mockResolvedValue(registerResponse);
+    (mockedMock.request as jest.Mock).mockResolvedValue(wxLoginResponse);
 
-    const result = await authApi.register(params);
+    const result = await authApi.loginWithWx();
 
+    expect(wx.login).toHaveBeenCalled();
     expect(mockedMock.request).toHaveBeenCalledWith({
-      url: '/auth/register',
+      url: '/user/login',
       method: 'POST',
-      data: params
+      data: { code: 'wx_code_456' }
     });
-    expect(result).toEqual(registerResponse);
+    expect(mockedStore.setUser).toHaveBeenCalledWith(mockUser);
+    expect(result).toEqual(wxLoginResponse);
   });
 
-  it('calls request.post when mock is disabled', async () => {
-    (mockedMock.isEnabled as jest.Mock).mockReturnValue(false);
-    (mockedRequest.post as jest.Mock).mockResolvedValue(registerResponse);
-
-    const result = await authApi.register(params);
-
-    expect(mockedRequest.post).toHaveBeenCalledWith('/auth/register', params, false);
-    expect(result).toEqual(registerResponse);
-  });
-});
-
-describe('authApi.refreshToken', () => {
-  const refreshResponse = {
-    code: 200,
-    message: 'success',
-    data: { token: 'newToken', refreshToken: 'newRefresh' },
-    timestamp: Date.now()
-  };
-
-  it('calls mockManager.request when mock is enabled and saves tokens on success', async () => {
-    (mockedMock.isEnabled as jest.Mock).mockReturnValue(true);
-    (mockedMock.request as jest.Mock).mockResolvedValue(refreshResponse);
-
-    const result = await authApi.refreshToken('oldRefresh');
-
-    expect(mockedMock.request).toHaveBeenCalledWith({
-      url: '/auth/refresh',
-      method: 'POST',
-      data: { refreshToken: 'oldRefresh' }
-    });
-    expect(mockedRequest.saveTokens).toHaveBeenCalledWith('newToken', 'newRefresh');
-    expect(result).toEqual(refreshResponse);
-  });
-
-  it('calls request.post when mock is disabled and saves tokens on success', async () => {
-    (mockedMock.isEnabled as jest.Mock).mockReturnValue(false);
-    (mockedRequest.post as jest.Mock).mockResolvedValue(refreshResponse);
-
-    const result = await authApi.refreshToken('oldRefresh');
-
-    expect(mockedRequest.post).toHaveBeenCalledWith('/auth/refresh', { refreshToken: 'oldRefresh' }, false);
-    expect(mockedRequest.saveTokens).toHaveBeenCalledWith('newToken', 'newRefresh');
-    expect(result).toEqual(refreshResponse);
-  });
-
-  it('does not save tokens when mock response code is not 200', async () => {
-    (mockedMock.isEnabled as jest.Mock).mockReturnValue(true);
-    (mockedMock.request as jest.Mock).mockResolvedValue({
-      code: 401,
-      message: 'unauthorized',
-      data: null,
-      timestamp: Date.now()
+  it('wx.login 成功但未返回 code 时返回错误响应', async () => {
+    (wx.login as jest.Mock).mockImplementation(({ success }: any) => {
+      success({ code: '' });
     });
 
-    await authApi.refreshToken('oldRefresh');
+    const result = await authApi.loginWithWx();
 
-    expect(mockedRequest.saveTokens).not.toHaveBeenCalled();
+    expect(result.code).toBe(10001);
+    expect(result.message).toBe('微信登录失败');
+    expect(mockedStore.setUser).not.toHaveBeenCalled();
   });
-});
 
-describe('authApi.logout', () => {
-  const logoutResponse = {
-    code: 200,
-    message: 'success',
-    data: null,
-    timestamp: Date.now()
-  };
-
-  it('calls mockManager.request when mock is enabled and clears tokens + user', async () => {
-    (mockedMock.isEnabled as jest.Mock).mockReturnValue(true);
-    (mockedMock.request as jest.Mock).mockResolvedValue(logoutResponse);
-
-    const result = await authApi.logout();
-
-    expect(mockedMock.request).toHaveBeenCalledWith({
-      url: '/auth/logout',
-      method: 'POST'
+  it('wx.login 失败时返回错误响应', async () => {
+    (wx.login as jest.Mock).mockImplementation(({ fail }: any) => {
+      fail({ errMsg: 'login:fail' });
     });
-    expect(mockedRequest.clearTokens).toHaveBeenCalled();
-    expect(mockedStore.clearUser).toHaveBeenCalled();
-    expect(result).toEqual(logoutResponse);
-  });
 
-  it('calls request.post when mock is disabled and clears tokens + user', async () => {
-    (mockedMock.isEnabled as jest.Mock).mockReturnValue(false);
-    (mockedRequest.post as jest.Mock).mockResolvedValue(logoutResponse);
+    const result = await authApi.loginWithWx();
 
-    const result = await authApi.logout();
-
-    expect(mockedRequest.post).toHaveBeenCalledWith('/auth/logout');
-    expect(mockedRequest.clearTokens).toHaveBeenCalled();
-    expect(mockedStore.clearUser).toHaveBeenCalled();
-    expect(result).toEqual(logoutResponse);
+    expect(result.code).toBe(10001);
+    expect(result.message).toBe('微信登录失败');
+    expect(mockedStore.setUser).not.toHaveBeenCalled();
   });
 });

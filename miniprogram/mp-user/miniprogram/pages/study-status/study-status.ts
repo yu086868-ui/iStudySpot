@@ -178,7 +178,7 @@ Page({
     this.setData({ studyDurationMin })
 
     var user = store.getUser()
-    var userID = user ? user.id : 'user_001'
+    var userID = user ? String(user.id) : '1'
     var streamingText = ''
     var self = this
 

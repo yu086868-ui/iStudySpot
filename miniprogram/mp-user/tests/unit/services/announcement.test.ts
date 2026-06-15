@@ -4,9 +4,7 @@ jest.mock('../../../miniprogram/utils/request', () => ({
     get: jest.fn(),
     post: jest.fn(),
     put: jest.fn(),
-    delete: jest.fn(),
-    saveTokens: jest.fn(),
-    clearTokens: jest.fn()
+    delete: jest.fn()
   }
 }));
 
