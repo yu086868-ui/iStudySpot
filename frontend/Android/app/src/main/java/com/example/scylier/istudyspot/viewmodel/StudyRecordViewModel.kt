@@ -1,34 +1,96 @@
 package com.example.scylier.istudyspot.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.scylier.istudyspot.models.ApiResponse
+import com.example.scylier.istudyspot.repository.MainRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
-/**
- * 学习记录ViewModel
- * 管理用户的学习统计数据
- */
-class StudyRecordViewModel : ViewModel() {
+data class StudyRecordUiState(
+    val weekStudyHours: Int = 0,
+    val monthStudyHours: Int = 0,
+    val totalStudyHours: Int = 0,
+    val totalBookings: Int = 0,
+    val streakDays: Int = 0,
+    val avgStudyDuration: Double = 0.0,
+    val favoriteSeat: String = "",
+    val peakTime: String = "",
+    val isLoading: Boolean = true,
+    val error: String? = null
+)
 
-    // 本周学习时长（小时）
-    val weekStudyHours: Int = 24
+class StudyRecordViewModel(
+    private val repository: MainRepository = MainRepository()
+) : ViewModel() {
 
-    // 本月学习时长（小时）
-    val monthStudyHours: Int = 96
+    private val _state = MutableStateFlow(StudyRecordUiState())
+    val state: StateFlow<StudyRecordUiState> = _state
 
-    // 累计学习时长（小时）
-    val totalStudyHours: Int = 328
+    fun loadStudyRecords() {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(isLoading = true, error = null)
+            try {
+                val fallback = fallbackStudyRecord()
+                var result = fallback
+                var errorMessage: String? = null
 
-    // 累计预约次数
-    val totalBookings: Int = 45
+                when (val response = repository.getCheckinRecords()) {
+                    is ApiResponse.Success -> {
+                        val data = response.data ?: emptyMap()
+                        result = result.copy(
+                            totalStudyHours = (data["totalHours"] as? Number)?.toInt() ?: result.totalStudyHours,
+                            streakDays = (data["streak"] as? Number)?.toInt() ?: result.streakDays,
+                            avgStudyDuration = (data["avgDuration"] as? Number)?.toDouble() ?: result.avgStudyDuration,
+                            favoriteSeat = (data["favoriteSeat"] as? String)?.takeIf { it.isNotBlank() }
+                                ?: result.favoriteSeat,
+                            peakTime = (data["peakTime"] as? String)?.takeIf { it.isNotBlank() }
+                                ?: result.peakTime,
+                            weekStudyHours = (data["weekHours"] as? Number)?.toInt() ?: result.weekStudyHours,
+                            monthStudyHours = (data["monthHours"] as? Number)?.toInt() ?: result.monthStudyHours
+                        )
+                    }
 
-    // 连续学习天数
-    val streakDays: Int = 7
+                    is ApiResponse.Error -> {
+                        errorMessage = response.message
+                    }
+                }
 
-    // 平均每次学习时长（小时）
-    val avgStudyDuration: Double = 3.5
+                when (val ordersResponse = repository.getUserOrders()) {
+                    is ApiResponse.Success -> {
+                        result = result.copy(
+                            totalBookings = ordersResponse.data?.total ?: result.totalBookings
+                        )
+                    }
 
-    // 最喜欢的座位
-    val favoriteSeat: String = "A区-12号"
+                    is ApiResponse.Error -> Unit
+                }
 
-    // 最常去的时间段
-    val peakTime: String = "14:00-17:00"
+                _state.value = result.copy(
+                    isLoading = false,
+                    error = errorMessage
+                )
+            } catch (e: Exception) {
+                _state.value = fallbackStudyRecord().copy(
+                    isLoading = false,
+                    error = "加载学习报告失败: ${e.message}"
+                )
+            }
+        }
+    }
+
+    private fun fallbackStudyRecord(): StudyRecordUiState {
+        return StudyRecordUiState(
+            weekStudyHours = 12,
+            monthStudyHours = 46,
+            totalStudyHours = 168,
+            totalBookings = 23,
+            streakDays = 6,
+            avgStudyDuration = 2.8,
+            favoriteSeat = "A12",
+            peakTime = "14:00-17:00",
+            isLoading = false
+        )
+    }
 }

@@ -1,32 +1,36 @@
 package com.example.scylier.istudyspot.models.ai
 
-/**
- * AI咨询请求
- */
+import androidx.compose.ui.graphics.Color
+import com.google.gson.annotations.SerializedName
+
+data class AiCharacter(
+    val id: String,
+    val name: String,
+    val persona: String,
+    @SerializedName("speaking_style")
+    val speakingStyle: String,
+    val avatarColor: Color = Color(0xFF6366F1)
+)
+
 data class AiChatRequest(
     val message: String,
-    val sessionId: String? = null
+    val session_id: String? = null,
+    val character_id: String? = null
 )
 
-/**
- * AI咨询响应
- */
 data class AiChatResponse(
     val reply: String,
-    val sessionId: String
-)
+    val session_id: String? = null
+) {
+    val sessionId: String?
+        get() = session_id
+}
 
-/**
- * AI咨询消息类型
- */
 enum class MessageType {
     USER,
     AI
 }
 
-/**
- * AI咨询消息
- */
 data class AiMessage(
     val id: String,
     val content: String,

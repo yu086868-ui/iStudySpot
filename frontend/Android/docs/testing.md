@@ -13,6 +13,9 @@ app/src/
 │       ├── ApiManagerTest.kt         # ApiManager测试 (28个测试)
 │       ├── MainRepositoryTest.kt     # MainRepository测试 (20个测试)
 │       ├── AiChatViewModelTest.kt    # ViewModel测试 (13个测试)
+│       ├── ProfileViewModelTest.kt   # ProfileViewModel测试 (12个测试)
+│       ├── MoreViewModelTest.kt      # MoreViewModel测试 (12个测试)
+│       ├── ConfigManagerTest.kt      # ConfigManager测试 (18个测试)
 │       ├── AiChatApiMockTest.kt      # AI Chat API Mock测试 (4个测试)
 │       ├── ApiMockTest.kt            # 通用API Mock测试 (5个测试)
 │       └── ApiTest.kt                # API集成测试
@@ -25,6 +28,9 @@ app/src/
         ├── RegisterScreenTest.kt     # 注册界面测试 (11个测试)
         ├── StudyRoomScreenTest.kt    # 自习室列表测试 (9个测试)
         ├── OrderListScreenTest.kt    # 订单列表测试 (8个测试)
+        ├── OrderDetailScreenTest.kt  # 订单详情测试 (14个测试)
+        ├── BookingScreenTest.kt      # 预约界面测试 (13个测试)
+        ├── ProfileScreenTest.kt      # 个人中心测试 (8个测试)
         └── MoreScreenTest.kt         # 更多功能页面测试 (16个测试)
 ```
 
@@ -198,7 +204,7 @@ class AiChatScreenTest {
 
 | 测试类型 | 数量 | 描述 |
 |---------|------|------|
-| 交互测试 | 80+ | UI交互测试，超过要求的8个 |
+| 交互测试 | 120+ | UI交互测试，超过要求的8个 |
 | Mock API测试 | 13+ | API Mock测试，超过要求的4个 |
 | 组件渲染测试 | 多个 | 核心组件已覆盖 |
 
@@ -211,6 +217,9 @@ class AiChatScreenTest {
 | ApiManagerTest.kt | 28个 | ApiManager所有方法测试 |
 | MainRepositoryTest.kt | 20个 | MainRepository所有方法测试 |
 | AiChatViewModelTest.kt | 13个 | ViewModel单元测试 |
+| ProfileViewModelTest.kt | 12个 | ProfileViewModel测试 |
+| MoreViewModelTest.kt | 12个 | MoreViewModel测试 |
+| ConfigManagerTest.kt | 18个 | ConfigManager工具类测试 |
 | AiChatApiMockTest.kt | 4个 | AI Chat API Mock测试 |
 | ApiMockTest.kt | 5个 | 通用API Mock测试 |
 
@@ -224,11 +233,15 @@ class AiChatScreenTest {
 | RegisterScreenTest.kt | 11个 | 注册界面测试 |
 | StudyRoomScreenTest.kt | 9个 | 自习室列表测试 |
 | OrderListScreenTest.kt | 8个 | 订单列表测试 |
+| OrderDetailScreenTest.kt | 14个 | 订单详情测试 |
+| BookingScreenTest.kt | 13个 | 预约界面测试 |
+| ProfileScreenTest.kt | 8个 | 个人中心测试 |
 | MoreScreenTest.kt | 16个 | 更多功能页面测试 |
 
 ### 核心组件覆盖率目标
 
-- 目标覆盖率: **50%**
+- 目标覆盖率: **70%**
+- 当前覆盖率: **69%**
 - 阈值: 5%
 
 ## CodeCov集成
@@ -373,3 +386,173 @@ fun test() = runTest {
 - [MockK Documentation](https://mockk.io/)
 - [Jacoco](https://www.jacoco.org/jacoco/)
 - [CodeCov](https://codecov.io/)
+
+## 安全扫描
+
+### 概述
+
+项目集成了多层安全扫描机制，包括密钥泄露检测和Android安全风险分析。
+
+### 密钥泄露扫描
+
+#### Gitleaks
+
+[Gitleaks](https://github.com/gitleaks/gitleaks) 是一款开源的密钥泄露检测工具，用于扫描代码中的敏感信息。
+
+配置文件: `.gitleaks.toml`
+
+检测内容包括：
+- API密钥
+- Firebase密钥
+- AWS凭证
+- 私钥
+- Gradle属性中的敏感信息
+
+#### Trivy
+
+[Trivy](https://github.com/aquasecurity/trivy) 是一款全面的安全扫描器，用于检测文件系统中的漏洞和密钥。
+
+#### Semgrep
+
+[Semgrep](https://semgrep.dev/) 是一款轻量级的静态分析工具，支持自定义规则。
+
+配置文件: `frontend/Android/.semgrep.yml`
+
+检测内容包括：
+- 硬编码密钥
+- 不安全存储
+- WebView安全配置
+- SQL注入
+- 弱加密算法
+
+### Android安全分析
+
+#### MobSF
+
+[MobSF](https://github.com/MobSF/Mobile-Security-Framework-MobSF) 是一款自动化的移动应用安全测试框架。
+
+检测内容包括：
+- APK静态分析
+- 权限分析
+- 代码混淆检测
+- 安全配置检查
+
+#### QARK
+
+[QARK](https://github.com/linkedin/qark) 是LinkedIn开发的Android安全分析工具。
+
+检测内容包括：
+- 组件导出风险
+- WebView安全
+- 加密配置
+- Intent安全
+
+#### Mariana Trench
+
+[Mariana Trench](https://mariana-trench.dev/) 是Meta开发的Android静态分析工具，专注于数据流分析。
+
+检测内容包括：
+- 数据泄露
+- 隐私数据追踪
+- 敏感API调用
+
+#### CodeQL
+
+[CodeQL](https://codeql.github.com/) 是GitHub的代码安全分析工具。
+
+检测内容包括：
+- 代码注入
+- 路径遍历
+- 安全漏洞
+
+### 依赖安全检查
+
+#### OWASP Dependency Check
+
+[OWASP Dependency Check](https://owasp.org/www-project-dependency-check/) 用于检测项目依赖中的已知漏洞。
+
+运行命令：
+```bash
+./gradlew dependencyCheckAnalyze
+```
+
+报告位置: `app/build/reports/dependency-check-report.html`
+
+### CI/CD安全流程
+
+GitHub Actions工作流包含以下安全扫描步骤：
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     Security Scan                            │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
+│  │  Gitleaks   │  │   Trivy     │  │   Semgrep   │         │
+│  │ 密钥泄露检测 │  │ 漏洞扫描    │  │ 静态分析    │         │
+│  └─────────────┘  └─────────────┘  └─────────────┘         │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                  Android Security Analysis                   │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
+│  │   MobSF     │  │    QARK     │  │  Mariana    │         │
+│  │ APK安全分析  │  │ 组件风险检测 │  │  Trench     │         │
+│  └─────────────┘  └─────────────┘  └─────────────┘         │
+│  ┌─────────────┐  ┌─────────────┐                          │
+│  │ Android Lint│  │ Dependency  │                          │
+│  │ 安全检查    │  │   Check     │                          │
+│  └─────────────┘  └─────────────┘                          │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    CodeQL Analysis                           │
+│              Java/Kotlin 代码安全分析                         │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 安全报告
+
+所有安全扫描报告会上传到GitHub Actions Artifacts：
+
+- `security-reports`: 安全扫描报告
+- `dependency-check-report`: 依赖检查报告
+
+### 本地运行安全扫描
+
+```bash
+# 运行Gitleaks
+gitleaks detect --source . --config ../.gitleaks.toml
+
+# 运行Semgrep
+semgrep --config .semgrep.yml
+
+# 运行依赖检查
+./gradlew dependencyCheckAnalyze
+
+# 运行Android Lint
+./gradlew lintDebug
+```
+
+### 安全最佳实践
+
+1. **不要硬编码敏感信息**
+   - 使用环境变量或BuildConfig
+   - 使用Android Keystore存储密钥
+
+2. **使用HTTPS**
+   - 所有网络请求使用HTTPS
+   - 禁用明文流量
+
+3. **最小权限原则**
+   - 只请求必要的权限
+   - 避免请求敏感权限
+
+4. **数据加密**
+   - 使用Android Keystore
+   - 使用安全的加密算法
+
+5. **代码混淆**
+   - 启用ProGuard/R8
+   - 混淆敏感代码
+

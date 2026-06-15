@@ -1,14 +1,13 @@
 package com.ycyu.istudyspotbackend.controller;
 
-import com.ycyu.istudyspotbackend.entity.Character;
+import com.ycyu.istudyspotbackend.entity.AICharacter;
+import com.ycyu.istudyspotbackend.entity.Result;
 import com.ycyu.istudyspotbackend.service.AIService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.ArrayList;
@@ -33,29 +32,24 @@ public class AIControllerTest {
     }
 
     @Test
-    public void testGetCharacters() {
-        // 准备测试数据
-        List<Character> characters = new ArrayList<>();
-        Character character = new Character();
+    public void testGetAICharacters() {
+        List<AICharacter> characters = new ArrayList<>();
+        AICharacter character = new AICharacter();
         character.setId("1");
-        character.setName("Test Character");
+        character.setName("Test AICharacter");
         characters.add(character);
 
-        // 模拟服务方法
         when(aiService.getCharacters()).thenReturn(characters);
 
-        // 调用控制器方法
-        ResponseEntity<List<Character>> response = aiController.getCharacters();
+        Result<List<AICharacter>> result = aiController.getCharacters();
 
-        // 验证结果
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(characters, response.getBody());
+        assertEquals(200, result.getCode());
+        assertEquals(characters, result.getData());
         verify(aiService, times(1)).getCharacters();
     }
 
     @Test
     public void testChatWithValidParams() {
-        // 准备测试数据
         Map<String, String> request = Map.of(
                 "session_id", "session123",
                 "character_id", "char123",
@@ -63,126 +57,97 @@ public class AIControllerTest {
         );
         String expectedReply = "Hello, how can I help you?";
 
-        // 模拟服务方法
         when(aiService.chat("session123", "char123", "Hello")).thenReturn(expectedReply);
 
-        // 调用控制器方法
-        ResponseEntity<?> response = aiController.chat(request);
+        Result<?> result = aiController.chat(request);
 
-        // 验证结果
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        Map<?, ?> responseBody = (Map<?, ?>) response.getBody();
-        assertEquals(expectedReply, responseBody.get("reply"));
+        assertEquals(200, result.getCode());
+        assertNotNull(result.getData());
+        Map<?, ?> data = (Map<?, ?>) result.getData();
+        assertEquals(expectedReply, data.get("reply"));
         verify(aiService, times(1)).chat("session123", "char123", "Hello");
     }
 
     @Test
     public void testChatWithEmptySessionId() {
-        // 准备测试数据
         Map<String, String> request = Map.of(
                 "character_id", "char123",
                 "message", "Hello"
         );
 
-        // 调用控制器方法
-        ResponseEntity<?> response = aiController.chat(request);
+        when(aiService.chat(anyString(), eq("char123"), eq("Hello"))).thenReturn("Reply");
 
-        // 验证结果
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertNotNull(response.getBody());
-        Map<?, ?> responseBody = (Map<?, ?>) response.getBody();
-        assertEquals("EMPTY_SESSION_ID", responseBody.get("error"));
-        verify(aiService, never()).chat(anyString(), anyString(), anyString());
+        Result<?> result = aiController.chat(request);
+
+        assertEquals(200, result.getCode());
+        verify(aiService, times(1)).chat(anyString(), eq("char123"), eq("Hello"));
     }
 
     @Test
-    public void testChatWithEmptyCharacterId() {
-        // 准备测试数据
+    public void testChatWithEmptyAICharacterId() {
         Map<String, String> request = Map.of(
                 "session_id", "session123",
                 "message", "Hello"
         );
 
-        // 调用控制器方法
-        ResponseEntity<?> response = aiController.chat(request);
+        when(aiService.chat(eq("session123"), eq("customer_service"), eq("Hello"))).thenReturn("Reply");
 
-        // 验证结果
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertNotNull(response.getBody());
-        Map<?, ?> responseBody = (Map<?, ?>) response.getBody();
-        assertEquals("EMPTY_CHARACTER_ID", responseBody.get("error"));
-        verify(aiService, never()).chat(anyString(), anyString(), anyString());
+        Result<?> result = aiController.chat(request);
+
+        assertEquals(200, result.getCode());
+        verify(aiService, times(1)).chat(eq("session123"), eq("customer_service"), eq("Hello"));
     }
 
     @Test
     public void testChatWithEmptyMessage() {
-        // 准备测试数据
         Map<String, String> request = Map.of(
                 "session_id", "session123",
                 "character_id", "char123"
         );
 
-        // 调用控制器方法
-        ResponseEntity<?> response = aiController.chat(request);
+        Result<?> result = aiController.chat(request);
 
-        // 验证结果
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertNotNull(response.getBody());
-        Map<?, ?> responseBody = (Map<?, ?>) response.getBody();
-        assertEquals("EMPTY_MESSAGE", responseBody.get("error"));
+        assertEquals(400, result.getCode());
+        assertEquals("EMPTY_MESSAGE", result.getMessage());
         verify(aiService, never()).chat(anyString(), anyString(), anyString());
     }
 
     @Test
     public void testChatWithIllegalArgumentException() {
-        // 准备测试数据
         Map<String, String> request = Map.of(
                 "session_id", "session123",
                 "character_id", "char123",
                 "message", "Hello"
         );
 
-        // 模拟服务方法抛出异常
         when(aiService.chat("session123", "char123", "Hello")).thenThrow(new IllegalArgumentException());
 
-        // 调用控制器方法
-        ResponseEntity<?> response = aiController.chat(request);
+        Result<?> result = aiController.chat(request);
 
-        // 验证结果
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertNotNull(response.getBody());
-        Map<?, ?> responseBody = (Map<?, ?>) response.getBody();
-        assertEquals("INVALID_CHARACTER", responseBody.get("error"));
+        assertEquals(500, result.getCode());
+        assertEquals("INTERNAL_ERROR", result.getMessage());
         verify(aiService, times(1)).chat("session123", "char123", "Hello");
     }
 
     @Test
     public void testChatWithException() {
-        // 准备测试数据
         Map<String, String> request = Map.of(
                 "session_id", "session123",
                 "character_id", "char123",
                 "message", "Hello"
         );
 
-        // 模拟服务方法抛出异常
         when(aiService.chat("session123", "char123", "Hello")).thenThrow(new RuntimeException());
 
-        // 调用控制器方法
-        ResponseEntity<?> response = aiController.chat(request);
+        Result<?> result = aiController.chat(request);
 
-        // 验证结果
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertNotNull(response.getBody());
-        Map<?, ?> responseBody = (Map<?, ?>) response.getBody();
-        assertEquals("INTERNAL_ERROR", responseBody.get("error"));
+        assertEquals(500, result.getCode());
+        assertEquals("INTERNAL_ERROR", result.getMessage());
         verify(aiService, times(1)).chat("session123", "char123", "Hello");
     }
 
     @Test
     public void testStreamChatWithValidParams() {
-        // 准备测试数据
         Map<String, String> request = Map.of(
                 "session_id", "session123",
                 "character_id", "char123",
@@ -190,82 +155,95 @@ public class AIControllerTest {
         );
         SseEmitter expectedEmitter = new SseEmitter();
 
-        // 模拟服务方法
         when(aiService.streamChat("session123", "char123", "Hello")).thenReturn(expectedEmitter);
 
-        // 调用控制器方法
         SseEmitter emitter = aiController.streamChat(request);
 
-        // 验证结果
         assertNotNull(emitter);
         verify(aiService, times(1)).streamChat("session123", "char123", "Hello");
     }
 
     @Test
     public void testStreamChatWithEmptySessionId() {
-        // 准备测试数据
         Map<String, String> request = Map.of(
                 "character_id", "char123",
                 "message", "Hello"
         );
 
-        // 调用控制器方法
+        SseEmitter mockEmitter = new SseEmitter();
+        when(aiService.streamChat(anyString(), eq("char123"), eq("Hello"))).thenReturn(mockEmitter);
+
         SseEmitter emitter = aiController.streamChat(request);
 
-        // 验证结果
         assertNotNull(emitter);
-        verify(aiService, never()).streamChat(anyString(), anyString(), anyString());
+        verify(aiService, times(1)).streamChat(anyString(), eq("char123"), eq("Hello"));
     }
 
     @Test
-    public void testStreamChatWithEmptyCharacterId() {
-        // 准备测试数据
+    public void testStreamChatWithEmptyAICharacterId() {
         Map<String, String> request = Map.of(
                 "session_id", "session123",
                 "message", "Hello"
         );
 
-        // 调用控制器方法
         SseEmitter emitter = aiController.streamChat(request);
 
-        // 验证结果
         assertNotNull(emitter);
         verify(aiService, never()).streamChat(anyString(), anyString(), anyString());
     }
 
     @Test
     public void testStreamChatWithEmptyMessage() {
-        // 准备测试数据
         Map<String, String> request = Map.of(
                 "session_id", "session123",
                 "character_id", "char123"
         );
 
-        // 调用控制器方法
         SseEmitter emitter = aiController.streamChat(request);
 
-        // 验证结果
         assertNotNull(emitter);
         verify(aiService, never()).streamChat(anyString(), anyString(), anyString());
     }
 
     @Test
     public void testStreamChatWithException() {
-        // 准备测试数据
         Map<String, String> request = Map.of(
                 "session_id", "session123",
                 "character_id", "char123",
                 "message", "Hello"
         );
 
-        // 模拟服务方法抛出异常
         when(aiService.streamChat("session123", "char123", "Hello")).thenThrow(new RuntimeException());
 
-        // 调用控制器方法
         SseEmitter emitter = aiController.streamChat(request);
 
-        // 验证结果
         assertNotNull(emitter);
         verify(aiService, times(1)).streamChat("session123", "char123", "Hello");
+    }
+
+    @Test
+    public void testStreamChatWithNullSessionAndAICharacterId() {
+        Map<String, String> request = Map.of(
+                "message", "Hello"
+        );
+
+        SseEmitter emitter = aiController.streamChat(request);
+
+        assertNotNull(emitter);
+        verify(aiService, never()).streamChat(anyString(), anyString(), anyString());
+    }
+
+    @Test
+    public void testChatWithNullSessionAndAICharacterId() {
+        Map<String, String> request = Map.of(
+                "message", "Hello"
+        );
+
+        when(aiService.chat(anyString(), eq("customer_service"), eq("Hello"))).thenReturn("Reply");
+
+        Result<?> result = aiController.chat(request);
+
+        assertEquals(200, result.getCode());
+        verify(aiService, times(1)).chat(anyString(), eq("customer_service"), eq("Hello"));
     }
 }

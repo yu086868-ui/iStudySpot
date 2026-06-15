@@ -11,14 +11,17 @@ import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -27,15 +30,25 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.scylier.istudyspot.navigation.AppNavigation
 import com.example.scylier.istudyspot.navigation.NavRoutes
+import com.example.scylier.istudyspot.ui.theme.IStudySpotTheme
+import com.example.scylier.istudyspot.ui.theme.LocalThemeMode
+import com.example.scylier.istudyspot.ui.theme.ThemeProvider
+import com.example.scylier.istudyspot.ui.theme.ThemeState
+import com.example.scylier.istudyspot.utils.ConfigManager
 
 class MainActivity : ComponentActivity() {
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        ThemeState.loadSavedTheme(ConfigManager.getInstance(this))
         setContent {
-            val navController = rememberNavController()
-            MainScreen(navController = navController)
+            ThemeProvider {
+                val themeMode = LocalThemeMode.current
+                IStudySpotTheme(themeMode = themeMode) {
+                    val navController = rememberNavController()
+                    MainScreen(navController = navController)
+                }
+            }
         }
     }
 }
@@ -63,22 +76,30 @@ fun MainScreen(navController: NavHostController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    // 判断当前是否在底部导航页面
     val isBottomNavDestination = bottomNavItems.any { item ->
         currentDestination?.hierarchy?.any { it.hasRoute(item.route::class) } == true
     }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             if (isBottomNavDestination) {
-                NavigationBar {
+                NavigationBar(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 8.dp
+                ) {
                     bottomNavItems.forEach { item ->
                         val selected = currentDestination?.hierarchy?.any {
                             it.hasRoute(item.route::class)
                         } == true
 
                         NavigationBarItem(
-                            icon = { Icon(item.icon, contentDescription = item.label) },
+                            icon = {
+                                Icon(
+                                    item.icon,
+                                    contentDescription = item.label
+                                )
+                            },
                             label = { Text(item.label) },
                             selected = selected,
                             onClick = {
@@ -89,7 +110,14 @@ fun MainScreen(navController: NavHostController) {
                                     launchSingleTop = true
                                     restoreState = true
                                 }
-                            }
+                            },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = MaterialTheme.colorScheme.primary,
+                                selectedTextColor = MaterialTheme.colorScheme.primary,
+                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                indicatorColor = MaterialTheme.colorScheme.primaryContainer
+                            )
                         )
                     }
                 }

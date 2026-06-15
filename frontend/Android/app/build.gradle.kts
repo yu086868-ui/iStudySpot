@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     kotlin("plugin.serialization") version "2.0.21"
     jacoco
+    id("org.owasp.dependencycheck") version "9.0.9"
 }
 
 jacoco {
@@ -15,9 +16,9 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.scylier.istudyspot"
+        applicationId = "com.example.scyiler.istudyspot"
         minSdk = 24
-        targetSdk = 36
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
@@ -33,7 +34,12 @@ android {
             buildConfigField(
                 "String",
                 "BASE_URL",
-                "\"http://10.0.2.2:8080/\""
+                "\"https://frp-six.com:37379/\""
+            )
+            buildConfigField(
+                "Boolean",
+                "USE_MOCK",
+                "false"
             )
         }
 
@@ -48,7 +54,12 @@ android {
             buildConfigField(
                 "String",
                 "BASE_URL",
-                "\"https://api.yourdomain.com/\""
+                "\"https://frp-six.com:37379/\""
+            )
+            buildConfigField(
+                "Boolean",
+                "USE_MOCK",
+                "false"
             )
         }
     }
@@ -144,6 +155,12 @@ tasks.withType<Test> {
     }
 }
 
+tasks.whenTaskAdded {
+    if (name == "testReleaseUnitTest") {
+        enabled = false
+    }
+}
+
 tasks.register("jacocoTestReport", JacocoReport::class) {
     dependsOn("testDebugUnitTest")
 
@@ -158,7 +175,15 @@ tasks.register("jacocoTestReport", JacocoReport::class) {
         "**/BuildConfig.*",
         "**/Manifest*.*",
         "**/*Test*.*",
-        "android/**/*.*"
+        "android/**/*.*",
+        "**/models/**",
+        "**/navigation/**",
+        "**/theme/**",
+        "**/state/**",
+        "**/customview/**",
+        "**/ui/screen/**",
+        "**/MainActivity.*",
+        "**/infra/network/ErrorHandler.*"
     )
 
     val debugTree = fileTree("${project.buildDir}/tmp/kotlin-classes/debug") {

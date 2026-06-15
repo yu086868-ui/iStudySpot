@@ -82,6 +82,7 @@ public class OrderServiceImpl implements OrderService {
         result.put("startTime", startTime.format(formatter));
         result.put("endTime", endTime.format(formatter));
         result.put("status", "pending");
+        result.put("totalPrice", totalPrice);
         result.put("checkInTime", null);
         result.put("checkOutTime", null);
         result.put("createdAt", LocalDateTime.now().format(formatter));
@@ -136,8 +137,8 @@ public class OrderServiceImpl implements OrderService {
         if (order == null) {
             throw new RuntimeException("订单不存在");
         }
-        if (!"2".equals(order.getStatus())) {
-            throw new RuntimeException("订单状态不正确，无法签到");
+        if (!"paid".equals(order.getStatus())) {
+            throw new RuntimeException("订单状态不正确，无法签到，当前状态：" + order.getStatus());
         }
 
         orderMapper.checkin(orderId);
@@ -162,7 +163,11 @@ public class OrderServiceImpl implements OrderService {
         }
 
         LocalDateTime now = LocalDateTime.now();
-        int duration = (int) java.time.Duration.between(order.getCheckinTime(), now).toMinutes();
+        LocalDateTime checkinTime = order.getActualStartTime() != null ? order.getActualStartTime() : order.getCheckinTime();
+        if (checkinTime == null) {
+            throw new RuntimeException("签到时间不存在");
+        }
+        int duration = (int) java.time.Duration.between(checkinTime, now).toMinutes();
         BigDecimal actualPrice = order.getTotalPrice();
 
         orderMapper.checkout(orderId, duration, actualPrice);
@@ -183,7 +188,7 @@ public class OrderServiceImpl implements OrderService {
         if (order == null) {
             throw new RuntimeException("订单不存在");
         }
-        if (!"3".equals(order.getStatus())) {
+        if (!"in_use".equals(order.getStatus())) {
             throw new RuntimeException("订单未在使用中");
         }
 
@@ -202,7 +207,7 @@ public class OrderServiceImpl implements OrderService {
         order.setEndTime(newEndTime);
         order.setTotalPrice(order.getTotalPrice().add(additionalAmount));
         order.setTotalAmount(order.getTotalAmount().add(additionalAmount));
-        orderMapper.updateStatus(orderId, "3");
+        orderMapper.updateRenew(orderId, newEndTime, order.getTotalPrice(), order.getTotalAmount());
 
         Map<String, Object> result = new HashMap<>();
         result.put("orderId", orderId.toString());

@@ -11,22 +11,22 @@ sealed class NavRoutes {
 
     @Serializable
     data class Seat(
-        val studyRoomId: String,
+        val studyRoomId: Long,
         val studyRoomName: String
     ) : NavRoutes()
 
     @Serializable
     data class Booking(
-        val seatId: String,
-        val studyRoomId: String,
+        val seatId: Long,
+        val studyRoomId: Long,
         val studyRoomName: String,
-        val seatPosition: String,
+        val seatLabel: String,
         val pricePerHour: Double
     ) : NavRoutes()
 
     @Serializable
     data class Order(
-        val orderId: String
+        val orderId: Long
     ) : NavRoutes()
 
     @Serializable
@@ -58,4 +58,36 @@ sealed class NavRoutes {
 
     @Serializable
     data object AiChat : NavRoutes()
+
+    @Serializable
+    data object Agent : NavRoutes()
+
+    @Serializable
+    data class CharacterSelect(
+        val characterId: String? = null,
+        val characterName: String? = null,
+        val characterPersona: String? = null,
+        val characterAvatarColor: Long? = null
+    ) : NavRoutes()
+
+    @Serializable
+    data object Achievement : NavRoutes()
+
+    @Serializable
+    data object Points : NavRoutes()
+
+    @Serializable
+    data object ProfileEdit : NavRoutes()
+
+    @Serializable
+    data object CustomerService : NavRoutes()
+
+    @Serializable
+    data object CardCollection : NavRoutes()
+
+    @Serializable
+    data object Violation : NavRoutes()
+
+    @Serializable
+    data object TodoList : NavRoutes()
 }
