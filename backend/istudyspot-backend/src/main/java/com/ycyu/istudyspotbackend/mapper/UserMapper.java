@@ -46,6 +46,9 @@ public interface UserMapper {
     int addBalance(@Param("id") Long id, @Param("amount") BigDecimal amount);
 
 
+    @Select("SELECT * FROM user WHERE openid = #{openId}")
+    User findByOpenId(String openId);
+
     @Insert("INSERT INTO user(openid, nickname, avatar, status, create_time) " +
             "VALUES(#{openId}, #{nickname}, #{avatar}, #{status}, NOW())")
     @Options(useGeneratedKeys = true, keyProperty = "id")
