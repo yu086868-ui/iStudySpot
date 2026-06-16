@@ -34,8 +34,9 @@ data class StudyRoomDetailUiState(
     val isLoading: Boolean = true
 )
 
-class StudyRoomViewModel : ViewModel() {
-    private val repository = MainRepository()
+class StudyRoomViewModel(
+    private val repository: MainRepository = MainRepository()
+) : ViewModel() {
 
     private val _studyRoomState = MutableStateFlow(StudyRoomUiState())
     val studyRoomState: StateFlow<StudyRoomUiState> = _studyRoomState

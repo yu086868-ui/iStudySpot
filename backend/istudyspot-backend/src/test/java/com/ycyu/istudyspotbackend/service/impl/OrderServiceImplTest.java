@@ -100,7 +100,7 @@ public class OrderServiceImplTest {
             orderService.createOrder(1L, 1L, 1L, LocalDateTime.now(), LocalDateTime.now().plusHours(2), "normal");
         });
 
-        assertEquals("该时段座位已被预订", exception.getMessage());
+        assertEquals("该时段座位已被预约", exception.getMessage());
 
         verify(seatMapper, times(1)).findById(1L);
         verify(orderMapper, times(1)).checkTimeConflict(anyLong(), any(LocalDateTime.class), any(LocalDateTime.class));
@@ -320,7 +320,7 @@ public class OrderServiceImplTest {
             orderService.renew(1L, LocalDateTime.now());
         });
 
-        assertEquals("新结束时间必须晚于原结束时间", exception.getMessage());
+        assertEquals("新的结束时间必须晚于原结束时间", exception.getMessage());
 
         verify(orderMapper, times(1)).findById(1L);
     }

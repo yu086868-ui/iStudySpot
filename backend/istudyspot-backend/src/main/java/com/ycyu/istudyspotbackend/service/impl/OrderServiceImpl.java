@@ -30,33 +30,30 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private StudyRoomMapper studyRoomMapper;
 
-    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Override
     @Transactional
     public Map<String, Object> createOrder(Long userId, Long studyRoomId, Long seatId, LocalDateTime startTime,
                                            LocalDateTime endTime, String bookingType) {
-        // 检查座位是否存在
         Seat seat = seatMapper.findById(seatId);
         if (seat == null) {
             throw new RuntimeException("座位不存在");
         }
 
-        // 检查时间冲突
         int conflict = orderMapper.checkTimeConflict(seatId, startTime, endTime);
         if (conflict > 0) {
-            throw new RuntimeException("该时段座位已被预订");
+            throw new RuntimeException("该时段座位已被预约");
         }
 
-        // 计算价格
         long hours = java.time.Duration.between(startTime, endTime).toMinutes() / 60;
-        if (hours < 1) hours = 1;
+        if (hours < 1) {
+            hours = 1;
+        }
         BigDecimal totalPrice = seat.getPricePerHour().multiply(new BigDecimal(hours));
 
-        // 获取自习室信息
         StudyRoom room = studyRoomMapper.findById(studyRoomId);
 
-        // 创建订单
         Order order = new Order();
         order.setOrderNo("ORD" + System.currentTimeMillis() + userId);
         order.setUserId(userId);
@@ -79,32 +76,28 @@ public class OrderServiceImpl implements OrderService {
         result.put("studyRoomId", studyRoomId.toString());
         result.put("seatId", seatId.toString());
         result.put("userId", userId.toString());
-        result.put("startTime", startTime.format(formatter));
-        result.put("endTime", endTime.format(formatter));
+        result.put("startTime", startTime.format(FORMATTER));
+        result.put("endTime", endTime.format(FORMATTER));
         result.put("status", "pending");
         result.put("totalPrice", totalPrice);
         result.put("checkInTime", null);
         result.put("checkOutTime", null);
-        result.put("createdAt", LocalDateTime.now().format(formatter));
-        result.put("updatedAt", LocalDateTime.now().format(formatter));
+        result.put("createdAt", LocalDateTime.now().format(FORMATTER));
+        result.put("updatedAt", LocalDateTime.now().format(FORMATTER));
         return result;
     }
 
     @Override
     public Map<String, Object> getOrderList(Long userId, String status, String startDate, String endDate, int page, int pageSize) {
-        List<Order> orders;
-        if (status != null && !status.isEmpty()) {
-            orders = orderMapper.findByUserIdAndStatus(userId, status);
-        } else {
-            orders = orderMapper.findByUserId(userId);
-        }
-        
-        Map<String, Object> result = new HashMap<>();
-        result.put("list", orders);
-        result.put("total", orders.size());
-        result.put("page", page);
-        result.put("pageSize", pageSize);
-        return result;
+        List<Order> orders = (status != null && !status.isEmpty())
+                ? orderMapper.findByUserIdAndStatus(userId, status)
+                : orderMapper.findByUserId(userId);
+        return buildPagedResult(orders, page, pageSize);
+    }
+
+    @Override
+    public Map<String, Object> getAdminOrderList(String keyword, String status, int page, int pageSize) {
+        return buildPagedResult(orderMapper.findForAdmin(keyword, status), page, pageSize);
     }
 
     @Override
@@ -138,14 +131,14 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("订单不存在");
         }
         if (!"paid".equals(order.getStatus())) {
-            throw new RuntimeException("订单状态不正确，无法签到，当前状态：" + order.getStatus());
+            throw new RuntimeException("订单状态不正确，无法签到，当前状态: " + order.getStatus());
         }
 
         orderMapper.checkin(orderId);
 
         Map<String, Object> result = new HashMap<>();
         result.put("id", orderId.toString());
-        result.put("checkinTime", LocalDateTime.now().format(formatter));
+        result.put("checkinTime", LocalDateTime.now().format(FORMATTER));
         result.put("status", "in_use");
         return result;
     }
@@ -157,9 +150,8 @@ public class OrderServiceImpl implements OrderService {
         if (order == null) {
             throw new RuntimeException("订单不存在");
         }
-        System.out.println("Order status: " + order.getStatus());
         if (!"in_use".equals(order.getStatus())) {
-            throw new RuntimeException("订单未在使用中，当前状态：" + order.getStatus());
+            throw new RuntimeException("订单未在使用中，当前状态: " + order.getStatus());
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -167,14 +159,14 @@ public class OrderServiceImpl implements OrderService {
         if (checkinTime == null) {
             throw new RuntimeException("签到时间不存在");
         }
+
         int duration = (int) java.time.Duration.between(checkinTime, now).toMinutes();
         BigDecimal actualPrice = order.getTotalPrice();
-
         orderMapper.checkout(orderId, duration, actualPrice);
 
         Map<String, Object> result = new HashMap<>();
         result.put("id", orderId.toString());
-        result.put("checkoutTime", now.format(formatter));
+        result.put("checkoutTime", now.format(FORMATTER));
         result.put("actualDuration", duration);
         result.put("actualPrice", actualPrice);
         result.put("status", "completed");
@@ -192,10 +184,9 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("订单未在使用中");
         }
 
-        // 计算续费金额
         long additionalMinutes = java.time.Duration.between(order.getEndTime(), newEndTime).toMinutes();
         if (additionalMinutes <= 0) {
-            throw new RuntimeException("新结束时间必须晚于原结束时间");
+            throw new RuntimeException("新的结束时间必须晚于原结束时间");
         }
 
         Seat seat = seatMapper.findById(order.getSeatId());
@@ -203,7 +194,6 @@ public class OrderServiceImpl implements OrderService {
                 .multiply(new BigDecimal(additionalMinutes))
                 .divide(new BigDecimal("60"), 2, BigDecimal.ROUND_HALF_UP);
 
-        // 更新订单
         order.setEndTime(newEndTime);
         order.setTotalPrice(order.getTotalPrice().add(additionalAmount));
         order.setTotalAmount(order.getTotalAmount().add(additionalAmount));
@@ -212,7 +202,7 @@ public class OrderServiceImpl implements OrderService {
         Map<String, Object> result = new HashMap<>();
         result.put("orderId", orderId.toString());
         result.put("additionalAmount", additionalAmount);
-        result.put("newEndTime", newEndTime.format(formatter));
+        result.put("newEndTime", newEndTime.format(FORMATTER));
         return result;
     }
 
@@ -228,5 +218,19 @@ public class OrderServiceImpl implements OrderService {
         }
 
         orderMapper.updateStatus(orderId, "paid");
+    }
+
+    private Map<String, Object> buildPagedResult(List<Order> orders, int page, int pageSize) {
+        int safePage = Math.max(page, 1);
+        int safePageSize = Math.max(pageSize, 1);
+        int fromIndex = Math.min((safePage - 1) * safePageSize, orders.size());
+        int toIndex = Math.min(fromIndex + safePageSize, orders.size());
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("list", orders.subList(fromIndex, toIndex));
+        result.put("total", orders.size());
+        result.put("page", safePage);
+        result.put("pageSize", safePageSize);
+        return result;
     }
 }

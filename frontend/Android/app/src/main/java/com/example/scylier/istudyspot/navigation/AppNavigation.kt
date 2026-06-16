@@ -34,13 +34,15 @@ import com.example.scylier.istudyspot.ui.screen.BookingScreen
 import com.example.scylier.istudyspot.ui.screen.CardCollectionScreen
 import com.example.scylier.istudyspot.ui.screen.CharacterSelectScreen
 import com.example.scylier.istudyspot.ui.screen.CustomerServiceScreen
-import com.example.scylier.istudyspot.ui.screen.GuideScreen
+import com.example.scylier.istudyspot.ui.screen.GuideDetailScreen
+import com.example.scylier.istudyspot.ui.screen.GuideListScreen
 import com.example.scylier.istudyspot.ui.screen.HomeScreen
 import com.example.scylier.istudyspot.ui.screen.LoginScreen
 import com.example.scylier.istudyspot.ui.screen.MoreScreen
 import com.example.scylier.istudyspot.ui.screen.NotificationScreen
 import com.example.scylier.istudyspot.ui.screen.OrderDetailScreen
 import com.example.scylier.istudyspot.ui.screen.OrderListScreen
+import com.example.scylier.istudyspot.ui.screen.PreferencesScreen
 import com.example.scylier.istudyspot.ui.screen.PointsScreen
 import com.example.scylier.istudyspot.ui.screen.ProfileEditScreen
 import com.example.scylier.istudyspot.ui.screen.ProfileScreen
@@ -49,6 +51,7 @@ import com.example.scylier.istudyspot.ui.screen.RulesScreen
 import com.example.scylier.istudyspot.ui.screen.SeatMapScreen
 import com.example.scylier.istudyspot.ui.screen.StudyRecordScreen
 import com.example.scylier.istudyspot.ui.screen.StudyRoomScreen
+import com.example.scylier.istudyspot.ui.screen.ThemeSettingsScreen
 import com.example.scylier.istudyspot.ui.screen.TodoListScreen
 import com.example.scylier.istudyspot.ui.screen.ViolationScreen
 import com.example.scylier.istudyspot.ui.theme.ThemeMode
@@ -381,14 +384,38 @@ fun AppNavigation(
                     onOrderListClick = { navController.navigate(NavRoutes.OrderList) },
                     onEditProfile = { navController.navigate(NavRoutes.ProfileEdit) },
                     onStudyRecord = { navController.navigate(NavRoutes.StudyRecord) },
-                    onCustomerService = { navController.navigate(NavRoutes.CustomerService) },
+                    onCustomerService = { navController.navigate(NavRoutes.Agent) },
                     onCardCollection = { navController.navigate(NavRoutes.CardCollection) },
+                    onPreferencesClick = { navController.navigate(NavRoutes.Preferences) },
                     onLogout = {
                         configManager.removeToken()
                         navController.navigate(NavRoutes.Login) {
                             popUpTo(0) { inclusive = true }
                         }
-                    },
+                    }
+                )
+            }
+
+            composable<NavRoutes.Preferences>(
+                enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+                exitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+                popEnterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) },
+                popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) }
+            ) {
+                PreferencesScreen(
+                    onBack = { navController.popBackStack() },
+                    onThemeSettingsClick = { navController.navigate(NavRoutes.ThemeSettings) }
+                )
+            }
+
+            composable<NavRoutes.ThemeSettings>(
+                enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+                exitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+                popEnterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) },
+                popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) }
+            ) {
+                ThemeSettingsScreen(
+                    onBack = { navController.popBackStack() },
                     onThemeChange = { isDark ->
                         ThemeState.themeMode = if (isDark) ThemeMode.DARK else ThemeMode.LIGHT
                         ThemeState.saveThemeTo(configManager)
@@ -504,14 +531,41 @@ fun AppNavigation(
                 val guideViewModel: GuideViewModel = viewModel()
                 val guideState by guideViewModel.state.collectAsState()
 
-                LaunchedEffect(Unit) { guideViewModel.loadGuideInfo() }
+                LaunchedEffect(Unit) { guideViewModel.loadGuideList() }
 
-                GuideScreen(
-                    facilities = guideState.facilities,
-                    location = guideState.location,
-                    openingHours = guideState.openingHours,
-                    contact = guideState.contact,
+                GuideListScreen(
+                    guides = guideState.guides,
+                    isLoading = guideState.isLoadingList,
+                    errorMessage = guideState.errorMessage,
+                    onGuideClick = { guide ->
+                        navController.navigate(NavRoutes.GuideDetail(guide.studyRoomId))
+                    },
                     onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable<NavRoutes.GuideDetail>(
+                enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+                exitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+                popEnterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) },
+                popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) }
+            ) { backStackEntry ->
+                val route = backStackEntry.toRoute<NavRoutes.GuideDetail>()
+                val guideViewModel: GuideViewModel = viewModel()
+                val guideState by guideViewModel.state.collectAsState()
+
+                LaunchedEffect(route.studyRoomId) {
+                    guideViewModel.loadGuideDetail(route.studyRoomId)
+                }
+
+                GuideDetailScreen(
+                    detail = guideState.selectedGuide,
+                    isLoading = guideState.isLoadingDetail,
+                    errorMessage = guideState.errorMessage,
+                    onBack = {
+                        guideViewModel.clearSelectedGuide()
+                        navController.popBackStack()
+                    }
                 )
             }
 

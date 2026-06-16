@@ -41,7 +41,7 @@ services:
     container_name: istudyspot-backend
     restart: always
     ports:
-      - "8680:8080"
+      - "18080:8080"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/iseatspace?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
       - SPRING_DATASOURCE_USERNAME=root
@@ -70,8 +70,8 @@ services:
     restart: always
     ports:
       - "3001:80"
-    depends_on:
-      - backend
+    environment:
+      - ADMIN_BACKEND_TARGET=${ADMIN_BACKEND_TARGET:-http://backend:8080}
 
 volumes:
   mysql_data:

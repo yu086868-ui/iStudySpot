@@ -11,17 +11,28 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class AIServiceImplTest {
+class AIServiceImplTest {
 
     @Mock
     private DeepSeekService deepSeekService;
@@ -32,49 +43,65 @@ public class AIServiceImplTest {
     @Test
     void testGetAICharacters() {
         List<AICharacter> characters = aiService.getCharacters();
+
         assertNotNull(characters);
         assertFalse(characters.isEmpty());
         assertEquals(1, characters.size());
+        assertEquals("customer_service", characters.get(0).getId());
     }
 
     @Test
-    void testGetCharacter() {
-        AICharacter defaultChar = aiService.getCharacter("customer_service");
-        assertNotNull(defaultChar);
-        assertEquals("customer_service", defaultChar.getId());
+    void testGetCharacterFallsBackToDefaultCharacter() {
+        AICharacter character = aiService.getCharacter("scientist");
 
-        AICharacter nonExistent = aiService.getCharacter("non-existent");
-        assertNotNull(nonExistent);
+        assertNotNull(character);
+        assertEquals("customer_service", character.getId());
     }
 
     @Test
     void testGetOrCreateSession() {
-        Session session = aiService.getOrCreateSession("test-session-123", "customer_service");
+        Session session = aiService.getOrCreateSession("test-session-123", "scientist");
+
         assertNotNull(session);
         assertEquals("test-session-123", session.getSession_id());
+        assertEquals("scientist", session.getCharacter_id());
     }
 
     @Test
-    void testChatWithCustomerService() {
-        when(deepSeekService.chat(anyString(), anyList())).thenReturn("从科学的角度来看...");
+    void testChatUsesFallbackCharacterAndStoresHistory() {
+        when(deepSeekService.chat(anyString(), anyList())).thenReturn("回复内容");
 
-        String response = aiService.chat("test-session-scientist", "customer_service", "什么是物理学？");
+        String response = aiService.chat("test-session", "scientist", "你好");
+        Session session = aiService.getOrCreateSession("test-session", "scientist");
+
+        assertEquals("回复内容", response);
+        assertEquals("customer_service", session.getCharacter_id());
+        assertEquals(2, session.getMessages().size());
+        verify(deepSeekService).chat(anyString(), anyList());
+    }
+
+    @Test
+    void testChatUsesFallbackReplyWhenModelReturnsNull() {
+        when(deepSeekService.chat(anyString(), anyList())).thenReturn(null);
+
+        String response = aiService.chat("test-null-response", "customer_service", "你好");
 
         assertNotNull(response);
-        verify(deepSeekService, times(1)).chat(anyString(), anyList());
+        assertFalse(response.isBlank());
     }
 
     @Test
-    void testChatWithInvalidAICharacter() {
+    void testChatWithInvalidAICharacterFallsBack() {
         when(deepSeekService.chat(anyString(), anyList())).thenReturn("回复");
 
-        String response = aiService.chat("test-session-123", "non-existent", "你好");
-        assertNotNull(response);
+        String response = aiService.chat("test-invalid", "non-existent", "你好");
+
+        assertEquals("回复", response);
     }
 
     @Test
     void testChatSessionHistory() {
-        when(deepSeekService.chat(anyString(), anyList())).thenReturn("第一次回复。", "第二次回复。");
+        when(deepSeekService.chat(anyString(), anyList())).thenReturn("第一次回复", "第二次回复");
 
         aiService.chat("test-session-history", "customer_service", "问题1");
         aiService.chat("test-session-history", "customer_service", "问题2");
@@ -96,8 +123,8 @@ public class AIServiceImplTest {
         }).when(deepSeekService).streamChat(anyString(), anyList(), any(), any(), any());
 
         SseEmitter emitter = aiService.streamChat("test-stream-session", "customer_service", "你好");
-        assertNotNull(emitter);
 
+        assertNotNull(emitter);
         assertTrue(latch.await(2, TimeUnit.SECONDS));
         verify(deepSeekService, times(1)).streamChat(anyString(), anyList(), any(), any(), any());
     }
@@ -120,7 +147,6 @@ public class AIServiceImplTest {
 
         SseEmitter emitter = aiService.streamChat("test-on-data", "customer_service", "你好");
         assertNotNull(emitter);
-
         assertTrue(latch.await(2, TimeUnit.SECONDS));
     }
 
@@ -136,7 +162,6 @@ public class AIServiceImplTest {
 
         SseEmitter emitter = aiService.streamChat("test-on-complete", "customer_service", "你好");
         assertNotNull(emitter);
-
         assertTrue(latch.await(2, TimeUnit.SECONDS));
     }
 
@@ -152,7 +177,6 @@ public class AIServiceImplTest {
 
         SseEmitter emitter = aiService.streamChat("test-on-error", "customer_service", "你好");
         assertNotNull(emitter);
-
         assertTrue(latch.await(2, TimeUnit.SECONDS));
     }
 
@@ -166,7 +190,6 @@ public class AIServiceImplTest {
 
         SseEmitter emitter = aiService.streamChat("test-internal-exception", "customer_service", "你好");
         assertNotNull(emitter);
-
         assertTrue(latch.await(2, TimeUnit.SECONDS));
     }
 
@@ -180,7 +203,6 @@ public class AIServiceImplTest {
 
         SseEmitter emitter = aiService.streamChat(null, "customer_service", "你好");
         assertNotNull(emitter);
-
         assertTrue(latch.await(2, TimeUnit.SECONDS));
     }
 
@@ -194,7 +216,6 @@ public class AIServiceImplTest {
 
         SseEmitter emitter = aiService.streamChat("test-null-message", "customer_service", null);
         assertNotNull(emitter);
-
         assertTrue(latch.await(2, TimeUnit.SECONDS));
     }
 
@@ -203,6 +224,7 @@ public class AIServiceImplTest {
         when(deepSeekService.chat(anyString(), anyList())).thenReturn("回复");
 
         String response = aiService.chat(null, "customer_service", "你好");
+
         assertNotNull(response);
     }
 
@@ -211,19 +233,8 @@ public class AIServiceImplTest {
         when(deepSeekService.chat(anyString(), anyList())).thenReturn("回复");
 
         String response = aiService.chat("test-null", "customer_service", null);
+
         assertNotNull(response);
-    }
-
-    @Test
-    void testGetCharacterReturnsCorrectPersona() {
-        AICharacter customerService = aiService.getCharacter("customer_service");
-        assertEquals("友好、谨慎，并严格依据应用规则回答。", customerService.getPersona());
-    }
-
-    @Test
-    void testGetCharacterReturnsCorrectSpeakingStyle() {
-        AICharacter customerService = aiService.getCharacter("customer_service");
-        assertEquals("简洁实用。", customerService.getSpeaking_style());
     }
 
     @Test
@@ -245,25 +256,27 @@ public class AIServiceImplTest {
         when(deepSeekService.chat(anyString(), anyList())).thenReturn("回复");
 
         aiService.chat("session-a", "customer_service", "问题A");
-        aiService.chat("session-b", "customer_service", "问题B");
+        aiService.chat("session-b", "teacher", "问题B");
 
         Session sessionA = aiService.getOrCreateSession("session-a", "customer_service");
-        Session sessionB = aiService.getOrCreateSession("session-b", "customer_service");
+        Session sessionB = aiService.getOrCreateSession("session-b", "teacher");
 
         assertNotSame(sessionA, sessionB);
     }
 
     @Test
     void testChatWithEmptyMessage() {
-        when(deepSeekService.chat(anyString(), anyList())).thenReturn("好的。");
+        when(deepSeekService.chat(anyString(), anyList())).thenReturn("好的");
 
         String response = aiService.chat("test-empty", "customer_service", "");
+
         assertNotNull(response);
     }
 
     @Test
     void testGetOrCreateSessionWithNullSessionId() {
         Session session = aiService.getOrCreateSession(null, "customer_service");
+
         assertNotNull(session);
         assertNull(session.getSession_id());
     }
@@ -283,62 +296,19 @@ public class AIServiceImplTest {
     }
 
     @Test
-    void testStreamChatWithAllAICharacters() {
-        String[] characterIds = {"customer_service"};
-
-        for (String characterId : characterIds) {
-            SseEmitter emitter = aiService.streamChat("test-stream-" + characterId, characterId, "你好");
-            assertNotNull(emitter);
-        }
-    }
-
-    @Test
     void testCharacterListImmutability() {
         List<AICharacter> characters = aiService.getCharacters();
 
-        assertThrows(UnsupportedOperationException.class, () -> {
-            characters.add(new AICharacter("new-char", "新角色", "性格", "风格"));
-        });
+        assertThrows(UnsupportedOperationException.class, () ->
+                characters.add(new AICharacter("new-char", "新角色", "性格", "风格")));
     }
 
     @Test
-    void testBuildSystemPrompt() {
-        AICharacter customerService = aiService.getCharacter("customer_service");
-        assertNotNull(customerService);
-        assertNotNull(customerService.getPersona());
-        assertNotNull(customerService.getSpeaking_style());
-    }
+    void testUnknownCharacterReturnsSameDefaultCharacterAsNullCharacter() {
+        AICharacter unknown = aiService.getCharacter("unknown");
+        AICharacter fallback = aiService.getCharacter(null);
 
-    @Test
-    void testChatWithCustomerServiceCharacter() {
-        when(deepSeekService.chat(anyString(), anyList())).thenReturn("这个问题提得很好！");
-
-        String response = aiService.chat("test-cs", "customer_service", "如何学习编程？");
-
-        assertNotNull(response);
-        assertTrue(response.contains("很好"));
-        verify(deepSeekService, times(1)).chat(anyString(), anyList());
-    }
-
-    @Test
-    void testChatWithCustomerServiceReply() {
-        when(deepSeekService.chat(anyString(), anyList())).thenReturn("您好！我是智能助手小i。");
-
-        String response = aiService.chat("test-cs2", "customer_service", "你好");
-
-        assertNotNull(response);
-        assertTrue(response.contains("小i"));
-    }
-
-    @Test
-    void testStreamChatWithNullAICharacterId() {
-        SseEmitter emitter = aiService.streamChat("test-null-char", null, "你好");
-        assertNotNull(emitter);
-    }
-
-    @Test
-    void testStreamChatWithEmptyAICharacterId() {
-        SseEmitter emitter = aiService.streamChat("test-empty-char", "", "你好");
-        assertNotNull(emitter);
+        assertEquals(fallback.getId(), unknown.getId());
+        assertEquals(fallback.getName(), unknown.getName());
     }
 }

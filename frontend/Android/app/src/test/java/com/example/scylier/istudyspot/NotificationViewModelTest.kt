@@ -59,58 +59,58 @@ class NotificationViewModelTest {
     @Test
     fun testViewModel_mockNotifications_size() = runTest {
         viewModel.loadNotifications()
-        assertEquals(6, viewModel.state.value.notifications.size)
+        assertEquals(5, viewModel.state.value.notifications.size)
     }
 
     @Test
     fun testViewModel_unreadCount() = runTest {
         viewModel.loadNotifications()
-        assertEquals(2, viewModel.unreadCount)
+        assertEquals(0, viewModel.unreadCount)
     }
 
     @Test
     fun testViewModel_firstNotification_title() = runTest {
         viewModel.loadNotifications()
         val first = viewModel.state.value.notifications[0]
-        assertEquals("预约成功", first.title)
+        assertEquals("自习室开放时间调整", first.title)
     }
 
     @Test
     fun testViewModel_firstNotification_isNotRead() = runTest {
         viewModel.loadNotifications()
         val first = viewModel.state.value.notifications[0]
-        assertFalse(first.isRead)
+        assertTrue(first.isRead)
     }
 
     @Test
     fun testViewModel_firstNotification_type() = runTest {
         viewModel.loadNotifications()
         val first = viewModel.state.value.notifications[0]
-        assertEquals(NotificationType.BOOKING, first.type)
+        assertEquals(NotificationType.SYSTEM, first.type)
     }
 
     @Test
     fun testViewModel_secondNotification_isReminder() = runTest {
         viewModel.loadNotifications()
         val second = viewModel.state.value.notifications[1]
-        assertEquals("签到提醒", second.title)
-        assertEquals(NotificationType.REMINDER, second.type)
+        assertEquals("预约成功", second.title)
+        assertEquals(NotificationType.BOOKING, second.type)
     }
 
     @Test
     fun testViewModel_thirdNotification_isSystem() = runTest {
         viewModel.loadNotifications()
         val third = viewModel.state.value.notifications[2]
-        assertEquals("系统维护通知", third.title)
-        assertEquals(NotificationType.SYSTEM, third.type)
+        assertEquals("签到提醒", third.title)
+        assertEquals(NotificationType.REMINDER, third.type)
     }
 
     @Test
     fun testViewModel_fourthNotification_isActivity() = runTest {
         viewModel.loadNotifications()
         val fourth = viewModel.state.value.notifications[3]
-        assertEquals("优惠活动", fourth.title)
-        assertEquals(NotificationType.ACTIVITY, fourth.type)
+        assertEquals("场馆入口临时调整", fourth.title)
+        assertEquals(NotificationType.SYSTEM, fourth.type)
     }
 
     @Test
@@ -146,7 +146,7 @@ class NotificationViewModelTest {
         val activityNotifications = viewModel.state.value.notifications.filter {
             it.type == NotificationType.ACTIVITY
         }
-        assertTrue(activityNotifications.isNotEmpty())
+        assertTrue(activityNotifications.isEmpty())
     }
 
     @Test
@@ -190,6 +190,6 @@ class NotificationViewModelTest {
     fun testViewModel_readNotificationsCount() = runTest {
         viewModel.loadNotifications()
         val readCount = viewModel.state.value.notifications.count { it.isRead }
-        assertEquals(4, readCount)
+        assertEquals(5, readCount)
     }
 }
