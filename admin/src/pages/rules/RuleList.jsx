@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Table, Card, Tag, Button, Typography, Select, Space, message } from 'antd'
 import { getRuleList } from '../../api/rules'
-import { formatDateTime } from '../../utils'
 
 const { Title } = Typography
 
@@ -37,21 +36,15 @@ export default function RuleList() {
       title: '分类',
       dataIndex: 'category',
       key: 'category',
-      render: (v) => <Tag color="blue">{categoryMap[v] || v}</Tag>,
+      render: (v, r) => <Tag color="blue">{r.categoryLabel || categoryMap[v] || v}</Tag>,
     },
     { title: '内容', dataIndex: 'content', key: 'content', ellipsis: true },
     { title: '优先级', dataIndex: 'priority', key: 'priority', width: 80 },
     {
-      title: '自习室ID',
-      dataIndex: 'studyRoomId',
-      key: 'studyRoomId',
-      render: (v) => v || <Tag>通用</Tag>,
-    },
-    {
-      title: '更新时间',
-      dataIndex: 'updatedAt',
-      key: 'updatedAt',
-      render: (v) => formatDateTime(v),
+      title: '类型',
+      dataIndex: 'type',
+      key: 'type',
+      render: (v) => <Tag>{v === 'faq' ? '常见问题' : '规则'}</Tag>,
     },
   ]
 

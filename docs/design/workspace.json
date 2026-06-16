@@ -6,14 +6,14 @@
   "documentation" : {
     "decisions" : [ {
       "content" : "# 1. 仅建模当前后端与 Android 代码范围\n\n## 状态\n\n已接受\n\n## 背景\n\n仓库中不止一个产品面，但这次架构建模的明确目标是只覆盖后端与 Android 客户端。\n\n## 决策\n\nStructurizr 工作区只建模以下范围：\n\n- `backend/istudyspot-backend` 中的 Spring Boot 后端\n- `frontend/Android` 中的 Android 客户端\n- 这两部分代码直接可见的外部依赖\n\n## 影响\n\n- 模型会严格贴合本次代码阅读的实际范围\n- 图中不会暗示已经覆盖管理端、小程序或更大范围的基础设施\n",
-      "date" : "2026-06-13T07:15:02Z",
+      "date" : "2026-06-16T08:35:24Z",
       "format" : "Markdown",
       "id" : "1",
       "status" : "Proposed",
       "title" : "仅建模当前后端与 Android 代码范围"
     }, {
       "content" : "# 2. 将后端建模为一个容器\n\n## 状态\n\n已接受\n\n## 背景\n\n后端代码暴露了很多 API 领域，但它们都运行在同一个 Spring Boot 部署单元中，共享进程内存、配置与持久化访问。\n\n## 决策\n\n架构模型把后端视为一个容器，再通过组件视图展示其主要职责分区。\n\n## 影响\n\n- 图能够反映真实可部署单元\n- 控制器/服务职责边界仍然能在组件视图中体现\n- 模型不会错误暗示这些模块之间存在独立部署或网络边界\n",
-      "date" : "2026-06-13T07:15:02Z",
+      "date" : "2026-06-16T08:35:24Z",
       "format" : "Markdown",
       "id" : "2",
       "status" : "Proposed",
@@ -40,7 +40,7 @@
     } ]
   },
   "id" : 1,
-  "lastModifiedDate" : "2026-06-13T07:15:02Z",
+  "lastModifiedDate" : "2026-06-16T08:35:24Z",
   "model" : {
     "people" : [ {
       "description" : "通过 Android App 浏览自习室、预约座位、管理订单及相关增值服务。",
@@ -52,15 +52,15 @@
       "relationships" : [ {
         "description" : "使用移动端客户端",
         "destinationId" : "5",
-        "id" : "29",
+        "id" : "38",
         "sourceId" : "1",
         "tags" : "Relationship",
         "technology" : "触控界面"
       }, {
         "description" : "使用移动端客户端",
         "destinationId" : "4",
-        "id" : "30",
-        "linkedRelationshipId" : "29",
+        "id" : "39",
+        "linkedRelationshipId" : "38",
         "sourceId" : "1",
         "technology" : "触控界面"
       } ],
@@ -90,144 +90,417 @@
     }, {
       "containers" : [ {
         "components" : [ {
-          "description" : "由 MainActivity 与 AppNavigation 组成，负责应用壳层、底部导航、Snackbar、路由图，以及把已保存的访问令牌注入 ApiClient。",
+          "description" : "负责启动恢复、全局容器、页面装配、跨页面跳转，以及把本地会话状态注入网络层。",
           "documentation" : { },
           "id" : "6",
-          "name" : "导航与会话引导",
+          "name" : "应用壳层与路由编排",
           "properties" : {
-            "structurizr.dsl.identifier" : "authAndSession"
+            "structurizr.dsl.identifier" : "appShell"
           },
           "relationships" : [ {
-            "description" : "承载并导航到各功能页面",
+            "description" : "装配登录、注册与会话切换页面",
             "destinationId" : "7",
-            "id" : "38",
+            "id" : "47",
+            "sourceId" : "6",
+            "tags" : "Relationship",
+            "technology" : "Navigation Compose"
+          }, {
+            "description" : "装配首页与通知入口",
+            "destinationId" : "8",
+            "id" : "48",
+            "sourceId" : "6",
+            "tags" : "Relationship",
+            "technology" : "Navigation Compose"
+          }, {
+            "description" : "装配自习室、场馆导览与座位图流程",
+            "destinationId" : "9",
+            "id" : "49",
+            "sourceId" : "6",
+            "tags" : "Relationship",
+            "technology" : "Navigation Compose"
+          }, {
+            "description" : "装配预约、订单与签到签退流程",
+            "destinationId" : "10",
+            "id" : "50",
+            "sourceId" : "6",
+            "tags" : "Relationship",
+            "technology" : "Navigation Compose"
+          }, {
+            "description" : "装配个人中心、偏好设置与更多菜单",
+            "destinationId" : "11",
+            "id" : "51",
+            "sourceId" : "6",
+            "tags" : "Relationship",
+            "technology" : "Navigation Compose"
+          }, {
+            "description" : "装配规则、学习记录、违规、成就与卡牌页面",
+            "destinationId" : "12",
+            "id" : "52",
+            "sourceId" : "6",
+            "tags" : "Relationship",
+            "technology" : "Navigation Compose"
+          }, {
+            "description" : "装配角色选择与 AI 咨询流程",
+            "destinationId" : "13",
+            "id" : "53",
+            "sourceId" : "6",
+            "tags" : "Relationship",
+            "technology" : "Navigation Compose"
+          }, {
+            "description" : "装配 Agent 助手多会话页面",
+            "destinationId" : "14",
+            "id" : "54",
+            "sourceId" : "6",
+            "tags" : "Relationship",
+            "technology" : "Navigation Compose"
+          }, {
+            "description" : "装配在线客服页面",
+            "destinationId" : "15",
+            "id" : "55",
             "sourceId" : "6",
             "tags" : "Relationship",
             "technology" : "Navigation Compose"
           }, {
             "description" : "读取已持久化的访问令牌与主题模式",
-            "destinationId" : "12",
-            "id" : "39",
+            "destinationId" : "21",
+            "id" : "56",
             "sourceId" : "6",
             "tags" : "Relationship",
             "technology" : "SharedPreferences"
           }, {
             "description" : "把保存的访问令牌引导注入",
-            "destinationId" : "11",
-            "id" : "40",
+            "destinationId" : "20",
+            "id" : "57",
             "sourceId" : "6",
             "tags" : "Relationship",
             "technology" : "进程内 Kotlin 调用"
           } ],
           "tags" : "Element,Component",
-          "technology" : "MainActivity.kt, AppNavigation.kt, NavRoutes"
+          "technology" : "Navigation Compose, Scaffold"
         }, {
-          "description" : "承载首页、自习室、座位图、预约、订单、个人中心、AI 对话、Agent、客服、卡牌收藏、待办等功能页面。",
+          "description" : "负责登录、注册、基础校验，以及建立客户端本地会话状态并切换访问态。",
           "documentation" : { },
           "id" : "7",
-          "name" : "Compose 页面",
+          "name" : "认证与登录功能域",
+          "properties" : {
+            "structurizr.dsl.identifier" : "authFeature"
+          },
+          "relationships" : [ {
+            "description" : "使用登录与注册界面基座",
+            "destinationId" : "16",
+            "id" : "58",
+            "sourceId" : "7",
+            "tags" : "Relationship",
+            "technology" : "Compose UI"
+          }, {
+            "description" : "通过 AuthViewModel 执行认证状态编排",
+            "destinationId" : "17",
+            "id" : "67",
+            "sourceId" : "7",
+            "tags" : "Relationship",
+            "technology" : "StateFlow / 协程"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Compose, ViewModel, StateFlow"
+        }, {
+          "description" : "负责首页统计摘要、快捷入口、公告通知与入口汇聚，并保障通知内容在不同数据状态下的稳定展示。",
+          "documentation" : { },
+          "id" : "8",
+          "name" : "首页与通知功能域",
+          "properties" : {
+            "structurizr.dsl.identifier" : "homeFeature"
+          },
+          "relationships" : [ {
+            "description" : "使用首页与通知界面基座",
+            "destinationId" : "16",
+            "id" : "59",
+            "sourceId" : "8",
+            "tags" : "Relationship",
+            "technology" : "Compose UI"
+          }, {
+            "description" : "通过 Home/Notification ViewModel 编排首页与通知状态",
+            "destinationId" : "17",
+            "id" : "68",
+            "sourceId" : "8",
+            "tags" : "Relationship",
+            "technology" : "StateFlow / 协程"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Compose, ViewModel, StateFlow"
+        }, {
+          "description" : "负责自习室检索、场馆导览、座位布局加载、座位状态展示与可预约座位选择。",
+          "documentation" : { },
+          "id" : "9",
+          "name" : "自习室、场馆导览与座位图功能域",
+          "properties" : {
+            "structurizr.dsl.identifier" : "studyRoomFeature"
+          },
+          "relationships" : [ {
+            "description" : "使用自习室、导览与座位图界面基座",
+            "destinationId" : "16",
+            "id" : "60",
+            "sourceId" : "9",
+            "tags" : "Relationship",
+            "technology" : "Compose UI"
+          }, {
+            "description" : "通过 StudyRoom/Guide ViewModel 编排列表、导览与座位状态",
+            "destinationId" : "17",
+            "id" : "69",
+            "sourceId" : "9",
+            "tags" : "Relationship",
+            "technology" : "StateFlow / 协程"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Compose, ViewModel, StateFlow"
+        }, {
+          "description" : "负责时间选择、下单、支付、取消、续时、签到与签退等预约生命周期操作。",
+          "documentation" : { },
+          "id" : "10",
+          "name" : "预约、订单与签到签退功能域",
+          "properties" : {
+            "structurizr.dsl.identifier" : "reservationFeature"
+          },
+          "relationships" : [ {
+            "description" : "使用预约与订单界面基座",
+            "destinationId" : "16",
+            "id" : "61",
+            "sourceId" : "10",
+            "tags" : "Relationship",
+            "technology" : "Compose UI"
+          }, {
+            "description" : "通过 Booking/Order ViewModel 编排预约生命周期状态",
+            "destinationId" : "17",
+            "id" : "70",
+            "sourceId" : "10",
+            "tags" : "Relationship",
+            "technology" : "StateFlow / 协程"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Compose, ViewModel, StateFlow"
+        }, {
+          "description" : "负责个人资料展示与编辑、主题设置、功能入口整合与退出登录。",
+          "documentation" : { },
+          "id" : "11",
+          "name" : "个人资料、偏好设置与更多菜单功能域",
+          "properties" : {
+            "structurizr.dsl.identifier" : "profileFeature"
+          },
+          "relationships" : [ {
+            "description" : "使用个人资料与偏好设置界面基座",
+            "destinationId" : "16",
+            "id" : "62",
+            "sourceId" : "11",
+            "tags" : "Relationship",
+            "technology" : "Compose UI"
+          }, {
+            "description" : "通过 Profile 相关 ViewModel 编排资料与偏好状态",
+            "destinationId" : "17",
+            "id" : "71",
+            "sourceId" : "11",
+            "tags" : "Relationship",
+            "technology" : "StateFlow / 协程"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Compose, ViewModel, StateFlow"
+        }, {
+          "description" : "负责规则查询、学习统计、待办入口、违规记录、成就展示与卡牌收藏浏览。",
+          "documentation" : { },
+          "id" : "12",
+          "name" : "规则、学习记录、违规、成就与卡牌功能域",
+          "properties" : {
+            "structurizr.dsl.identifier" : "growthFeature"
+          },
+          "relationships" : [ {
+            "description" : "使用规则、记录、成就与卡牌界面基座",
+            "destinationId" : "16",
+            "id" : "63",
+            "sourceId" : "12",
+            "tags" : "Relationship",
+            "technology" : "Compose UI"
+          }, {
+            "description" : "通过 Rules/StudyRecord/Todo/Card 等 ViewModel 编排内容状态",
+            "destinationId" : "17",
+            "id" : "72",
+            "sourceId" : "12",
+            "tags" : "Relationship",
+            "technology" : "StateFlow / 协程"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Compose, ViewModel, StateFlow"
+        }, {
+          "description" : "负责角色选择、消息列表维护、会话状态管理与咨询回复呈现，支持多种运行配置下的统一交互体验。",
+          "documentation" : { },
+          "id" : "13",
+          "name" : "AI 咨询功能域",
+          "properties" : {
+            "structurizr.dsl.identifier" : "aiChatFeature"
+          },
+          "relationships" : [ {
+            "description" : "使用 AI 咨询界面基座",
+            "destinationId" : "16",
+            "id" : "64",
+            "sourceId" : "13",
+            "tags" : "Relationship",
+            "technology" : "Compose UI"
+          }, {
+            "description" : "通过 AiChatViewModel 编排角色与消息状态",
+            "destinationId" : "17",
+            "id" : "73",
+            "sourceId" : "13",
+            "tags" : "Relationship",
+            "technology" : "StateFlow / 协程"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Compose, ViewModel, StateFlow"
+        }, {
+          "description" : "负责工具目录加载、多会话切换、结果折叠展示、页面跳转动作映射，以及会话置顶与删除管理。",
+          "documentation" : { },
+          "id" : "14",
+          "name" : "Agent 助手功能域",
+          "properties" : {
+            "structurizr.dsl.identifier" : "agentFeature"
+          },
+          "relationships" : [ {
+            "description" : "使用 Agent 助手界面基座",
+            "destinationId" : "16",
+            "id" : "65",
+            "sourceId" : "14",
+            "tags" : "Relationship",
+            "technology" : "Compose UI"
+          }, {
+            "description" : "通过 AgentViewModel 编排工具、消息与历史会话状态",
+            "destinationId" : "17",
+            "id" : "74",
+            "sourceId" : "14",
+            "tags" : "Relationship",
+            "technology" : "StateFlow / 协程"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Compose, ViewModel, SharedPreferences"
+        }, {
+          "description" : "负责欢迎语、推荐问题、消息发送、会话渲染，并维护客服会话的前端状态。",
+          "documentation" : { },
+          "id" : "15",
+          "name" : "在线客服功能域",
+          "properties" : {
+            "structurizr.dsl.identifier" : "customerServiceFeature"
+          },
+          "relationships" : [ {
+            "description" : "使用客服界面基座",
+            "destinationId" : "16",
+            "id" : "66",
+            "sourceId" : "15",
+            "tags" : "Relationship",
+            "technology" : "Compose UI"
+          }, {
+            "description" : "通过 CustomerServiceViewModel 编排客服消息状态",
+            "destinationId" : "17",
+            "id" : "75",
+            "sourceId" : "15",
+            "tags" : "Relationship",
+            "technology" : "StateFlow / 协程"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Compose, ViewModel, StateFlow"
+        }, {
+          "description" : "承载跨功能域的界面实现与 UI 复用，覆盖首页、自习室、场馆导览、座位图、预约、订单、个人中心、AI、Agent、客服、卡牌收藏与待办等界面层。",
+          "documentation" : { },
+          "id" : "16",
+          "name" : "Compose 页面基座",
           "properties" : {
             "structurizr.dsl.identifier" : "composeScreens"
           },
-          "relationships" : [ {
-            "description" : "派发页面动作并观察状态",
-            "destinationId" : "8",
-            "id" : "41",
-            "sourceId" : "7",
-            "tags" : "Relationship",
-            "technology" : "Compose 状态与 StateFlow"
-          } ],
           "tags" : "Element,Component",
-          "technology" : "ui/screen/*"
+          "technology" : "Jetpack Compose"
         }, {
-          "description" : "负责页面状态、异步副作用与仓储调用；当前客户端主要使用普通请求-响应接口，并未接入后端提供的 SSE 页面流程。",
+          "description" : "负责页面状态、异步副作用、会话编排与仓储调用，承接客户端各功能域的交互状态流转。",
           "documentation" : { },
-          "id" : "8",
-          "name" : "ViewModels",
+          "id" : "17",
+          "name" : "ViewModel 状态编排层",
           "properties" : {
             "structurizr.dsl.identifier" : "viewModels"
           },
           "relationships" : [ {
             "description" : "调用应用用例",
-            "destinationId" : "9",
-            "id" : "42",
-            "sourceId" : "8",
+            "destinationId" : "18",
+            "id" : "76",
+            "sourceId" : "17",
             "tags" : "Relationship",
             "technology" : "Kotlin 协程调用"
           }, {
             "description" : "读写登录、会话与个人偏好配置",
-            "destinationId" : "12",
-            "id" : "43",
-            "sourceId" : "8",
+            "destinationId" : "21",
+            "id" : "77",
+            "sourceId" : "17",
             "tags" : "Relationship",
             "technology" : "SharedPreferences"
           } ],
           "tags" : "Element,Component",
-          "technology" : "viewmodel/*"
+          "technology" : "ViewModel, StateFlow, Coroutines"
         }, {
-          "description" : "统一暴露客户端用例，并把请求委派给 ApiManager。",
+          "description" : "统一封装认证、自习室、场馆导览、预约、订单、用户、规则、公告、AI、Agent、客服、卡牌与学习记录等用例，并把请求委派给接口管理层。",
           "documentation" : { },
-          "id" : "9",
-          "name" : "MainRepository",
+          "id" : "18",
+          "name" : "MainRepository 远程用例门面",
           "properties" : {
             "structurizr.dsl.identifier" : "repository"
           },
           "relationships" : [ {
             "description" : "委派远程业务请求",
-            "destinationId" : "10",
-            "id" : "44",
-            "sourceId" : "9",
+            "destinationId" : "19",
+            "id" : "78",
+            "sourceId" : "18",
             "tags" : "Relationship",
             "technology" : "Kotlin 协程调用"
           } ],
           "tags" : "Element,Component",
-          "technology" : "repository/MainRepository.kt"
+          "technology" : "Repository Pattern"
         }, {
-          "description" : "由 ApiManager 与 ApiService 组成，负责 Retrofit 调用、错误归一化与可选 mock 模式。",
+          "description" : "负责 Retrofit 调用、错误归一化、接口参数适配与多环境访问策略管理。",
           "documentation" : { },
-          "id" : "10",
+          "id" : "19",
           "name" : "API 管理与接口契约",
           "properties" : {
             "structurizr.dsl.identifier" : "apiGateway"
           },
           "relationships" : [ {
             "description" : "通过网络层执行请求",
-            "destinationId" : "11",
-            "id" : "45",
-            "sourceId" : "10",
+            "destinationId" : "20",
+            "id" : "79",
+            "sourceId" : "19",
             "tags" : "Relationship",
             "technology" : "Retrofit"
           } ],
           "tags" : "Element,Component",
-          "technology" : "infra/network/ApiManager.kt, ApiService.kt"
+          "technology" : "ApiManager, Retrofit Service"
         }, {
-          "description" : "由 ApiClient 配置 Retrofit、Bearer 令牌注入、刷新令牌鉴权路径、日志与调试环境下的证书放宽策略。",
+          "description" : "负责 HTTP 客户端配置、访问令牌注入、刷新令牌鉴权路径、日志与调试环境下的证书放宽策略。",
           "documentation" : { },
-          "id" : "11",
+          "id" : "20",
           "name" : "Retrofit 与 OkHttp 网络栈",
           "properties" : {
             "structurizr.dsl.identifier" : "networkStack"
           },
           "relationships" : [ {
             "description" : "调用后端 REST 接口",
-            "destinationId" : "13",
-            "id" : "46",
-            "sourceId" : "11",
+            "destinationId" : "22",
+            "id" : "80",
+            "sourceId" : "20",
             "tags" : "Relationship",
             "technology" : "HTTPS/JSON"
           } ],
           "tags" : "Element,Component",
-          "technology" : "infra/network/ApiClient.kt"
+          "technology" : "Retrofit, OkHttp, Authenticator"
         }, {
-          "description" : "由 ConfigManager 持久化访问令牌、用户标识、昵称与主题模式；当前代码未真正持久化 refresh token。",
+          "description" : "负责访问令牌、用户标识、昵称、主题模式与 Agent 历史会话摘要等轻量数据的本地保存，支撑客户端会话恢复与个性化配置。",
           "documentation" : { },
-          "id" : "12",
-          "name" : "SharedPreferences 配置存储",
+          "id" : "21",
+          "name" : "本地配置与轻量持久化",
           "properties" : {
             "structurizr.dsl.identifier" : "localSettings"
           },
           "tags" : "Element,Component",
-          "technology" : "utils/ConfigManager.kt"
+          "technology" : "SharedPreferences"
         } ],
         "description" : "面向学生用户的移动端客户端，使用 Jetpack Compose、Navigation Compose、ViewModel、协程、Retrofit 与 OkHttp 实现。",
         "documentation" : { },
@@ -238,8 +511,8 @@
         },
         "relationships" : [ {
           "description" : "调用后端接口完成业务流程",
-          "destinationId" : "13",
-          "id" : "31",
+          "destinationId" : "22",
+          "id" : "40",
           "sourceId" : "5",
           "tags" : "Relationship",
           "technology" : "HTTPS/JSON"
@@ -248,194 +521,194 @@
         "technology" : "Kotlin, Jetpack Compose, MVVM"
       }, {
         "components" : [ {
-          "description" : "由 AuthController、AuthServiceImpl、JwtInterceptor、JwtUtils 与 WebConfig 组成，负责登录、注册、刷新令牌、登出与受保护接口访问。",
+          "description" : "负责登录、注册、刷新令牌、登出、JWT 校验与受保护接口访问控制。",
           "documentation" : { },
-          "id" : "14",
+          "id" : "23",
           "name" : "认证与请求保护",
           "properties" : {
             "structurizr.dsl.identifier" : "authApi"
           },
           "relationships" : [ {
-            "description" : "读写用户与令牌相关数据",
-            "destinationId" : "24",
-            "id" : "47",
-            "sourceId" : "14",
+            "description" : "读写用户数据并更新最后登录时间等认证相关信息",
+            "destinationId" : "33",
+            "id" : "81",
+            "sourceId" : "23",
             "tags" : "Relationship",
             "technology" : "MyBatis"
           } ],
           "tags" : "Element,Component",
-          "technology" : "controller/AuthController.java, service/impl/AuthServiceImpl.java, interceptor/JwtInterceptor.java, config/WebConfig.java"
+          "technology" : "Spring MVC, Service Layer, JWT"
         }, {
-          "description" : "由 StudyRoomController、SeatController、StudyRoomServiceImpl 与 SeatServiceImpl 组成，负责自习室列表、详情、座位列表与座位详情。",
+          "description" : "负责自习室列表、详情、场馆导览、座位列表、座位布局与座位详情等学习空间查询能力。",
           "documentation" : { },
-          "id" : "15",
+          "id" : "24",
           "name" : "自习室与座位接口",
           "properties" : {
             "structurizr.dsl.identifier" : "studyRoomApi"
           },
           "relationships" : [ {
-            "description" : "读取自习室、座位与预约上下文数据",
-            "destinationId" : "24",
-            "id" : "48",
-            "sourceId" : "15",
+            "description" : "读取自习室、场馆导览、座位与预约上下文数据",
+            "destinationId" : "33",
+            "id" : "82",
+            "sourceId" : "24",
             "tags" : "Relationship",
             "technology" : "MyBatis"
           } ],
           "tags" : "Element,Component",
-          "technology" : "controller/StudyRoomController.java, controller/SeatController.java, service/impl/StudyRoomServiceImpl.java, service/impl/SeatServiceImpl.java"
+          "technology" : "Spring MVC, Service Layer, MyBatis"
         }, {
-          "description" : "由 OrderController、CheckInController、PaymentController、OrderServiceImpl 与 PaymentServiceImpl 组成，负责预约生命周期、支付、签到、签退、续时与简化支付回调处理。",
+          "description" : "负责预约生命周期、支付、签到、签退、续时与支付结果处理。",
           "documentation" : { },
-          "id" : "16",
+          "id" : "25",
           "name" : "预约、签到与支付接口",
           "properties" : {
             "structurizr.dsl.identifier" : "reservationApi"
           },
           "relationships" : [ {
             "description" : "读写预约、座位与支付数据",
-            "destinationId" : "24",
-            "id" : "49",
-            "sourceId" : "16",
+            "destinationId" : "33",
+            "id" : "83",
+            "sourceId" : "25",
             "tags" : "Relationship",
             "technology" : "MyBatis"
           }, {
             "description" : "依赖其建立的认证请求上下文",
-            "destinationId" : "14",
-            "id" : "54",
-            "sourceId" : "16",
+            "destinationId" : "23",
+            "id" : "88",
+            "sourceId" : "25",
             "tags" : "Relationship",
             "technology" : "请求属性 / interceptor 链"
           } ],
           "tags" : "Element,Component",
-          "technology" : "controller/OrderController.java, controller/CheckInController.java, controller/PaymentController.java, service/impl/OrderServiceImpl.java, service/impl/PaymentServiceImpl.java"
+          "technology" : "Spring MVC, Service Layer, MyBatis"
         }, {
-          "description" : "组合用户资料与用户侧内容接口；其中部分模块有数据库支撑，而规则主要来自静态代码/配置，公告与统计当前仍以占位返回为主。",
+          "description" : "负责用户资料与用户侧内容服务编排，覆盖规则、公告、统计、违规、待办与成长相关内容。",
           "documentation" : { },
-          "id" : "17",
+          "id" : "26",
           "name" : "用户资料、成就、待办、违规、规则、公告与统计接口",
           "properties" : {
             "structurizr.dsl.identifier" : "userContentApi"
           },
           "relationships" : [ {
             "description" : "读写资料、成就、待办与违规记录",
-            "destinationId" : "24",
-            "id" : "50",
-            "sourceId" : "17",
+            "destinationId" : "33",
+            "id" : "84",
+            "sourceId" : "26",
             "tags" : "Relationship",
             "technology" : "MyBatis"
           }, {
             "description" : "读取预约与使用规则配置",
-            "destinationId" : "25",
-            "id" : "51",
-            "sourceId" : "17",
+            "destinationId" : "34",
+            "id" : "85",
+            "sourceId" : "26",
             "tags" : "Relationship",
             "technology" : "Classpath JSON 配置"
           }, {
             "description" : "依赖其建立的认证请求上下文",
-            "destinationId" : "14",
-            "id" : "55",
-            "sourceId" : "17",
+            "destinationId" : "23",
+            "id" : "89",
+            "sourceId" : "26",
             "tags" : "Relationship",
             "technology" : "请求属性 / interceptor 链"
           } ],
           "tags" : "Element,Component",
-          "technology" : "controller/UserController.java, controller/AchievementController.java, controller/TodoController.java, controller/ViolationRecordController.java, controller/RulesController.java, controller/AnnouncementController.java, controller/StatisticsController.java"
+          "technology" : "Spring MVC, Service Layer, MyBatis"
         }, {
-          "description" : "由 AIController、AgentChatController、AgentToolController、CustomerServiceController、CardController 及相关服务组成，负责 AI 对话、Agent 只读工具编排、客服对话与学习卡牌生成；AI、Agent 与客服会话历史当前保存在服务内存中。",
+          "description" : "负责 AI 对话、Agent 只读工具编排、客服对话与学习卡牌生成，并维护相关会话上下文与交互记录。",
           "documentation" : { },
-          "id" : "18",
+          "id" : "27",
           "name" : "AI、Agent、客服与卡牌接口",
           "properties" : {
             "structurizr.dsl.identifier" : "aiApi"
           },
           "relationships" : [ {
             "description" : "读写卡牌记录与 Agent 暴露的业务数据",
-            "destinationId" : "24",
-            "id" : "52",
-            "sourceId" : "18",
+            "destinationId" : "33",
+            "id" : "86",
+            "sourceId" : "27",
             "tags" : "Relationship",
             "technology" : "MyBatis"
           }, {
             "description" : "加载 AI 人设、客服规则与预约策略配置",
-            "destinationId" : "25",
-            "id" : "53",
-            "sourceId" : "18",
+            "destinationId" : "34",
+            "id" : "87",
+            "sourceId" : "27",
             "tags" : "Relationship",
             "technology" : "Classpath JSON 配置"
           }, {
             "description" : "依赖其建立的认证请求上下文",
-            "destinationId" : "14",
-            "id" : "56",
-            "sourceId" : "18",
+            "destinationId" : "23",
+            "id" : "90",
+            "sourceId" : "27",
             "tags" : "Relationship",
             "technology" : "请求属性 / interceptor 链"
           }, {
             "description" : "Agent 对话入口先执行基于规则的 LLM 只读策略判定",
-            "destinationId" : "19",
-            "id" : "57",
-            "sourceId" : "18",
+            "destinationId" : "28",
+            "id" : "91",
+            "sourceId" : "27",
             "tags" : "Relationship",
             "technology" : "Java 方法调用"
           }, {
             "description" : "把允许的 Agent 请求交给 LLM 工具编排流程",
-            "destinationId" : "20",
-            "id" : "60",
-            "sourceId" : "18",
+            "destinationId" : "29",
+            "id" : "94",
+            "sourceId" : "27",
             "tags" : "Relationship",
             "technology" : "Java 方法调用"
           }, {
             "description" : "调用 LLM 补全与流式对话能力",
             "destinationId" : "2",
-            "id" : "70",
-            "sourceId" : "18",
+            "id" : "104",
+            "sourceId" : "27",
             "tags" : "Relationship",
             "technology" : "HTTPS/JSON"
           }, {
             "description" : "调用图片生成能力",
             "destinationId" : "3",
-            "id" : "71",
-            "sourceId" : "18",
+            "id" : "105",
+            "sourceId" : "27",
             "tags" : "Relationship",
             "technology" : "HTTP/JSON"
           }, {
             "description" : "写入生成后的卡牌图片",
-            "destinationId" : "26",
-            "id" : "72",
-            "sourceId" : "18",
+            "destinationId" : "35",
+            "id" : "106",
+            "sourceId" : "27",
             "tags" : "Relationship",
             "technology" : "文件系统读写"
           } ],
           "tags" : "Element,Component",
-          "technology" : "controller/AIController.java, controller/AgentChatController.java, controller/AgentToolController.java, controller/CustomerServiceController.java, controller/CardController.java"
+          "technology" : "Spring MVC, Service Layer, LLM Integration"
         }, {
-          "description" : "读取 ai-rules.json 中的安全、隐私、工具与客服事实规则，并通过 DeepSeek 判定请求是否属于允许的只读信息查询；请求 Agent 执行预约、取消、签到、签退、支付、续时等写操作时直接返回只读说明。",
+          "description" : "负责加载安全、隐私、工具与客服事实规则，并判定请求是否属于允许的只读信息查询；对写操作意图统一返回只读边界说明。",
           "documentation" : { },
-          "id" : "19",
+          "id" : "28",
           "name" : "Agent LLM 策略守卫",
           "properties" : {
             "structurizr.dsl.identifier" : "agentPolicyGuard"
           },
           "relationships" : [ {
             "description" : "加载 Agent 安全、隐私、工具与客服事实规则",
-            "destinationId" : "25",
-            "id" : "58",
-            "sourceId" : "19",
+            "destinationId" : "34",
+            "id" : "92",
+            "sourceId" : "28",
             "tags" : "Relationship",
             "technology" : "Classpath JSON 配置"
           }, {
             "description" : "请求 LLM 按规则判定只读查询与写操作意图",
             "destinationId" : "2",
-            "id" : "59",
-            "sourceId" : "19",
+            "id" : "93",
+            "sourceId" : "28",
             "tags" : "Relationship",
             "technology" : "HTTPS/JSON"
           } ],
           "tags" : "Element,Component",
-          "technology" : "agent/chat/AgentChatServiceImpl.java, ai/AiRulesRegistry.java, resources/ai-rules.json"
+          "technology" : "Rule Engine, LLM Classification"
         }, {
-          "description" : "把只读工具目录转换为 LLM tool schema，调用 DeepSeek 完成工具选择与最终回答生成；在 LLM 编排不可用时退回到确定性的只读查询路由。",
+          "description" : "负责把只读工具目录转换为 LLM tool schema，完成工具选择、结果组织与最终回答生成。",
           "documentation" : { },
-          "id" : "20",
+          "id" : "29",
           "name" : "Agent LLM 编排器",
           "properties" : {
             "structurizr.dsl.identifier" : "agentOrchestrator"
@@ -443,183 +716,183 @@
           "relationships" : [ {
             "description" : "请求工具调用规划与最终回答生成",
             "destinationId" : "2",
-            "id" : "61",
-            "sourceId" : "20",
+            "id" : "95",
+            "sourceId" : "29",
             "tags" : "Relationship",
             "technology" : "HTTPS/JSON"
           }, {
             "description" : "只执行 LLM 选中的后端白名单只读工具",
-            "destinationId" : "21",
-            "id" : "62",
-            "sourceId" : "20",
+            "destinationId" : "30",
+            "id" : "96",
+            "sourceId" : "29",
             "tags" : "Relationship",
             "technology" : "Java 方法调用"
           }, {
             "description" : "读取并更新短期会话与自习室上下文",
-            "destinationId" : "22",
-            "id" : "63",
-            "sourceId" : "20",
+            "destinationId" : "31",
+            "id" : "97",
+            "sourceId" : "29",
             "tags" : "Relationship",
             "technology" : "内存 Map"
           } ],
           "tags" : "Element,Component",
-          "technology" : "agent/chat/AgentChatServiceImpl.java, service/DeepSeekService.java"
+          "technology" : "LLM Orchestration, Tool Calling"
         }, {
-          "description" : "发布并执行 Agent 的只读工具：自习室列表、详情、座位列表、当前用户预约摘要与预约规则；后端工具白名单作为最终边界，不暴露预约、取消、签到或支付类写工具。",
+          "description" : "负责发布并执行 Agent 可访问的只读工具，并以工具白名单作为能力边界控制。",
           "documentation" : { },
-          "id" : "21",
+          "id" : "30",
           "name" : "Agent 只读工具网关",
           "properties" : {
             "structurizr.dsl.identifier" : "agentToolGateway"
           },
           "relationships" : [ {
             "description" : "使用认证链路写入的用户上下文执行用户相关只读查询",
-            "destinationId" : "14",
-            "id" : "64",
-            "sourceId" : "21",
+            "destinationId" : "23",
+            "id" : "98",
+            "sourceId" : "30",
             "tags" : "Relationship",
             "technology" : "请求属性 / interceptor 链"
           }, {
             "description" : "复用自习室与座位服务读取房间、详情和座位数据",
-            "destinationId" : "15",
-            "id" : "65",
-            "sourceId" : "21",
+            "destinationId" : "24",
+            "id" : "99",
+            "sourceId" : "30",
             "tags" : "Relationship",
             "technology" : "Java 服务调用"
           }, {
             "description" : "复用订单服务读取当前用户预约摘要，并做引用化与必要脱敏",
-            "destinationId" : "16",
-            "id" : "66",
-            "sourceId" : "21",
+            "destinationId" : "25",
+            "id" : "100",
+            "sourceId" : "30",
             "tags" : "Relationship",
             "technology" : "Java 服务调用"
           }, {
             "description" : "读取共享预约规则并作为只读工具结果返回",
-            "destinationId" : "25",
-            "id" : "67",
-            "sourceId" : "21",
+            "destinationId" : "34",
+            "id" : "101",
+            "sourceId" : "30",
             "tags" : "Relationship",
             "technology" : "Classpath JSON 配置"
           } ],
           "tags" : "Element,Component",
-          "technology" : "controller/AgentToolController.java, agent/tool/AgentToolServiceImpl.java, agent/tool/ReservationRulesProvider.java"
+          "technology" : "Tool Gateway, Service Composition"
         }, {
-          "description" : "在 AgentChatServiceImpl 内以内存 Map 保存短期对话、用户会话标识与当前自习室线索，用于承接后续只读追问。",
+          "description" : "负责维护短期对话、用户会话标识与当前自习室线索，用于承接后续只读追问。",
           "documentation" : { },
-          "id" : "22",
+          "id" : "31",
           "name" : "Agent 短期会话上下文",
           "properties" : {
             "structurizr.dsl.identifier" : "agentSessionContext"
           },
           "tags" : "Element,Component",
-          "technology" : "agent/chat/AgentChatServiceImpl.java"
+          "technology" : "In-memory Session Context"
         }, {
-          "description" : "由 MetricsInterceptor 与 AlertServiceImpl 组成，在内存中统计请求量与延迟，并按阈值执行定时告警检查。",
+          "description" : "负责请求量、延迟等运行指标采集，以及按阈值执行定时告警检查。",
           "documentation" : { },
-          "id" : "23",
+          "id" : "32",
           "name" : "请求指标与定时告警",
           "properties" : {
             "structurizr.dsl.identifier" : "observability"
           },
           "relationships" : [ {
             "description" : "围绕请求链路收集认证与非认证流量指标",
-            "destinationId" : "14",
-            "id" : "68",
-            "sourceId" : "23",
+            "destinationId" : "23",
+            "id" : "102",
+            "sourceId" : "32",
             "tags" : "Relationship",
             "technology" : "Spring MVC interceptor 链"
           } ],
           "tags" : "Element,Component",
-          "technology" : "interceptor/MetricsInterceptor.java, service/impl/AlertServiceImpl.java"
+          "technology" : "Interceptor, Metrics, Scheduled Tasks"
         }, {
-          "description" : "由 MyBatis Mapper、XML 映射、实体与 SQL 资源组成，支撑用户、自习室、座位、预约、支付、卡牌、待办、违规与成就等数据读写。",
+          "description" : "负责用户、自习室、场馆导览、座位、预约、支付、卡牌、待办、违规与成就等数据读写。",
           "documentation" : { },
-          "id" : "24",
+          "id" : "33",
           "name" : "MyBatis 持久化层",
           "properties" : {
             "structurizr.dsl.identifier" : "persistence"
           },
           "relationships" : [ {
             "description" : "把实体映射到关系型表结构",
-            "destinationId" : "27",
-            "id" : "69",
-            "sourceId" : "24",
+            "destinationId" : "36",
+            "id" : "103",
+            "sourceId" : "33",
             "tags" : "Relationship",
             "technology" : "SQL"
           } ],
           "tags" : "Element,Component",
-          "technology" : "mapper/*, resources/mapper/*, resources/schema/*, resources/db/migration/*"
+          "technology" : "MyBatis, SQL, Flyway, MySQL"
         }, {
-          "description" : "从 `ai-rules.json` 加载提示词规则、预约策略与客服引导信息，供 AI 服务与 Agent 工具层复用。",
+          "description" : "负责加载提示词规则、预约策略与客服引导信息，供 AI 服务与 Agent 工具层复用。",
           "documentation" : { },
-          "id" : "25",
+          "id" : "34",
           "name" : "AI 规则与预约策略配置",
           "properties" : {
             "structurizr.dsl.identifier" : "aiRulesConfig"
           },
           "tags" : "Element,Component",
-          "technology" : "resources/ai-rules.json, ai/*, agent/tool/ReservationRulesProvider.java"
+          "technology" : "Classpath JSON Configuration"
         }, {
-          "description" : "把生成后的卡牌 PNG 文件写入本地目录，并通过 `/api/card/image/**` 对外提供访问。",
+          "description" : "负责写入生成后的卡牌图片文件，并对外提供图片访问路径。",
           "documentation" : { },
-          "id" : "26",
+          "id" : "35",
           "name" : "本地卡牌图片存储",
           "properties" : {
             "structurizr.dsl.identifier" : "localArtifacts"
           },
           "relationships" : [ {
             "description" : "把文件保存到目录中",
-            "destinationId" : "28",
-            "id" : "73",
-            "sourceId" : "26",
+            "destinationId" : "37",
+            "id" : "107",
+            "sourceId" : "35",
             "tags" : "Relationship",
             "technology" : "文件系统路径"
           } ],
           "tags" : "Element,Component",
-          "technology" : "service/impl/CardServiceImpl.java, controller/CardController.java"
+          "technology" : "Local File Storage"
         } ],
         "description" : "单体 Spring Boot 应用，对外提供认证、自习室、座位、预约、支付、AI、Agent、客服、卡牌、规则、个人资料、违规、成就、统计与待办接口。",
         "documentation" : { },
-        "id" : "13",
+        "id" : "22",
         "name" : "Backend API",
         "properties" : {
           "structurizr.dsl.identifier" : "backendApi"
         },
         "relationships" : [ {
           "description" : "读写业务数据",
-          "destinationId" : "27",
-          "id" : "32",
-          "sourceId" : "13",
+          "destinationId" : "36",
+          "id" : "41",
+          "sourceId" : "22",
           "tags" : "Relationship",
           "technology" : "JDBC/MyBatis"
         }, {
           "description" : "读写生成后的卡牌图片",
-          "destinationId" : "28",
-          "id" : "33",
-          "sourceId" : "13",
+          "destinationId" : "37",
+          "id" : "42",
+          "sourceId" : "22",
           "tags" : "Relationship",
           "technology" : "文件系统读写"
         }, {
           "description" : "调用 AI 对话、Agent 推理、客服回复与卡牌文案生成能力",
           "destinationId" : "2",
-          "id" : "34",
-          "sourceId" : "13",
+          "id" : "43",
+          "sourceId" : "22",
           "tags" : "Relationship",
           "technology" : "HTTPS/JSON"
         }, {
           "description" : "调用本地图片生成接口生成卡牌图片",
           "destinationId" : "3",
-          "id" : "36",
-          "sourceId" : "13",
+          "id" : "45",
+          "sourceId" : "22",
           "tags" : "Relationship",
           "technology" : "HTTP/JSON"
         } ],
         "tags" : "Element,Container",
         "technology" : "Java 17, Spring Boot 3.1, Spring MVC, MyBatis"
       }, {
-        "description" : "存储用户、自习室、座位、预约、支付、卡牌、待办、违规、成就等业务数据。",
+        "description" : "存储用户、自习室、场馆导览、座位、预约、支付、卡牌、待办、违规、成就等业务数据。",
         "documentation" : { },
-        "id" : "27",
+        "id" : "36",
         "name" : "MySQL 数据库",
         "properties" : {
           "structurizr.dsl.identifier" : "mysql"
@@ -629,7 +902,7 @@
       }, {
         "description" : "用于保存生成卡牌图片的本地文件系统目录。",
         "documentation" : { },
-        "id" : "28",
+        "id" : "37",
         "name" : "卡牌图片存储目录",
         "properties" : {
           "structurizr.dsl.identifier" : "uploads"
@@ -641,14 +914,14 @@
       "documentation" : {
         "decisions" : [ {
           "content" : "# 1. 仅建模当前后端与 Android 代码范围\n\n## 状态\n\n已接受\n\n## 背景\n\n仓库中不止一个产品面，但这次架构建模的明确目标是只覆盖后端与 Android 客户端。\n\n## 决策\n\nStructurizr 工作区只建模以下范围：\n\n- `backend/istudyspot-backend` 中的 Spring Boot 后端\n- `frontend/Android` 中的 Android 客户端\n- 这两部分代码直接可见的外部依赖\n\n## 影响\n\n- 模型会严格贴合本次代码阅读的实际范围\n- 图中不会暗示已经覆盖管理端、小程序或更大范围的基础设施\n",
-          "date" : "2026-06-13T07:15:02Z",
+          "date" : "2026-06-16T08:35:24Z",
           "format" : "Markdown",
           "id" : "1",
           "status" : "Proposed",
           "title" : "仅建模当前后端与 Android 代码范围"
         }, {
           "content" : "# 2. 将后端建模为一个容器\n\n## 状态\n\n已接受\n\n## 背景\n\n后端代码暴露了很多 API 领域，但它们都运行在同一个 Spring Boot 部署单元中，共享进程内存、配置与持久化访问。\n\n## 决策\n\n架构模型把后端视为一个容器，再通过组件视图展示其主要职责分区。\n\n## 影响\n\n- 图能够反映真实可部署单元\n- 控制器/服务职责边界仍然能在组件视图中体现\n- 模型不会错误暗示这些模块之间存在独立部署或网络边界\n",
-          "date" : "2026-06-13T07:15:02Z",
+          "date" : "2026-06-16T08:35:24Z",
           "format" : "Markdown",
           "id" : "2",
           "status" : "Proposed",
@@ -682,15 +955,15 @@
       "relationships" : [ {
         "description" : "调用 AI 对话、Agent 推理、客服回复与卡牌文案生成能力",
         "destinationId" : "2",
-        "id" : "35",
-        "linkedRelationshipId" : "34",
+        "id" : "44",
+        "linkedRelationshipId" : "43",
         "sourceId" : "4",
         "technology" : "HTTPS/JSON"
       }, {
         "description" : "调用本地图片生成接口生成卡牌图片",
         "destinationId" : "3",
-        "id" : "37",
-        "linkedRelationshipId" : "36",
+        "id" : "46",
+        "linkedRelationshipId" : "45",
         "sourceId" : "4",
         "technology" : "HTTP/JSON"
       } ],
@@ -713,7 +986,7 @@
         "rankSeparation" : 100,
         "vertices" : true
       },
-      "containerId" : "13",
+      "containerId" : "22",
       "description" : "C3：当前 Spring Boot 单体后端中的主要组件分工图。",
       "elements" : [ {
         "id" : "2",
@@ -721,6 +994,168 @@
         "y" : 0
       }, {
         "id" : "3",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "23",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "24",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "25",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "26",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "27",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "28",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "29",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "30",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "31",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "32",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "33",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "34",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "35",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "36",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "37",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalContainerBoundariesVisible" : false,
+      "key" : "backend-components",
+      "name" : "Component View: iStudySpot - Backend API",
+      "order" : 3,
+      "relationships" : [ {
+        "id" : "100"
+      }, {
+        "id" : "101"
+      }, {
+        "id" : "102"
+      }, {
+        "id" : "103"
+      }, {
+        "id" : "104"
+      }, {
+        "id" : "105"
+      }, {
+        "id" : "106"
+      }, {
+        "id" : "107"
+      }, {
+        "id" : "81"
+      }, {
+        "id" : "82"
+      }, {
+        "id" : "83"
+      }, {
+        "id" : "84"
+      }, {
+        "id" : "85"
+      }, {
+        "id" : "86"
+      }, {
+        "id" : "87"
+      }, {
+        "id" : "88"
+      }, {
+        "id" : "89"
+      }, {
+        "id" : "90"
+      }, {
+        "id" : "91"
+      }, {
+        "id" : "92"
+      }, {
+        "id" : "93"
+      }, {
+        "id" : "94"
+      }, {
+        "id" : "95"
+      }, {
+        "id" : "96"
+      }, {
+        "id" : "97"
+      }, {
+        "id" : "98"
+      }, {
+        "id" : "99"
+      } ]
+    }, {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "containerId" : "5",
+      "description" : "C3：当前 Android 客户端基于 Compose 与 MVVM 的主要组件分工图。",
+      "elements" : [ {
+        "id" : "6",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "7",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "8",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "9",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "10",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "11",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "12",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "13",
         "x" : 0,
         "y" : 0
       }, {
@@ -759,35 +1194,11 @@
         "id" : "22",
         "x" : 0,
         "y" : 0
-      }, {
-        "id" : "23",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "24",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "25",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "26",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "27",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "28",
-        "x" : 0,
-        "y" : 0
       } ],
       "externalContainerBoundariesVisible" : false,
-      "key" : "backend-components",
-      "name" : "Component View: iStudySpot - Backend API",
-      "order" : 3,
+      "key" : "android-components",
+      "name" : "Component View: iStudySpot - Android App",
+      "order" : 4,
       "relationships" : [ {
         "id" : "47"
       }, {
@@ -842,72 +1253,20 @@
         "id" : "72"
       }, {
         "id" : "73"
-      } ]
-    }, {
-      "automaticLayout" : {
-        "edgeSeparation" : 50,
-        "nodeSeparation" : 50,
-        "rankDirection" : "LeftRight",
-        "rankSeparation" : 100,
-        "vertices" : true
-      },
-      "containerId" : "5",
-      "description" : "C3：当前 Android 客户端基于 Compose 与 MVVM 的主要组件分工图。",
-      "elements" : [ {
-        "id" : "6",
-        "x" : 0,
-        "y" : 0
       }, {
-        "id" : "7",
-        "x" : 0,
-        "y" : 0
+        "id" : "74"
       }, {
-        "id" : "8",
-        "x" : 0,
-        "y" : 0
+        "id" : "75"
       }, {
-        "id" : "9",
-        "x" : 0,
-        "y" : 0
+        "id" : "76"
       }, {
-        "id" : "10",
-        "x" : 0,
-        "y" : 0
+        "id" : "77"
       }, {
-        "id" : "11",
-        "x" : 0,
-        "y" : 0
+        "id" : "78"
       }, {
-        "id" : "12",
-        "x" : 0,
-        "y" : 0
+        "id" : "79"
       }, {
-        "id" : "13",
-        "x" : 0,
-        "y" : 0
-      } ],
-      "externalContainerBoundariesVisible" : false,
-      "key" : "android-components",
-      "name" : "Component View: iStudySpot - Android App",
-      "order" : 4,
-      "relationships" : [ {
-        "id" : "38"
-      }, {
-        "id" : "39"
-      }, {
-        "id" : "40"
-      }, {
-        "id" : "41"
-      }, {
-        "id" : "42"
-      }, {
-        "id" : "43"
-      }, {
-        "id" : "44"
-      }, {
-        "id" : "45"
-      }, {
-        "id" : "46"
+        "id" : "80"
       } ]
     } ],
     "configuration" : {
@@ -966,15 +1325,15 @@
         "x" : 0,
         "y" : 0
       }, {
-        "id" : "13",
+        "id" : "22",
         "x" : 0,
         "y" : 0
       }, {
-        "id" : "27",
+        "id" : "36",
         "x" : 0,
         "y" : 0
       }, {
-        "id" : "28",
+        "id" : "37",
         "x" : 0,
         "y" : 0
       } ],
@@ -983,17 +1342,17 @@
       "name" : "Container View: iStudySpot",
       "order" : 2,
       "relationships" : [ {
-        "id" : "29"
+        "id" : "38"
       }, {
-        "id" : "31"
+        "id" : "40"
       }, {
-        "id" : "32"
+        "id" : "41"
       }, {
-        "id" : "33"
+        "id" : "42"
       }, {
-        "id" : "34"
+        "id" : "43"
       }, {
-        "id" : "36"
+        "id" : "45"
       } ],
       "softwareSystemId" : "4"
     } ],
@@ -1020,7 +1379,7 @@
       "name" : "System Context View: iStudySpot",
       "order" : 1,
       "relationships" : [ {
-        "id" : "30"
+        "id" : "39"
       } ],
       "softwareSystemId" : "4"
     } ]

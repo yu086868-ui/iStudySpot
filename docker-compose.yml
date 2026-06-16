@@ -70,8 +70,8 @@ services:
     restart: always
     ports:
       - "3001:80"
-    depends_on:
-      - backend
+    environment:
+      - ADMIN_BACKEND_TARGET=${ADMIN_BACKEND_TARGET:-http://backend:8080}
 
 volumes:
   mysql_data:

@@ -1,35 +1,81 @@
 import dayjs from 'dayjs'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
 
-export function formatDateTime(val) {
-  if (!val) return '-'
-  return dayjs(val).format('YYYY-MM-DD HH:mm:ss')
+dayjs.extend(customParseFormat)
+dayjs.extend(utc)
+dayjs.extend(timezone)
+
+const SHANGHAI_TIMEZONE = 'Asia/Shanghai'
+const RMB_SYMBOL = '\u00A5'
+const LOCAL_TIME_PATTERNS = [
+  'YYYY-MM-DD HH:mm:ss',
+  'YYYY-MM-DD HH:mm',
+  'YYYY-MM-DDTHH:mm:ss',
+  'YYYY-MM-DDTHH:mm',
+]
+
+function parseTimestamp(value) {
+  if (value === null || value === undefined || value === '') return null
+
+  if (typeof value === 'number') {
+    return dayjs(value).tz(SHANGHAI_TIMEZONE)
+  }
+
+  const raw = String(value).trim()
+  if (!raw) return null
+
+  const hasZoneInfo = /([zZ]|[+-]\d{2}:?\d{2})$/.test(raw)
+  if (hasZoneInfo) {
+    const zoned = dayjs(raw)
+    return zoned.isValid() ? zoned.tz(SHANGHAI_TIMEZONE) : null
+  }
+
+  if (raw.includes('T')) {
+    const parsedAsUtc = dayjs.utc(raw)
+    if (parsedAsUtc.isValid()) {
+      return parsedAsUtc.tz(SHANGHAI_TIMEZONE)
+    }
+  }
+
+  for (const pattern of LOCAL_TIME_PATTERNS) {
+    const parsed = dayjs.tz(raw, pattern, SHANGHAI_TIMEZONE)
+    if (parsed.isValid()) {
+      return parsed
+    }
+  }
+
+  const fallback = dayjs(raw)
+  return fallback.isValid() ? fallback.tz(SHANGHAI_TIMEZONE) : null
 }
 
-export function formatDate(val) {
-  if (!val) return '-'
-  return dayjs(val).format('YYYY-MM-DD')
+export function formatDateTime(value) {
+  const parsed = parseTimestamp(value)
+  return parsed ? parsed.format('YYYY-MM-DD HH:mm:ss') : '-'
 }
 
-export function formatMoney(val) {
-  if (val === null || val === undefined) return '¥0.00'
-  return `¥${Number(val).toFixed(2)}`
+export function formatDate(value) {
+  const parsed = parseTimestamp(value)
+  return parsed ? parsed.format('YYYY-MM-DD') : '-'
+}
+
+export function formatMoney(value) {
+  if (value === null || value === undefined || value === '') return `${RMB_SYMBOL}0.00`
+  return `${RMB_SYMBOL}${Number(value).toFixed(2)}`
 }
 
 export function statusColor(status) {
   const map = {
     available: 'green',
-    occupied: 'red',
-    reserved: 'orange',
-    maintenance: 'default',
     booked: 'orange',
+    in_use: 'cyan',
+    occupied: 'cyan',
     unavailable: 'default',
     open: 'green',
     closed: 'red',
     pending: 'orange',
     paid: 'blue',
-    in_use: 'cyan',
-    confirmed: 'blue',
-    checked_in: 'cyan',
     completed: 'green',
     cancelled: 'red',
     expired: 'default',
@@ -47,18 +93,14 @@ export function statusColor(status) {
 export function statusLabel(status) {
   const map = {
     available: '可用',
-    occupied: '占用',
-    reserved: '已预约',
-    maintenance: '维护中',
     booked: '已预约',
+    in_use: '使用中',
+    occupied: '使用中',
     unavailable: '不可用',
     open: '开放',
     closed: '关闭',
     pending: '待支付',
     paid: '已支付',
-    in_use: '使用中',
-    confirmed: '已确认',
-    checked_in: '已签到',
     completed: '已完成',
     cancelled: '已取消',
     expired: '已过期',
