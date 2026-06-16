@@ -1,6 +1,7 @@
 package com.ycyu.istudyspotbackend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ycyu.istudyspotbackend.agent.tool.ReservationRulesProvider;
 import com.ycyu.istudyspotbackend.dto.BookingDTO;
 import com.ycyu.istudyspotbackend.entity.Order;
 import com.ycyu.istudyspotbackend.service.OrderService;
@@ -16,18 +17,32 @@ import org.mockito.quality.Strictness;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class OrderControllerTest {
+class OrderControllerTest {
 
     private MockMvc mockMvc;
 
@@ -36,6 +51,9 @@ public class OrderControllerTest {
 
     @Mock
     private PaymentService paymentService;
+
+    @Mock
+    private ReservationRulesProvider reservationRulesProvider;
 
     @InjectMocks
     private OrderController orderController;
@@ -52,8 +70,8 @@ public class OrderControllerTest {
     @Test
     void testCreateReservation() throws Exception {
         Map<String, Object> result = new HashMap<>();
-        result.put("order", new HashMap<>());
-        doReturn(result).when(orderService).createOrder(anyLong(), anyLong(), anyLong(), any(LocalDateTime.class), any(LocalDateTime.class), any(String.class));
+        result.put("id", "1");
+        doReturn(result).when(orderService).createOrder(anyLong(), anyLong(), anyLong(), any(LocalDateTime.class), any(LocalDateTime.class), anyString());
 
         BookingDTO bookingDTO = new BookingDTO();
         bookingDTO.setSeatId(1L);
@@ -62,9 +80,9 @@ public class OrderControllerTest {
         bookingDTO.setEndTime(LocalDateTime.now().plusHours(2));
 
         mockMvc.perform(post("/api/reservations")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(bookingDTO))
-                .requestAttr("userId", 1L))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(bookingDTO))
+                        .requestAttr("userId", 1L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.message").value("预约成功"));
@@ -73,74 +91,61 @@ public class OrderControllerTest {
     }
 
     @Test
-    void testPayReservation_success() throws Exception {
+    void testPayReservationSuccess() throws Exception {
         Order order = new Order();
         order.setId(1L);
         order.setStatus("pending");
         order.setTotalPrice(new BigDecimal("20.00"));
-
         when(orderService.getOrderDetail(1L)).thenReturn(order);
 
         Map<String, Object> paymentResult = new HashMap<>();
-        paymentResult.put("paymentId", "1");
-        paymentResult.put("orderId", "1");
-        paymentResult.put("amount", new BigDecimal("20.00"));
-        paymentResult.put("paymentMethod", "balance");
         paymentResult.put("status", "success");
-        paymentResult.put("payTime", "2026-10-01 10:00:00");
-        paymentResult.put("createdAt", "2026-10-01 10:00:00");
-
         when(paymentService.createPayment(eq(1L), eq(1L), any(BigDecimal.class), eq("balance")))
                 .thenReturn(paymentResult);
 
-        mockMvc.perform(post("/api/reservations/1/pay")
-                .requestAttr("userId", 1L))
+        mockMvc.perform(post("/api/reservations/1/pay").requestAttr("userId", 1L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.message").value("支付成功"))
                 .andExpect(jsonPath("$.data.status").value("success"));
 
-        verify(orderService, times(1)).getOrderDetail(1L);
-        verify(paymentService, times(1)).createPayment(eq(1L), eq(1L), any(BigDecimal.class), eq("balance"));
+        verify(orderService).getOrderDetail(1L);
+        verify(paymentService).createPayment(eq(1L), eq(1L), any(BigDecimal.class), eq("balance"));
     }
 
     @Test
-    void testPayReservation_orderNotPending() throws Exception {
+    void testPayReservationOrderNotPending() throws Exception {
         Order order = new Order();
         order.setId(1L);
         order.setStatus("paid");
         order.setTotalPrice(new BigDecimal("20.00"));
-
         when(orderService.getOrderDetail(1L)).thenReturn(order);
 
-        mockMvc.perform(post("/api/reservations/1/pay")
-                .requestAttr("userId", 1L))
+        mockMvc.perform(post("/api/reservations/1/pay").requestAttr("userId", 1L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(400))
                 .andExpect(jsonPath("$.message").value("订单状态不正确，无法支付"));
 
-        verify(orderService, times(1)).getOrderDetail(1L);
+        verify(orderService).getOrderDetail(1L);
         verify(paymentService, never()).createPayment(anyLong(), anyLong(), any(BigDecimal.class), anyString());
     }
 
     @Test
-    void testPayReservation_paymentServiceThrowsException() throws Exception {
+    void testPayReservationPaymentServiceThrowsException() throws Exception {
         Order order = new Order();
         order.setId(1L);
         order.setStatus("pending");
         order.setTotalPrice(new BigDecimal("20.00"));
-
         when(orderService.getOrderDetail(1L)).thenReturn(order);
         when(paymentService.createPayment(anyLong(), anyLong(), any(BigDecimal.class), anyString()))
                 .thenThrow(new RuntimeException("支付失败"));
 
-        mockMvc.perform(post("/api/reservations/1/pay")
-                .requestAttr("userId", 1L))
+        mockMvc.perform(post("/api/reservations/1/pay").requestAttr("userId", 1L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(400))
                 .andExpect(jsonPath("$.message").value("支付失败"));
 
-        verify(paymentService, times(1)).createPayment(anyLong(), anyLong(), any(BigDecimal.class), anyString());
+        verify(paymentService).createPayment(anyLong(), anyLong(), any(BigDecimal.class), anyString());
     }
 
     @Test
@@ -152,27 +157,27 @@ public class OrderControllerTest {
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.message").value("预约已取消"));
 
-        verify(orderService, times(1)).cancelOrder(1L);
+        verify(orderService).cancelOrder(1L);
     }
 
     @Test
     void testGetMyReservations() throws Exception {
         Map<String, Object> result = new HashMap<>();
-        result.put("list", new java.util.ArrayList<>());
+        result.put("list", new ArrayList<>());
         result.put("total", 0);
         result.put("page", 1);
         result.put("pageSize", 20);
-        doReturn(result).when(orderService).getOrderList(anyLong(), any(String.class), any(String.class), any(String.class), anyInt(), anyInt());
+        doReturn(result).when(orderService).getOrderList(anyLong(), anyString(), anyString(), anyString(), anyInt(), anyInt());
 
         mockMvc.perform(get("/api/reservations/my")
-                .param("page", "1")
-                .param("pageSize", "20")
-                .requestAttr("userId", 1L))
+                        .param("page", "1")
+                        .param("pageSize", "20")
+                        .requestAttr("userId", 1L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.message").value("success"));
 
-        verify(orderService, times(1)).getOrderList(anyLong(), any(), any(), any(), anyInt(), anyInt());
+        verify(orderService).getOrderList(anyLong(), any(), any(), any(), anyInt(), anyInt());
     }
 
     @Test
@@ -186,11 +191,20 @@ public class OrderControllerTest {
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.message").value("success"));
 
-        verify(orderService, times(1)).getOrderDetail(1L);
+        verify(orderService).getOrderDetail(1L);
     }
 
     @Test
     void testGetReservationRules() throws Exception {
+        Map<String, Object> rules = new HashMap<>();
+        rules.put("maxAdvanceDays", 7);
+        rules.put("maxDailyReservations", 2);
+        rules.put("maxDurationHours", 4);
+        rules.put("minDurationMinutes", 30);
+        rules.put("cancellationDeadlineMinutes", 15);
+        rules.put("noShowPenalty", 5);
+        when(reservationRulesProvider.getRules()).thenReturn(rules);
+
         mockMvc.perform(get("/api/reservations/rules"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
@@ -200,5 +214,7 @@ public class OrderControllerTest {
                 .andExpect(jsonPath("$.data.minDurationMinutes").value(30))
                 .andExpect(jsonPath("$.data.cancellationDeadlineMinutes").value(15))
                 .andExpect(jsonPath("$.data.noShowPenalty").value(5));
+
+        verify(reservationRulesProvider).getRules();
     }
 }

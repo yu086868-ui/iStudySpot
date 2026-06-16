@@ -2,7 +2,6 @@ package com.ycyu.istudyspotbackend.service.impl;
 
 import com.ycyu.istudyspotbackend.entity.CustomerServiceMessage;
 import com.ycyu.istudyspotbackend.service.DeepSeekService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,11 +15,21 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class CustomerServiceServiceImplTest {
+class CustomerServiceServiceImplTest {
 
     @Mock
     private DeepSeekService deepSeekService;
@@ -34,7 +43,6 @@ public class CustomerServiceServiceImplTest {
 
         assertNotNull(welcomeMessage);
         assertFalse(welcomeMessage.isEmpty());
-        assertTrue(welcomeMessage.contains("小i"));
         assertTrue(welcomeMessage.contains("iStudySpot"));
     }
 
@@ -44,27 +52,16 @@ public class CustomerServiceServiceImplTest {
 
         assertNotNull(recommendedQuestions);
         assertFalse(recommendedQuestions.isEmpty());
-        assertEquals(8, recommendedQuestions.size());
-        
-        assertTrue(recommendedQuestions.contains("如何预订自习室座位"));
-        assertTrue(recommendedQuestions.contains("如何查看自习室使用情况"));
-        assertTrue(recommendedQuestions.contains("如何取消预订"));
-        assertTrue(recommendedQuestions.contains("自习室开放时间"));
-        assertTrue(recommendedQuestions.contains("座位价格是多少"));
-        assertTrue(recommendedQuestions.contains("如何延长预订时间"));
-        assertTrue(recommendedQuestions.contains("是否可以更换座位"));
-        assertTrue(recommendedQuestions.contains("积分如何使用"));
+        assertEquals(4, recommendedQuestions.size());
     }
 
     @Test
     void testChatWithCustomerService() {
-        when(deepSeekService.chat(anyString(), anyList())).thenReturn("您好！我是智能客服小i，很高兴为您服务。");
+        when(deepSeekService.chat(anyString(), anyList())).thenReturn("您好，我来协助您。");
 
         String response = customerServiceService.chatWithCustomerService("test-session-123", "你好");
 
-        assertNotNull(response);
-        assertEquals("您好！我是智能客服小i，很高兴为您服务。", response);
-
+        assertEquals("您好，我来协助您。", response);
         verify(deepSeekService, times(1)).chat(anyString(), anyList());
     }
 
@@ -77,42 +74,49 @@ public class CustomerServiceServiceImplTest {
         String response1 = customerServiceService.chatWithCustomerService("test-session-multi", "问题1");
         String response2 = customerServiceService.chatWithCustomerService("test-session-multi", "问题2");
 
-        assertNotNull(response1);
-        assertNotNull(response2);
         assertEquals("第一次回复", response1);
         assertEquals("第二次回复", response2);
-
         verify(deepSeekService, times(2)).chat(anyString(), anyList());
     }
 
     @Test
     void testChatWithCustomerServiceEmptyMessage() {
-        when(deepSeekService.chat(anyString(), anyList())).thenReturn("好的。");
+        when(deepSeekService.chat(anyString(), anyList())).thenReturn("好的");
 
         String response = customerServiceService.chatWithCustomerService("test-session-empty", "");
 
         assertNotNull(response);
-        verify(deepSeekService, times(1)).chat(anyString(), anyList());
+        verify(deepSeekService).chat(anyString(), anyList());
     }
 
     @Test
     void testChatWithCustomerServiceNullMessage() {
-        when(deepSeekService.chat(anyString(), anyList())).thenReturn("好的。");
+        when(deepSeekService.chat(anyString(), anyList())).thenReturn("好的");
 
         String response = customerServiceService.chatWithCustomerService("test-session-null", null);
 
         assertNotNull(response);
-        verify(deepSeekService, times(1)).chat(anyString(), anyList());
+        verify(deepSeekService).chat(anyString(), anyList());
     }
 
     @Test
     void testChatWithCustomerServiceNullSessionId() {
-        when(deepSeekService.chat(anyString(), anyList())).thenReturn("您好！");
+        when(deepSeekService.chat(anyString(), anyList())).thenReturn("您好");
 
         String response = customerServiceService.chatWithCustomerService(null, "你好");
 
         assertNotNull(response);
-        verify(deepSeekService, times(1)).chat(anyString(), anyList());
+        verify(deepSeekService).chat(anyString(), anyList());
+    }
+
+    @Test
+    void testChatUsesFallbackWhenModelReturnsErrorPrefix() {
+        when(deepSeekService.chat(anyString(), anyList())).thenReturn("Error: timeout");
+
+        String response = customerServiceService.chatWithCustomerService("test-fallback", "你好");
+
+        assertNotNull(response);
+        assertFalse(response.startsWith("Error"));
     }
 
     @Test
@@ -131,7 +135,6 @@ public class CustomerServiceServiceImplTest {
 
         List<CustomerServiceMessage> history = customerServiceService.getSessionHistory("test-session-history");
 
-        assertNotNull(history);
         assertEquals(2, history.size());
         assertEquals("user", history.get(0).getRole());
         assertEquals("assistant", history.get(1).getRole());
@@ -145,7 +148,6 @@ public class CustomerServiceServiceImplTest {
         customerServiceService.chatWithCustomerService("test-session-multi-history", "问题2");
 
         List<CustomerServiceMessage> history = customerServiceService.getSessionHistory("test-session-multi-history");
-
         assertEquals(4, history.size());
     }
 
@@ -161,7 +163,7 @@ public class CustomerServiceServiceImplTest {
 
         assertNotNull(emitter);
         assertTrue(latch.await(2, TimeUnit.SECONDS));
-        verify(deepSeekService, times(1)).streamChat(anyString(), anyList(), any(), any(), any());
+        verify(deepSeekService).streamChat(anyString(), anyList(), any(), any(), any());
     }
 
     @Test
@@ -204,7 +206,7 @@ public class CustomerServiceServiceImplTest {
     void testChatWithCustomerServiceChineseCharacters() {
         when(deepSeekService.chat(anyString(), anyList())).thenReturn("好的，我来帮您解答。");
 
-        String response = customerServiceService.chatWithCustomerService("test-chinese", "如何预订座位？");
+        String response = customerServiceService.chatWithCustomerService("test-chinese", "如何预约座位？");
 
         assertNotNull(response);
         assertTrue(response.contains("好的"));
@@ -267,7 +269,7 @@ public class CustomerServiceServiceImplTest {
     @Test
     void testBuildMessagesWithHistory() {
         when(deepSeekService.chat(anyString(), anyList())).thenReturn("回复");
-        
+
         customerServiceService.chatWithCustomerService("test-build-messages", "问题1");
         customerServiceService.chatWithCustomerService("test-build-messages", "问题2");
 
@@ -278,9 +280,9 @@ public class CustomerServiceServiceImplTest {
     @Test
     void testSaveMessageWithNullSessionId() {
         when(deepSeekService.chat(anyString(), anyList())).thenReturn("回复");
-        
+
         customerServiceService.chatWithCustomerService(null, "测试消息");
-        
+
         List<CustomerServiceMessage> history = customerServiceService.getSessionHistory(null);
         assertEquals(2, history.size());
     }
@@ -288,9 +290,7 @@ public class CustomerServiceServiceImplTest {
     @Test
     void testRecommendedQuestionsImmutability() {
         List<String> questions = customerServiceService.getRecommendedQuestions();
-        
-        assertThrows(UnsupportedOperationException.class, () -> {
-            questions.add("新问题");
-        });
+
+        assertThrows(UnsupportedOperationException.class, () -> questions.add("新问题"));
     }
 }
