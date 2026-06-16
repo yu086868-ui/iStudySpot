@@ -8,10 +8,6 @@ public class Announcement {
     private String content;
     private String type;
     private String priority;
-    private LocalDateTime publishTime;
-    private LocalDateTime expireTime;
-    private String author;
-    private String status;
     private String status;
     private String author;
     private LocalDateTime publishTime;
@@ -46,11 +42,6 @@ public class Announcement {
     public LocalDateTime getExpireTime() { return expireTime; }
     public void setExpireTime(LocalDateTime expireTime) { this.expireTime = expireTime; }
 
-    public String getAuthor() { return author; }
-    public void setAuthor(String author) { this.author = author; }
-
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
     public LocalDateTime getCreateTime() { return createTime; }
     public void setCreateTime(LocalDateTime createTime) { this.createTime = createTime; }
 
