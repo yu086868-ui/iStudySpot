@@ -30,7 +30,8 @@ enum CacheKey {
   ANNOUNCEMENTS = 'announcements',
   RULES = 'rules',
   RESERVATION_RULES = 'reservation_rules',
-  CARDS = 'cards'
+  CARDS = 'cards',
+  TOKEN = 'token'
 }
 
 enum CacheExpireTime {
@@ -44,7 +45,8 @@ enum CacheExpireTime {
   ANNOUNCEMENTS = 10 * 60 * 1000,
   RULES = 60 * 60 * 1000,
   RESERVATION_RULES = 60 * 60 * 1000,
-  CARDS = 10 * 60 * 1000
+  CARDS = 10 * 60 * 1000,
+  TOKEN = 7 * 24 * 60 * 60 * 1000 // 7天
 }
 
 class CacheService {
@@ -132,6 +134,7 @@ class CacheService {
     this.remove(CacheKey.MY_RESERVATIONS);
     this.remove(CacheKey.CURRENT_CHECKIN);
     this.remove(CacheKey.CHECKIN_RECORDS);
+    this.remove(CacheKey.TOKEN);
   }
 
   setUser(user: User): void {
@@ -220,6 +223,21 @@ class CacheService {
 
   getCards(): Card[] | null {
     return this.get<Card[]>(CacheKey.CARDS);
+  }
+
+  /** 保存JWT token到缓存 */
+  setToken(token: string): void {
+    this.set(CacheKey.TOKEN, token, CacheExpireTime.TOKEN);
+  }
+
+  /** 从缓存读取JWT token */
+  getToken(): string | null {
+    return this.get<string>(CacheKey.TOKEN);
+  }
+
+  /** 从缓存移除JWT token */
+  removeToken(): void {
+    this.remove(CacheKey.TOKEN);
   }
 }
 

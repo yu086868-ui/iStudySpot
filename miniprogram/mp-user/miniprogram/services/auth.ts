@@ -2,6 +2,7 @@ import type { ApiResponse, WxLoginParams, WxLoginResponse } from '../typings/api
 import request from '../utils/request';
 import store from '../utils/store';
 import mockManager from '../utils/mock';
+import cache from '../utils/cache';
 
 export const authApi = {
   async wxLogin(params: WxLoginParams): Promise<ApiResponse<WxLoginResponse>> {
@@ -16,6 +17,11 @@ export const authApi = {
         store.setUser(response.data.user);
       }
 
+      // mock模式下保存token
+      if (response.code === 200 && response.data && (response.data as any).token) {
+        cache.setToken((response.data as any).token);
+      }
+
       return response;
     }
 
@@ -23,6 +29,11 @@ export const authApi = {
 
     if (response.code === 200 && response.data && response.data.user) {
       store.setUser(response.data.user);
+    }
+
+    // 登录成功后保存token到缓存
+    if (response.code === 200 && response.data && (response.data as any).token) {
+      cache.setToken((response.data as any).token);
     }
 
     return response;

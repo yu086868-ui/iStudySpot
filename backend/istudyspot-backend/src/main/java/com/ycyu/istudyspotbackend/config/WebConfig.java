@@ -38,7 +38,20 @@ public class WebConfig implements WebMvcConfigurer {
                         "/api/rules",
                         "/api/rules/**",
                         "/api/characters",
-                        "/api/card/**"
+                        "/api/card/**",
+                        // 微信小程序端无需JWT的接口
+                        "/api/wx/user/login",
+                        "/api/wx/studyrooms",
+                        "/api/wx/studyrooms/**",
+                        "/api/wx/seats",
+                        "/api/wx/seats/**",
+                        "/api/wx/announcements",
+                        "/api/wx/announcements/**",
+                        "/api/wx/rules",
+                        "/api/wx/rules/**",
+                        "/api/wx/reservations/rules",
+                        "/api/wx/reservations/{id}",
+                        "/api/wx/card/**"
                 );
     }
 
