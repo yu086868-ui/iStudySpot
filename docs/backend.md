@@ -2,16 +2,16 @@
 
 ## 1. 技术栈
 
-- **框架**: Spring Boot 3.1.2
+- **框架**: Spring Boot 3.5.11
 - **Web框架**: Spring MVC
-- **ORM**: MyBatis
+- **ORM**: MyBatis 3.0.5
 - **数据库**: MySQL 8.0
 - **缓存**: Redis
 - **认证**: JWT
-- **API文档**: 无（可考虑添加Springdoc/Swagger）
 - **构建工具**: Maven
 - **测试框架**: JUnit 5 + Mockito
 - **覆盖率工具**: JaCoCo
+- **AI集成**: DeepSeek API
 
 ## 2. 目录结构
 
@@ -20,20 +20,27 @@ backend/istudyspot-backend/
 ├── src/
 │   ├── main/
 │   │   ├── java/com/ycyu/istudyspotbackend/
-│   │   │   ├── config/          # 配置类
+│   │   │   ├── agent/            # AI Agent模块
+│   │   │   │   ├── chat/         # Agent对话服务
+│   │   │   │   └── tool/         # Agent工具服务
+│   │   │   ├── config/           # 配置类
 │   │   │   ├── controller/       # 控制器
+│   │   │   │   ├── Wx*           # 微信小程序控制器
+│   │   │   │   └── *Controller   # 原有控制器
 │   │   │   ├── dto/              # 数据传输对象
 │   │   │   ├── entity/           # 实体类
 │   │   │   ├── interceptor/      # 拦截器
 │   │   │   ├── mapper/           # MyBatis映射器
 │   │   │   ├── service/          # 服务层
 │   │   │   ├── utils/            # 工具类
-│   │   │   └── IstudyspotBackendApplication.java  # 应用入口
+│   │   │   └── IstudyspotBackendApplication.java
 │   │   └── resources/
 │   │       ├── db/migration/     # 数据库迁移脚本
-│   │       └── application.yml    # 应用配置
-│   └── test/                      # 测试代码
+│   │       └── application.yml   # 应用配置
+│   └── test/                     # 测试代码
 ├── .github/workflows/            # CI/CD配置
+├── Dockerfile                    # Docker构建文件
+├── docker-compose.yml            # Docker编排文件
 ├── pom.xml                       # Maven配置
 └── README.md                     # 后端说明文档
 ```
@@ -41,22 +48,29 @@ backend/istudyspot-backend/
 ## 3. 核心功能
 
 ### 3.1 认证与授权
-- 用户注册、登录
+- 用户注册、登录（用户名/密码）
+- 微信小程序登录（code换token）
 - JWT令牌生成与验证
 - 刷新令牌
+- 登出
 
 ### 3.2 自习室管理
-- 自习室列表查询
-- 自习室详情查询
+- 自习室列表查询（支持分页、状态筛选、楼层筛选、关键词搜索）
+- 自习室详情查询（含规则列表）
 
 ### 3.3 座位管理
-- 座位列表查询
-- 座位状态查询
+- 座位列表查询（支持状态、类型、行列筛选）
+- 座位布局查询（含布局元素、图例）
+- 座位详情查询
 
-### 3.4 订单管理
-- 创建订单
-- 查询订单列表
-- 订单详情查询
+### 3.4 预约管理
+- 创建预约
+- 查询我的预约列表（支持状态、日期筛选）
+- 预约详情查询
+- 取消预约
+- 预约支付
+- 预约续时
+- 预约规则查询
 
 ### 3.5 支付管理
 - 创建支付
@@ -65,17 +79,45 @@ backend/istudyspot-backend/
 
 ### 3.6 用户管理
 - 获取用户信息
-- 更新用户信息
+- 更新用户信息（昵称、头像、手机、邮箱）
 - 修改密码
+- 上传头像
 
 ### 3.7 签到管理
 - 签到
 - 签退
-- 签到记录查询
+- 签到记录查询（含统计数据：总时长、周时长、月时长、连续打卡天数等）
+- 当前签到状态查询
 
 ### 3.8 AI集成
-- AI对话
-- 智能助手
+- AI角色列表查询
+- AI非流式聊天
+- AI流式聊天（SSE）
+- Agent对话（含工具调用）
+- AI卡片生成（同步/流式）
+- 卡片列表查询
+- 卡片详情查询
+- 卡片图片访问
+
+### 3.9 规则管理
+- 规则列表查询（支持自习室ID、分类筛选）
+- 规则详情查询
+
+### 3.10 公告管理
+- 公告列表查询（支持类型、优先级筛选）
+- 公告详情查询
+
+### 3.11 成就系统
+- 成就列表查询
+- 用户成就查询
+
+### 3.12 违规记录
+- 违规记录查询
+- 违规申诉
+
+### 3.13 健康检查
+- 基础健康检查
+- 就绪检查（含数据库连接检查）
 
 ## 4. 测试情况
 
@@ -131,16 +173,34 @@ target/site/jacoco/index.html
 
 ### 5.1 主要表结构
 
+**核心业务表:**
+- `user`: 用户信息
 - `study_room`: 自习室信息
 - `seat`: 座位信息
-- `user`: 用户信息
-- `order`: 订单信息
+- `order`: 预约订单信息
 - `payment`: 支付信息
-- `check_in`: 签到记录
+- `check_in_record`: 签到记录
+
+**扩展功能表:**
+- `card`: AI卡片
+- `rule`: 规则配置
+- `announcement`: 公告信息
+- `achievement`: 成就定义
+- `user_achievement`: 用户成就
+- `violation_record`: 违规记录
+- `seat_layout_item`: 座位布局元素
+
+**辅助表:**
+- `area`: 区域信息
+- `price_strategy`: 价格策略
+- `order_detail`: 订单明细
+- `payment_log`: 支付流水
+- `seat_status_log`: 座位状态日志
+- `blacklist`: 黑名单
 
 ### 5.2 数据库迁移
 
-使用Flyway进行数据库迁移，迁移脚本位于 `src/main/resources/db/migration/` 目录。
+数据库初始化脚本位于项目根目录 `init-db.sql`。
 
 ## 6. API接口
 

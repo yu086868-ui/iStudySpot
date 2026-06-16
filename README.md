@@ -12,7 +12,7 @@
 
 ##### 覆盖率徽章：
 
-[]
+[![Miniprogram Coverage (Main)](https://codecov.io/gh/yu086868-ui/iStudySpot/branch/main/graph/badge.svg?flag=miniprogram)](https://codecov.io/gh/yu086868-ui/iStudySpot)
 
 ##### CI 徽章：
 
@@ -22,7 +22,7 @@
 
 ##### 覆盖率徽章：
 
-[]
+[![Miniprogram Coverage (Develop)](https://codecov.io/gh/yu086868-ui/iStudySpot/branch/develop/graph/badge.svg?flag=mp-user)](https://codecov.io/gh/yu086868-ui/iStudySpot)
 
 ##### CI 徽章：
 
@@ -36,7 +36,8 @@
 
 ### CI 状态
 
-[![CI](https://github.com/yu086868-ui/iStudySpot/actions/workflows/ci.yml/badge.svg)](https://github.com/yu086868-ui/iStudySpot/actions)
+[![CI-Backend](https://github.com/yu086868-ui/iStudySpot/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/yu086868-ui/iStudySpot/actions/workflows/backend-ci.yml)
+[![CI-Android](https://github.com/yu086868-ui/iStudySpot/actions/workflows/android-ci.yml/badge.svg)](https://github.com/yu086868-ui/iStudySpot/actions/workflows/android-ci.yml)
 
 ### 覆盖率徽章
 

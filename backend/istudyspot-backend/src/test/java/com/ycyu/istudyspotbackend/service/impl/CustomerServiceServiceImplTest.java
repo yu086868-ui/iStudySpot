@@ -44,6 +44,7 @@ class CustomerServiceServiceImplTest {
         assertNotNull(welcomeMessage);
         assertFalse(welcomeMessage.isEmpty());
         assertTrue(welcomeMessage.contains("iStudySpot"));
+        assertTrue(welcomeMessage.contains("智能助手"));
     }
 
     @Test
