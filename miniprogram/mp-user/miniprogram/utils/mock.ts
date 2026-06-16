@@ -1,7 +1,7 @@
 import type { ApiResponse, StreamCallbacks } from '../typings/api';
 import mockData, { generateCard } from './data';
 
-const ENABLE_MOCK = true;
+const ENABLE_MOCK = false;
 
 function parseQueryParam(queryStr: string, key: string): string {
   if (!queryStr) return '';
