@@ -34,7 +34,6 @@ public class CustomerServiceServiceImplTest {
 
         assertNotNull(welcomeMessage);
         assertFalse(welcomeMessage.isEmpty());
-        assertTrue(welcomeMessage.contains("小i"));
         assertTrue(welcomeMessage.contains("iStudySpot"));
     }
 
@@ -44,16 +43,12 @@ public class CustomerServiceServiceImplTest {
 
         assertNotNull(recommendedQuestions);
         assertFalse(recommendedQuestions.isEmpty());
-        assertEquals(8, recommendedQuestions.size());
+        assertEquals(4, recommendedQuestions.size());
         
-        assertTrue(recommendedQuestions.contains("如何预订自习室座位"));
-        assertTrue(recommendedQuestions.contains("如何查看自习室使用情况"));
-        assertTrue(recommendedQuestions.contains("如何取消预订"));
-        assertTrue(recommendedQuestions.contains("自习室开放时间"));
-        assertTrue(recommendedQuestions.contains("座位价格是多少"));
-        assertTrue(recommendedQuestions.contains("如何延长预订时间"));
-        assertTrue(recommendedQuestions.contains("是否可以更换座位"));
-        assertTrue(recommendedQuestions.contains("积分如何使用"));
+        assertTrue(recommendedQuestions.contains("如何预约自习室座位？"));
+        assertTrue(recommendedQuestions.contains("如何查看我的预约？"));
+        assertTrue(recommendedQuestions.contains("预约规则是什么？"));
+        assertTrue(recommendedQuestions.contains("如何签到或签退？"));
     }
 
     @Test

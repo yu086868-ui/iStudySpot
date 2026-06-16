@@ -1,11 +1,14 @@
 package com.ycyu.istudyspotbackend.service.impl;
 
 import com.ycyu.istudyspotbackend.config.DeepSeekConfig;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -413,5 +416,107 @@ public class DeepSeekServiceImplTest {
             error -> {});
 
         Thread.sleep(500);
+    }
+
+    @Test
+    public void testGenerateCardContent_Fallback() {
+        ReflectionTestUtils.setField(deepSeekService, "apiUrl", "https://api.deepseek.com/v1");
+        ReflectionTestUtils.setField(deepSeekService, "apiKey", "test-key");
+        ReflectionTestUtils.setField(deepSeekService, "model", "deepseek-chat");
+
+        String result = deepSeekService.generateCardContent("N", "励志成长");
+
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertTrue(result.contains("#"));
+    }
+
+    @Test
+    public void testGenerateCardContent_AllRarities() {
+        ReflectionTestUtils.setField(deepSeekService, "apiUrl", "https://api.deepseek.com/v1");
+        ReflectionTestUtils.setField(deepSeekService, "apiKey", "test-key");
+        ReflectionTestUtils.setField(deepSeekService, "model", "deepseek-chat");
+
+        String[] rarities = {"N", "R", "SR", "SSR", "UR", "LR"};
+        for (String rarity : rarities) {
+            String result = deepSeekService.generateCardContent(rarity, "励志成长");
+            assertNotNull(result);
+            assertFalse(result.isEmpty());
+        }
+    }
+
+    @Test
+    public void testGenerateCardContent_AllThemes() {
+        ReflectionTestUtils.setField(deepSeekService, "apiUrl", "https://api.deepseek.com/v1");
+        ReflectionTestUtils.setField(deepSeekService, "apiKey", "test-key");
+        ReflectionTestUtils.setField(deepSeekService, "model", "deepseek-chat");
+
+        String[] themes = {"励志成长", "名人与历史", "哲思感悟", "自然意象", "科技未来", "温柔陪伴", "隐藏主题"};
+        for (String theme : themes) {
+            String result = deepSeekService.generateCardContent("SR", theme);
+            assertNotNull(result);
+            assertFalse(result.isEmpty());
+        }
+    }
+
+    @Test
+    public void testChatCompletion_WithEmptyMessages() {
+        ReflectionTestUtils.setField(deepSeekService, "apiUrl", "https://api.deepseek.com/v1");
+        ReflectionTestUtils.setField(deepSeekService, "apiKey", "test-key");
+        ReflectionTestUtils.setField(deepSeekService, "model", "deepseek-chat");
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            deepSeekService.chatCompletion("deepseek-chat", new ArrayList<>(), null);
+        });
+    }
+
+    @Test
+    public void testChatCompletion_WithNullMessages() {
+        ReflectionTestUtils.setField(deepSeekService, "apiUrl", "https://api.deepseek.com/v1");
+        ReflectionTestUtils.setField(deepSeekService, "apiKey", "test-key");
+        ReflectionTestUtils.setField(deepSeekService, "model", "deepseek-chat");
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            deepSeekService.chatCompletion("deepseek-chat", null, null);
+        });
+    }
+
+    @Test
+    public void testChatCompletion_WithTools() {
+        ReflectionTestUtils.setField(deepSeekService, "apiUrl", "https://api.deepseek.com/v1");
+        ReflectionTestUtils.setField(deepSeekService, "apiKey", "test-key");
+        ReflectionTestUtils.setField(deepSeekService, "model", "deepseek-chat");
+
+        List<Map<String, Object>> messages = new ArrayList<>();
+        Map<String, Object> msg = new HashMap<>();
+        msg.put("role", "user");
+        msg.put("content", "Hello");
+        messages.add(msg);
+
+        List<Map<String, Object>> tools = new ArrayList<>();
+        Map<String, Object> tool = new HashMap<>();
+        tool.put("type", "function");
+        tools.add(tool);
+
+        assertThrows(RuntimeException.class, () -> {
+            deepSeekService.chatCompletion("deepseek-chat", messages, tools);
+        });
+    }
+
+    @Test
+    public void testChatCompletion_WithoutTools() {
+        ReflectionTestUtils.setField(deepSeekService, "apiUrl", "https://api.deepseek.com/v1");
+        ReflectionTestUtils.setField(deepSeekService, "apiKey", "test-key");
+        ReflectionTestUtils.setField(deepSeekService, "model", "deepseek-chat");
+
+        List<Map<String, Object>> messages = new ArrayList<>();
+        Map<String, Object> msg = new HashMap<>();
+        msg.put("role", "user");
+        msg.put("content", "Hello");
+        messages.add(msg);
+
+        assertThrows(RuntimeException.class, () -> {
+            deepSeekService.chatCompletion("deepseek-chat", messages, null);
+        });
     }
 }

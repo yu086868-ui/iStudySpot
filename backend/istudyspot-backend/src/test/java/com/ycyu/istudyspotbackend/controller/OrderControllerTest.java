@@ -1,6 +1,7 @@
 package com.ycyu.istudyspotbackend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ycyu.istudyspotbackend.agent.tool.ReservationRulesProvider;
 import com.ycyu.istudyspotbackend.dto.BookingDTO;
 import com.ycyu.istudyspotbackend.entity.Order;
 import com.ycyu.istudyspotbackend.service.OrderService;
@@ -36,6 +37,9 @@ public class OrderControllerTest {
 
     @Mock
     private PaymentService paymentService;
+
+    @Mock
+    private ReservationRulesProvider reservationRulesProvider;
 
     @InjectMocks
     private OrderController orderController;
@@ -191,6 +195,15 @@ public class OrderControllerTest {
 
     @Test
     void testGetReservationRules() throws Exception {
+        Map<String, Object> mockRules = new HashMap<>();
+        mockRules.put("maxAdvanceDays", 7);
+        mockRules.put("maxDailyReservations", 2);
+        mockRules.put("maxDurationHours", 4);
+        mockRules.put("minDurationMinutes", 30);
+        mockRules.put("cancellationDeadlineMinutes", 15);
+        mockRules.put("noShowPenalty", 5);
+        when(reservationRulesProvider.getRules()).thenReturn(mockRules);
+
         mockMvc.perform(get("/api/reservations/rules"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))

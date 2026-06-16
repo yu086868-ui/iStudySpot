@@ -36,7 +36,9 @@
 
 ### CI 状态
 
-[![CI](https://github.com/yu086868-ui/iStudySpot/actions/workflows/ci.yml/badge.svg)](https://github.com/yu086868-ui/iStudySpot/actions)
+**CI-Backend:** [![CI-Backend](https://github.com/yu086868-ui/iStudySpot/actions/workflows/backend-ci.yml/badge.svg?branch=main)](https://github.com/yu086868-ui/iStudySpot/actions/workflows/backend-ci.yml)
+
+**CI-Android:** [![CI-Android](https://github.com/yu086868-ui/iStudySpot/actions/workflows/android-ci.yml/badge.svg?branch=main)](https://github.com/yu086868-ui/iStudySpot/actions/workflows/android-ci.yml)
 
 ### 覆盖率徽章
 

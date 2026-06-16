@@ -186,10 +186,13 @@ public class AIControllerTest {
                 "message", "Hello"
         );
 
+        SseEmitter mockEmitter = new SseEmitter();
+        when(aiService.streamChat(eq("session123"), eq("customer_service"), eq("Hello"))).thenReturn(mockEmitter);
+
         SseEmitter emitter = aiController.streamChat(request);
 
         assertNotNull(emitter);
-        verify(aiService, never()).streamChat(anyString(), anyString(), anyString());
+        verify(aiService, times(1)).streamChat(eq("session123"), eq("customer_service"), eq("Hello"));
     }
 
     @Test
@@ -227,10 +230,13 @@ public class AIControllerTest {
                 "message", "Hello"
         );
 
+        SseEmitter mockEmitter = new SseEmitter();
+        when(aiService.streamChat(anyString(), eq("customer_service"), eq("Hello"))).thenReturn(mockEmitter);
+
         SseEmitter emitter = aiController.streamChat(request);
 
         assertNotNull(emitter);
-        verify(aiService, never()).streamChat(anyString(), anyString(), anyString());
+        verify(aiService, times(1)).streamChat(anyString(), eq("customer_service"), eq("Hello"));
     }
 
     @Test

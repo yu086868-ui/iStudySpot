@@ -129,6 +129,12 @@ jobs:
         distribution: 'temurin'
         cache: gradle
 
+    - name: Set up Android SDK
+      uses: android-actions/setup-android@v3
+      with:
+        api-level: 34
+        build-tools: '34.0.0'
+
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
@@ -168,6 +174,12 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
         cache: gradle
+
+    - name: Set up Android SDK
+      uses: android-actions/setup-android@v3
+      with:
+        api-level: 34
+        build-tools: '34.0.0'
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew

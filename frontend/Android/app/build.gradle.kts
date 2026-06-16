@@ -13,7 +13,7 @@ jacoco {
 
 android {
     namespace = "com.example.scylier.istudyspot"
-    compileSdk = 36
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.example.scyiler.istudyspot"
