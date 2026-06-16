@@ -22,7 +22,7 @@
 
 ##### 覆盖率徽章：
 
-[![Miniprogram Coverage (Develop)](https://codecov.io/gh/yu086868-ui/iStudySpot/branch/develop/graph/badge.svg?flag=miniprogram)](https://codecov.io/gh/yu086868-ui/iStudySpot)
+[![Miniprogram Coverage (Develop)](https://codecov.io/gh/yu086868-ui/iStudySpot/branch/develop/graph/badge.svg?flag=mp-user)](https://codecov.io/gh/yu086868-ui/iStudySpot)
 
 ##### CI 徽章：
 

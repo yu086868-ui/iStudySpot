@@ -24,7 +24,7 @@ flags:
     paths:
       - "frontend/Android/"
     carryforward: true
-  miniprogram:
+  mp-user:
     paths:
       - "miniprogram/mp-user/"
     carryforward: true

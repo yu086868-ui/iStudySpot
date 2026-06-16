@@ -11,13 +11,6 @@ public interface UserMapper {
     @Select("SELECT * FROM user WHERE username = #{username}")
     User findByUsername(String username);
 
-    /**
-     * 根据openId查找用户（微信小程序登录）
-     * 由于H2内存数据库没有openId字段，复用username字段存储，以"wx_"前缀区分
-     */
-    @Select("SELECT * FROM user WHERE username = #{openId}")
-    User findByOpenId(String openId);
-
     @Select("SELECT * FROM user WHERE id = #{id}")
     User findById(Long id);
 
