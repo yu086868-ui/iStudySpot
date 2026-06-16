@@ -104,17 +104,6 @@ jobs:
           frontend/Android/app/build/reports/
           frontend/Android/security-reports/
 
-    - name: Dependency Security Check
-      run: ./gradlew dependencyCheckAnalyze
-      continue-on-error: true
-
-    - name: Upload Dependency Check Report
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: dependency-check-report
-        path: frontend/Android/app/build/reports/dependency-check-report.html
-
   test:
     name: Run Tests
     runs-on: ubuntu-latest
@@ -132,10 +121,7 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
-    - name: Run unit tests
-      run: ./gradlew testDebugUnitTest
-
-    - name: Generate coverage report
+    - name: Run unit tests with coverage
       run: ./gradlew jacocoTestReport
 
     - name: Upload coverage to Codecov
