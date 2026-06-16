@@ -131,7 +131,7 @@ jobs:
       run: ./gradlew jacocoTestReport
 
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v7
       with:
         files: frontend/Android/app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
         flags: android
