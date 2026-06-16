@@ -90,12 +90,12 @@
             <version>8.0.33</version>
         </dependency>
 
-        <!-- H2 Database for testing -->
+        <!-- H2 Database -->
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <version>2.2.224</version>
-            <scope>test</scope>
+            <scope>runtime</scope>
         </dependency>
 
         <!-- MyBatis -->
