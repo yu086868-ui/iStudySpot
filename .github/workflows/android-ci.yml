@@ -140,12 +140,11 @@ jobs:
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
       with:
-        files: ./app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
+        files: frontend/Android/app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
         flags: android
         name: android-coverage
         fail_ci_if_error: false
         token: ${{ secrets.CODECOV_TOKEN }}
-        directory: frontend/Android
 
     - name: Upload test results
       uses: actions/upload-artifact@v4
