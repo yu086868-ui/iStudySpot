@@ -1,5 +1,6 @@
 import { checkInApi, cardApi, store, StoreEvent } from '../../services/index'
 import { navigationManager } from '../../utils/navigation'
+import { render as renderMarkdown } from '../../utils/markdown-engine'
 import type { Card } from '../../typings/api'
 
 Page({
@@ -14,10 +15,15 @@ Page({
     seatNumber: '' as string,
     showCardPopup: false,
     newCard: null as Card | null,
-    studyDurationMin: 0
+    studyDurationMin: 0,
+    isStreaming: false,
+    streamingHtml: '',
+    streamingRarity: 'N',
+    streamingThemeCategory: ''
   },
 
   unsubscribeCheckIn: null as (() => void) | null,
+  cancelStream: null as (() => void) | null,
 
   onLoad() {
     this.loadCurrentCheckIn()
@@ -28,6 +34,9 @@ Page({
     this.stopTimer()
     if (this.unsubscribeCheckIn) {
       this.unsubscribeCheckIn()
+    }
+    if (this.cancelStream) {
+      this.cancelStream()
     }
   },
 
@@ -49,7 +58,7 @@ Page({
 
     try {
       const res = await checkInApi.getCurrentCheckInStatus(true)
-      
+
       if (res.code === 200 && res.data && res.data.isCheckedIn && res.data.checkInRecord) {
         const record = res.data.checkInRecord
         await this.initWithCheckInRecord(record)
@@ -127,7 +136,7 @@ Page({
   async endStudySession() {
     const currentCheckIn = store.getCurrentCheckIn()
     const checkInRecordId = this.data.checkInRecordId || (currentCheckIn.checkInRecord && currentCheckIn.checkInRecord.id)
-    
+
     if (!checkInRecordId) {
       wx.showToast({
         title: '未找到签到记录',
@@ -165,29 +174,65 @@ Page({
     return Math.max(1, Math.floor(diff / (1000 * 60)))
   },
 
-  async tryGenerateCard(studyDurationMin: number) {
+  tryGenerateCard(studyDurationMin: number) {
     this.setData({ studyDurationMin })
 
-    try {
-      const user = store.getUser()
-      const userID = user ? user.id : 'user_001'
-      const res = await cardApi.generateCard({ userID, studyDuration: studyDurationMin })
+    var user = store.getUser()
+    var userID = user ? String(user.id) : '1'
+    var streamingText = ''
+    var self = this
 
-      if (res.code === 200 && res.data) {
-        this.setData({
-          showCardPopup: true,
-          newCard: res.data
-        })
-        return
+    // 先显示弹窗，进入流式模式
+    this.setData({
+      showCardPopup: true,
+      isStreaming: true,
+      streamingHtml: '',
+      streamingRarity: 'N',
+      streamingThemeCategory: ''
+    })
+
+    this.cancelStream = cardApi.generateCardStream(
+      { userID: userID, studyDuration: studyDurationMin },
+      {
+        onInit: function (data) {
+          self.setData({
+            streamingRarity: data.rarity,
+            streamingThemeCategory: data.themeCategory
+          })
+        },
+        onText: function (content) {
+          streamingText += content
+          var html = renderMarkdown(streamingText)
+          self.setData({
+            streamingHtml: html
+          })
+        },
+        onComplete: function (card) {
+          self.setData({
+            newCard: card,
+            isStreaming: false
+          })
+          self.cancelStream = null
+        },
+        onError: function (message) {
+          wx.showToast({
+            title: message || '卡片生成失败',
+            icon: 'none'
+          })
+          self.setData({ isStreaming: false })
+          self.cancelStream = null
+          self.navigateBack()
+        }
       }
-    } catch (error) {
-    }
-
-    this.navigateBack()
+    )
   },
 
   onCardPopupClose() {
-    this.setData({ showCardPopup: false, newCard: null })
+    if (this.cancelStream) {
+      this.cancelStream()
+      this.cancelStream = null
+    }
+    this.setData({ showCardPopup: false, newCard: null, isStreaming: false })
     this.navigateBack()
   },
 

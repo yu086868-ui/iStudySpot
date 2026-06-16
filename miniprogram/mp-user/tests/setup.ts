@@ -9,7 +9,9 @@ const wxMock = {
   navigateTo: jest.fn(),
   redirectTo: jest.fn(),
   switchTab: jest.fn(),
-  navigateBack: jest.fn()
+  navigateBack: jest.fn(),
+  login: jest.fn(),
+  uploadFile: jest.fn()
 };
 
 global.wx = wxMock as any;

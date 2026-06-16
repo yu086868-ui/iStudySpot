@@ -13,15 +13,11 @@ export interface PaginatedResponse<T> {
 }
 
 export interface User {
-  id: string;
-  username: string;
+  id: number;
+  openId: string;
   nickname: string;
-  avatar: string;
-  phone: string;
-  email: string;
-  studentId: string;
-  creditScore: number;
-  status: 'active' | 'banned';
+  avatarUrl: string;
+  status: 'normal' | 'disabled';
   createdAt: string;
   updatedAt: string;
 }
@@ -116,40 +112,28 @@ export interface ReservationRules {
   noShowPenalty: number;
 }
 
-export interface LoginParams {
-  username: string;
-  password: string;
+export interface WxLoginParams {
+  code: string;
 }
 
-export interface LoginResponse {
-  token: string;
-  refreshToken: string;
-  user: {
-    id: string;
-    username: string;
-    nickname: string;
-    avatar: string;
-  };
+export interface WxLoginResponse {
+  isNewUser: boolean;
+  user: User;
 }
 
-export interface RegisterParams {
-  username: string;
-  password: string;
-  nickname: string;
-  phone: string;
-  studentId: string;
-}
-
-export interface UpdateUserParams {
+export interface UpdateProfileParams {
   nickname?: string;
-  avatar?: string;
-  phone?: string;
-  email?: string;
 }
 
-export interface ChangePasswordParams {
-  oldPassword: string;
-  newPassword: string;
+export interface AvatarUploadResponse {
+  avatarUrl: string;
+}
+
+export interface UserHomeData {
+  user: { id: number; nickname: string; avatarUrl: string };
+  reservationCount: number;
+  studyHours: number;
+  creditScore: number;
 }
 
 export interface CreateReservationParams {
@@ -241,6 +225,41 @@ export interface CardListParams {
   userID: string;
   page?: number;
   pageSize?: number;
+}
+
+// ==================== SSE 流式事件类型 ====================
+
+export interface SSEInitEvent {
+  type: 'init';
+  rarity: CardRarity;
+  themeCategory: ThemeCategory;
+  borderTheme: string;
+  cardTheme: string;
+}
+
+export interface SSETextEvent {
+  type: 'text';
+  content: string;
+}
+
+export type SSEDataEvent = SSEInitEvent | SSETextEvent;
+
+export interface SSECompleteEvent {
+  success: boolean;
+  message: string;
+  card: Card;
+}
+
+export interface SSEErrorEvent {
+  success: boolean;
+  message: string;
+}
+
+export interface StreamCallbacks {
+  onInit: (data: SSEInitEvent) => void;
+  onText: (content: string) => void;
+  onComplete: (card: Card) => void;
+  onError: (message: string) => void;
 }
 
 export interface RuleListParams {

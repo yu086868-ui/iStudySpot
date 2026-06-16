@@ -1,109 +1,69 @@
-import type { ApiResponse } from '../typings/api';
-import type { LoginParams, LoginResponse, RegisterParams } from '../typings/api';
+import type { ApiResponse, WxLoginParams, WxLoginResponse } from '../typings/api';
 import request from '../utils/request';
 import store from '../utils/store';
 import mockManager from '../utils/mock';
+import cache from '../utils/cache';
 
 export const authApi = {
-  async login(params: LoginParams): Promise<ApiResponse<LoginResponse>> {
+  async wxLogin(params: WxLoginParams): Promise<ApiResponse<WxLoginResponse>> {
     if (mockManager.isEnabled()) {
-      const response = await mockManager.request<LoginResponse>({
-        url: '/auth/login',
+      const response = await mockManager.request<WxLoginResponse>({
+        url: '/user/login',
         method: 'POST',
         data: params
       });
 
-      if (response.code === 200 && response.data) {
-        request.saveTokens(response.data.token, response.data.refreshToken);
-        if (response.data.user) {
-          store.setUser({
-            ...response.data.user,
-            phone: '',
-            email: '',
-            studentId: '',
-            creditScore: 100,
-            status: 'active',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+      if (response.code === 200 && response.data && response.data.user) {
+        store.setUser(response.data.user);
+      }
+
+      // mock模式下保存token
+      if (response.code === 200 && response.data && (response.data as any).token) {
+        cache.setToken((response.data as any).token);
+      }
+
+      return response;
+    }
+
+    const response = await request.post<WxLoginResponse>('/user/login', params);
+
+    if (response.code === 200 && response.data && response.data.user) {
+      store.setUser(response.data.user);
+    }
+
+    // 登录成功后保存token到缓存
+    if (response.code === 200 && response.data && (response.data as any).token) {
+      cache.setToken((response.data as any).token);
+    }
+
+    return response;
+  },
+
+  async loginWithWx(): Promise<ApiResponse<WxLoginResponse>> {
+    return new Promise((resolve) => {
+      wx.login({
+        success: async (res) => {
+          if (res.code) {
+            const result = await this.wxLogin({ code: res.code });
+            resolve(result);
+          } else {
+            resolve({
+              code: 10001,
+              message: '微信登录失败',
+              data: null as any,
+              timestamp: Date.now()
+            });
+          }
+        },
+        fail: () => {
+          resolve({
+            code: 10001,
+            message: '微信登录失败',
+            data: null as any,
+            timestamp: Date.now()
           });
         }
-      }
-
-      return response;
-    }
-
-    const response = await request.post<LoginResponse>('/auth/login', params, false);
-
-    if (response.code === 200 && response.data) {
-      request.saveTokens(response.data.token, response.data.refreshToken);
-      if (response.data.user) {
-        store.setUser({
-          ...response.data.user,
-          phone: '',
-          email: '',
-          studentId: '',
-          creditScore: 100,
-          status: 'active',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        });
-      }
-    }
-
-    return response;
-  },
-
-  async register(params: RegisterParams): Promise<ApiResponse<{ userId: string }>> {
-    if (mockManager.isEnabled()) {
-      return await mockManager.request<{ userId: string }>({
-        url: '/auth/register',
-        method: 'POST',
-        data: params
       });
-    }
-
-    return await request.post<{ userId: string }>('/auth/register', params, false);
-  },
-
-  async refreshToken(refreshToken: string): Promise<ApiResponse<{ token: string; refreshToken: string }>> {
-    if (mockManager.isEnabled()) {
-      const response = await mockManager.request<{ token: string; refreshToken: string }>({
-        url: '/auth/refresh',
-        method: 'POST',
-        data: { refreshToken }
-      });
-
-      if (response.code === 200 && response.data) {
-        request.saveTokens(response.data.token, response.data.refreshToken);
-      }
-
-      return response;
-    }
-
-    const response = await request.post<{ token: string; refreshToken: string }>('/auth/refresh', { refreshToken }, false);
-
-    if (response.code === 200 && response.data) {
-      request.saveTokens(response.data.token, response.data.refreshToken);
-    }
-
-    return response;
-  },
-
-  async logout(): Promise<ApiResponse<null>> {
-    if (mockManager.isEnabled()) {
-      const response = await mockManager.request<null>({
-        url: '/auth/logout',
-        method: 'POST'
-      });
-
-      request.clearTokens();
-      store.clearUser();
-      return response;
-    }
-
-    const response = await request.post<null>('/auth/logout');
-    request.clearTokens();
-    store.clearUser();
-    return response;
+    });
   }
 };
