@@ -5,8 +5,9 @@ import com.example.scylier.istudyspot.models.ApiResponse
 import com.example.scylier.istudyspot.models.agent.AgentChatResponse
 import com.example.scylier.istudyspot.models.agent.AgentToolExecutionResult
 
-class MainRepository {
-    private val apiManager = ApiManager()
+class MainRepository(
+    private val apiManager: ApiManager = ApiManager()
+) {
 
     suspend fun login(username: String, password: String) = apiManager.login(username, password)
     suspend fun register(username: String, password: String, nickname: String, phone: String? = null, studentId: String? = null) =

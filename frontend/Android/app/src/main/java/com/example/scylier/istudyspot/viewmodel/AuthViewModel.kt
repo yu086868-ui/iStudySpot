@@ -16,8 +16,9 @@ data class AuthUiState(
     val isSuccess: Boolean = false
 )
 
-class AuthViewModel : ViewModel() {
-    private val repository = MainRepository()
+class AuthViewModel(
+    private val repository: MainRepository = MainRepository()
+) : ViewModel() {
 
     private val _loginState = MutableStateFlow(AuthUiState())
     val loginState: StateFlow<AuthUiState> = _loginState

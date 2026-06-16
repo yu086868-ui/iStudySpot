@@ -18,9 +18,11 @@ data class TodoUiState(
     val successMessage: String? = null
 )
 
-class TodoViewModel(application: Application) : AndroidViewModel(application) {
-    private val todoStore = LocalTodoStore(application.applicationContext)
-    private val configManager = ConfigManager.getInstance(application.applicationContext)
+class TodoViewModel(
+    application: Application,
+    private val todoStore: LocalTodoStore = LocalTodoStore(application.applicationContext),
+    private val configManager: ConfigManager = ConfigManager.getInstance(application.applicationContext)
+) : AndroidViewModel(application) {
 
     private val _state = MutableStateFlow(TodoUiState())
     val state: StateFlow<TodoUiState> = _state

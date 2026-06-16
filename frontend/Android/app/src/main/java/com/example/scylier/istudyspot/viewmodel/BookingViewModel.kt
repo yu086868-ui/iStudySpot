@@ -15,8 +15,9 @@ data class BookingUiState(
     val error: String? = null
 )
 
-class BookingViewModel : ViewModel() {
-    private val repository = MainRepository()
+class BookingViewModel(
+    private val repository: MainRepository = MainRepository()
+) : ViewModel() {
 
     private val _state = MutableStateFlow(BookingUiState())
     val state: StateFlow<BookingUiState> = _state

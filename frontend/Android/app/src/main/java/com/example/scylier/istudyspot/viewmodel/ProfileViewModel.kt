@@ -26,8 +26,9 @@ data class ProfileUiState(
     val levelProgress: Float = 0f
 )
 
-class ProfileViewModel : ViewModel() {
-    private val repository = MainRepository()
+class ProfileViewModel(
+    private val repository: MainRepository = MainRepository()
+) : ViewModel() {
 
     private val _state = MutableStateFlow(ProfileUiState())
     val state: StateFlow<ProfileUiState> = _state

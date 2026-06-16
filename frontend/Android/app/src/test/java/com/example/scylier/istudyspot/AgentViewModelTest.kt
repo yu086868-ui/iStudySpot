@@ -136,15 +136,19 @@ class AgentViewModelTest {
             role = AgentMessageRole.ASSISTANT,
             content = "上次查询到 3 间自习室。"
         )
-        val restoredStore = InMemoryAgentConversationStore(
-            AgentConversationSnapshot(
-                sessionId = "restored-session",
-                messages = listOf(restoredMessage),
-                suggestedPrompts = listOf("查看预约规则")
+        val restoredStore = InMemoryAgentConversationStore().apply {
+            saveConversation(
+                AgentConversationSnapshot(
+                    sessionId = "restored-session",
+                    messages = listOf(restoredMessage),
+                    suggestedPrompts = listOf("查看预约规则")
+                )
             )
-        )
+        }
 
         val restoredViewModel = AgentViewModel(repository, restoredStore)
+        val restoredConversationId = restoredViewModel.uiState.value.conversations.first().id
+        restoredViewModel.openConversation(restoredConversationId)
 
         assertEquals(listOf(restoredMessage), restoredViewModel.uiState.value.messages)
         assertEquals(listOf("查看预约规则"), restoredViewModel.uiState.value.suggestedPrompts)
@@ -217,15 +221,19 @@ class AgentViewModelTest {
             content = "可以打开学习待办页面查看或管理任务。",
             uiAction = restoredAction
         )
-        val restoredStore = InMemoryAgentConversationStore(
-            AgentConversationSnapshot(
-                sessionId = "restored-action-session",
-                messages = listOf(restoredMessage),
-                suggestedPrompts = listOf("查看学习记录")
+        val restoredStore = InMemoryAgentConversationStore().apply {
+            saveConversation(
+                AgentConversationSnapshot(
+                    sessionId = "restored-action-session",
+                    messages = listOf(restoredMessage),
+                    suggestedPrompts = listOf("查看学习记录")
+                )
             )
-        )
+        }
 
         val restoredViewModel = AgentViewModel(repository, restoredStore)
+        val restoredConversationId = restoredViewModel.uiState.value.conversations.first().id
+        restoredViewModel.openConversation(restoredConversationId)
 
         assertEquals("todo_list", restoredViewModel.uiState.value.messages.first().uiAction?.route)
         assertEquals(listOf("查看学习记录"), restoredViewModel.uiState.value.suggestedPrompts)
