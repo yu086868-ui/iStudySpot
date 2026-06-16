@@ -1,35 +1,34 @@
-# iStudySpot 后端与 Android Structurizr 模型
+# iStudySpot 后端、Android 与管理员 Web Structurizr 模型
 
-这个目录现在包含一份基于代码整理的 Structurizr DSL 模型，覆盖当前 `backend/istudyspot-backend` 与 `frontend/Android` 范围：
+这个目录包含一份基于当前代码整理的 Structurizr DSL 模型，覆盖 `backend/istudyspot-backend`、`frontend/Android` 与 `admin` 范围。
 
-- DSL 文件：`docs/design/structurizr-backend-android.dsl`
-- 建模范围：Android App、Backend API、MySQL、本地卡牌图片存储、DeepSeek API 与本地图片生成服务
-- 明确排除：管理端前端、小程序，以及超出本次后端与 Android 可见范围的部署拓扑
+- DSL 源文件：`docs/design/structurizr-backend-android.dsl`
+- 同步后的 Lite 工作区：`docs/design/workspace.dsl`
+- 建模范围：Android App、Web 管理员端、Backend API、MySQL、本地卡牌图片存储、DeepSeek API 与本地图片生成服务
+- 明确排除：小程序，以及超出当前后端、Android 与管理员 Web 可见范围的部署拓扑
 
 当前模型包含：
 
-- C1：学生用户、iStudySpot 与外部 AI/图片服务的系统上下文
-- C2：Android App、Backend API、MySQL 与本地卡牌图片目录的容器图
-- C3：按当前包结构与类职责划分的后端组件图与 Android 组件图；后端组件图已下钻到 Agent 的 LLM 策略守卫、LLM 编排器、只读工具网关与短期会话上下文
+- C1：学生用户、系统管理员、iStudySpot 与外部 AI/图片服务的系统上下文
+- C2：Android App、Web 管理员端、Backend API、MySQL 与本地卡牌图片目录的容器图
+- C3：后端组件图、Android 组件图与 Web 管理员端组件图
 
 补充说明：
 
-- 后端被建模为一个 Spring Boot 容器，因为当前代码库是模块化单体，而不是多个可独立部署的服务。
-- Android 端被建模为一个移动端容器，因为这和当前 Compose + MVVM 结构一致。
-- DSL 已经显式反映当前实现限制：Android 目前主要使用普通请求-响应接口而不是 SSE 页面流程；refresh token 持久化尚未通过 `ConfigManager` 接通；AI、Agent 与客服会话保存在后端内存中；公告与统计接口仍以占位返回为主。
-- Agent 被建模为只读信息助手：敏感意图由 LLM 读取 `ai-rules.json` 规则后主动判定，用户要求 Agent 代办预约、取消、签到、签退、支付或续时等写操作时返回只读说明；后端工具网关仍以只读工具白名单作为最终边界。
-- 目前没有继续下钻到 C4 代码/类图，因为项目现有特性类过多，手工维护整套类级图不稳定；如果后续需要，可以再按 `reservation`、`ai-agent`、`card` 等局部领域单独细化。
+- Web 管理员端已按当前实际页面建模：仪表盘、用户管理、自习室/座位管理、订单管理、公告管理、规则内容和系统健康。
+- Web 管理员端不再包含支付查询、学习卡牌或 AI 管理入口；这些已从当前 admin 前端界面移除。
+- 后端仍建模为一个 Spring Boot 模块化单体，因为当前代码库不是多个可独立部署的微服务。
+- Android 端仍保留 `ViewModel -> Repository -> API 管理层 -> 后端` 的叙事结构。
+- Agent 被建模为只读信息助手：敏感意图由规则与 LLM 判定，后端工具网关以只读工具白名单作为最终边界。
 
-这个 DSL 的常用用法：
+常用命令：
 
 ```bash
 structurizr validate -workspace docs/design/structurizr-backend-android.dsl
 structurizr export -workspace docs/design/structurizr-backend-android.dsl -format mermaid
 ```
 
-如果团队通过本地 Structurizr Web 查看器预览，直接让查看器指向工作区根目录，并加载上面的 DSL 文件即可。
-
-关于本地 Web 预览与 IDE 友好的导出方式，可参考：
+本地 Web 预览和导出方式可参考：
 
 - `docs/design/structurizr-viewing.md`
 - `scripts/run-structurizr-lite.ps1`

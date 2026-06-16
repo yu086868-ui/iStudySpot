@@ -36,6 +36,12 @@ sealed class NavRoutes {
     data object Profile : NavRoutes()
 
     @Serializable
+    data object Preferences : NavRoutes()
+
+    @Serializable
+    data object ThemeSettings : NavRoutes()
+
+    @Serializable
     data object Login : NavRoutes()
 
     @Serializable
@@ -49,6 +55,11 @@ sealed class NavRoutes {
 
     @Serializable
     data object Guide : NavRoutes()
+
+    @Serializable
+    data class GuideDetail(
+        val studyRoomId: Long
+    ) : NavRoutes()
 
     @Serializable
     data object StudyRecord : NavRoutes()

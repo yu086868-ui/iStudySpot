@@ -5,8 +5,9 @@ import com.example.scylier.istudyspot.models.ApiResponse
 import com.example.scylier.istudyspot.models.agent.AgentChatResponse
 import com.example.scylier.istudyspot.models.agent.AgentToolExecutionResult
 
-class MainRepository {
-    private val apiManager = ApiManager()
+class MainRepository(
+    private val apiManager: ApiManager = ApiManager()
+) {
 
     suspend fun login(username: String, password: String) = apiManager.login(username, password)
     suspend fun register(username: String, password: String, nickname: String, phone: String? = null, studentId: String? = null) =
@@ -17,6 +18,8 @@ class MainRepository {
     suspend fun getStudyRooms(page: Int = 1, pageSize: Int = 20, status: String? = null, keyword: String? = null) =
         apiManager.getStudyRooms(page, pageSize, status, keyword)
     suspend fun getStudyRoomDetail(id: Long) = apiManager.getStudyRoomDetail(id)
+    suspend fun getStudyRoomGuides() = apiManager.getStudyRoomGuides()
+    suspend fun getStudyRoomGuideDetail(studyRoomId: Long) = apiManager.getStudyRoomGuideDetail(studyRoomId)
 
     suspend fun getStudyRoomSeats(id: Long, status: String? = null, type: String? = null) =
         apiManager.getStudyRoomSeats(id, status, type)

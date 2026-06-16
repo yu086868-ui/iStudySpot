@@ -1,5 +1,7 @@
 package com.ycyu.istudyspotbackend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -31,6 +33,7 @@ public class User {
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
 
+    @JsonIgnore
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
 
@@ -76,3 +79,4 @@ public class User {
     public String getOpenId() { return openId; }
     public void setOpenId(String openId) { this.openId = openId; }
 }
+

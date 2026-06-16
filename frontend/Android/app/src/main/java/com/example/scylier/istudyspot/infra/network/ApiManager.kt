@@ -214,6 +214,60 @@ class ApiManager(
         apiService.getStudyRoomDetail(id)
     }
 
+    suspend fun getStudyRoomGuides() = executeRequest {
+        if (useMockData) {
+            return@executeRequest Response.success(
+                BaseResponse(
+                    code = 200,
+                    message = "success",
+                    data = listOf(
+                        com.example.scylier.istudyspot.models.studyroom.StudyRoomGuideSummary(
+                            studyRoomId = 1L,
+                            studyRoomName = "iStudySpot 学习空间（五道口店）",
+                            address = "北京市海淀区五道口购物中心3F",
+                            openTime = "08:00:00",
+                            closeTime = "23:00:00",
+                            description = "临近清华北大，考研党聚集地"
+                        ),
+                        com.example.scylier.istudyspot.models.studyroom.StudyRoomGuideSummary(
+                            studyRoomId = 2L,
+                            studyRoomName = "iStudySpot 静心自习室（中关村店）",
+                            address = "北京市海淀区中关村创业大街B2",
+                            openTime = "09:00:00",
+                            closeTime = "22:00:00",
+                            description = "互联网人充电好去处"
+                        )
+                    )
+                )
+            )
+        }
+        apiService.getStudyRoomGuides()
+    }
+
+    suspend fun getStudyRoomGuideDetail(studyRoomId: Long) = executeRequest {
+        if (useMockData) {
+            return@executeRequest Response.success(
+                BaseResponse(
+                    code = 200,
+                    message = "success",
+                    data = com.example.scylier.istudyspot.models.studyroom.StudyRoomGuideDetail(
+                        studyRoomId = studyRoomId,
+                        studyRoomName = "iStudySpot 学习空间（五道口店）",
+                        address = "北京市海淀区五道口购物中心3F",
+                        openTime = "08:00:00",
+                        closeTime = "23:00:00",
+                        description = "临近清华北大，考研党聚集地",
+                        contactInfo = "电话：010-62550101\n微信：iStudySpot_WDK\n服务时间：08:00-22:30",
+                        learningAreas = "静音区：适合深度学习。\n临窗区：适合阅读与写作。\n快学区：适合短时复习。",
+                        convenienceFacilities = "WiFi、饮水机、储物柜、打印复印、共享充电线",
+                        transportationGuide = "地铁13号线/15号线五道口站步行6分钟。"
+                    )
+                )
+            )
+        }
+        apiService.getStudyRoomGuideDetail(studyRoomId)
+    }
+
     suspend fun getStudyRoomSeats(id: Long, status: String? = null, type: String? = null) = executeRequest {
         if (useMockData) {
             val seats = mutableListOf<com.example.scylier.istudyspot.models.studyroom.SeatInfo>()

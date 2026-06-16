@@ -1,6 +1,7 @@
 package com.example.scylier.istudyspot.ui.screen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -23,6 +25,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.HeadsetMic
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
@@ -31,11 +36,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,19 +52,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.material3.SuggestionChip
-import androidx.compose.material3.SuggestionChipDefaults
 import com.example.scylier.istudyspot.models.customerservice.CustomerServiceMessage
 import com.example.scylier.istudyspot.ui.components.AppTopBar
 import com.example.scylier.istudyspot.viewmodel.CustomerServiceViewModel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,6 +82,16 @@ fun CustomerServiceScreen(
     val listState = rememberLazyListState()
     val keyboardController = LocalSoftwareKeyboardController.current
     val scope = rememberCoroutineScope()
+    val userQuestionIndexes = remember(messages) {
+        messages.mapIndexedNotNull { index, message ->
+            if (message.isFromUser) index else null
+        }
+    }
+    val firstVisibleIndex by remember {
+        derivedStateOf { listState.firstVisibleItemIndex }
+    }
+    val previousQuestionIndex = userQuestionIndexes.lastOrNull { it < firstVisibleIndex }
+    val nextQuestionIndex = userQuestionIndexes.firstOrNull { it > firstVisibleIndex }
 
     LaunchedEffect(Unit) {
         viewModel.loadWelcome()
@@ -87,7 +106,7 @@ fun CustomerServiceScreen(
     Scaffold(
         topBar = {
             AppTopBar(
-                title = "在线客服",
+                title = "ai在线客服",
                 onBack = onBack
             )
         },
@@ -179,6 +198,92 @@ fun CustomerServiceScreen(
                         CustomerServiceMessageItem(message = message)
                     }
                 }
+
+                if (userQuestionIndexes.size > 1) {
+                    CustomerQuestionJumpPanel(
+                        canJumpUp = previousQuestionIndex != null,
+                        canJumpDown = nextQuestionIndex != null,
+                        onJumpUp = {
+                            previousQuestionIndex?.let { target ->
+                                scope.launch { listState.animateScrollToItem(target) }
+                            }
+                        },
+                        onJumpDown = {
+                            nextQuestionIndex?.let { target ->
+                                scope.launch { listState.animateScrollToItem(target) }
+                            }
+                        },
+                        modifier = Modifier
+                            .align(Alignment.CenterEnd)
+                            .padding(end = 12.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CustomerQuestionJumpPanel(
+    canJumpUp: Boolean,
+    canJumpDown: Boolean,
+    onJumpUp: () -> Unit,
+    onJumpDown: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var offsetX by remember { mutableStateOf(0f) }
+    var offsetY by remember { mutableStateOf(0f) }
+
+    Surface(
+        modifier = modifier
+            .offset {
+                IntOffset(
+                    x = offsetX.roundToInt(),
+                    y = offsetY.roundToInt()
+                )
+            }
+            .pointerInput(Unit) {
+                detectDragGestures { change, dragAmount ->
+                    offsetX += dragAmount.x
+                    offsetY += dragAmount.y
+                }
+            },
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.94f),
+        tonalElevation = 6.dp,
+        shadowElevation = 8.dp
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Text(
+                text = "提问",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Button(
+                onClick = onJumpUp,
+                enabled = canJumpUp,
+                shape = RoundedCornerShape(14.dp),
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowUp,
+                    contentDescription = "上一条提问"
+                )
+            }
+            Button(
+                onClick = onJumpDown,
+                enabled = canJumpDown,
+                shape = RoundedCornerShape(14.dp),
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowDown,
+                    contentDescription = "下一条提问"
+                )
             }
         }
     }
@@ -290,13 +395,13 @@ private fun EmptyCustomerServiceState(
         )
         Spacer(modifier = Modifier.height(24.dp))
         Text(
-            text = "在线客服",
+            text = "ai在线客服",
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.onBackground
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = welcomeMessage.ifBlank { "您好！我是在线客服，\n有任何问题都可以向我咨询。" },
+            text = welcomeMessage.ifBlank { "您好！我是 ai 在线客服，\n有任何问题都可以向我咨询。" },
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
