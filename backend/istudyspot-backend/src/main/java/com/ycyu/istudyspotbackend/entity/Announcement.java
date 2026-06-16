@@ -12,6 +12,12 @@ public class Announcement {
     private LocalDateTime expireTime;
     private String author;
     private String status;
+    private String status;
+    private String author;
+    private LocalDateTime publishTime;
+    private LocalDateTime expireTime;
+    private LocalDateTime createTime;
+    private LocalDateTime updateTime;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -28,6 +34,12 @@ public class Announcement {
     public String getPriority() { return priority; }
     public void setPriority(String priority) { this.priority = priority; }
 
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+
+    public String getAuthor() { return author; }
+    public void setAuthor(String author) { this.author = author; }
+
     public LocalDateTime getPublishTime() { return publishTime; }
     public void setPublishTime(LocalDateTime publishTime) { this.publishTime = publishTime; }
 
@@ -39,4 +51,9 @@ public class Announcement {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+    public LocalDateTime getCreateTime() { return createTime; }
+    public void setCreateTime(LocalDateTime createTime) { this.createTime = createTime; }
+
+    public LocalDateTime getUpdateTime() { return updateTime; }
+    public void setUpdateTime(LocalDateTime updateTime) { this.updateTime = updateTime; }
 }

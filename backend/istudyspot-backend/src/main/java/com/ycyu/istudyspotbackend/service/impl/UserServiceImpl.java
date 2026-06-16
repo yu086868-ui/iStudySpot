@@ -7,6 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -16,6 +20,22 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getUserInfo(Long userId) {
         return userMapper.findById(userId);
+    }
+
+    @Override
+    public Map<String, Object> getUserList(String keyword, Integer status, int page, int pageSize) {
+        List<User> users = userMapper.findForAdmin(keyword, status);
+        int safePage = Math.max(page, 1);
+        int safePageSize = Math.max(pageSize, 1);
+        int fromIndex = Math.min((safePage - 1) * safePageSize, users.size());
+        int toIndex = Math.min(fromIndex + safePageSize, users.size());
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("list", users.subList(fromIndex, toIndex));
+        result.put("total", users.size());
+        result.put("page", safePage);
+        result.put("pageSize", safePageSize);
+        return result;
     }
 
     @Override

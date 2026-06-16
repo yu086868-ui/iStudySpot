@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Form, Input, Button, Card, message, Divider } from 'antd'
-import { UserOutlined, LockOutlined, ThunderboltOutlined } from '@ant-design/icons'
+import { Button, Card, Divider, Form, Input, message } from 'antd'
+import { LockOutlined, ThunderboltOutlined, UserOutlined } from '@ant-design/icons'
 import { login } from '../api/auth'
-import { setToken, setRefreshToken, setUser } from '../utils/auth'
+import { setRefreshToken, setToken, setUser } from '../utils/auth'
 
 const DEFAULT_USERNAME = 'admin'
 const DEFAULT_PASSWORD = 'admin@123456'
@@ -13,16 +13,20 @@ export default function Login() {
   const navigate = useNavigate()
   const [form] = Form.useForm()
 
+  const handleLoginSuccess = (res, successMessage) => {
+    const { token, refreshToken, user } = res.data
+    setToken(token)
+    setRefreshToken(refreshToken)
+    setUser(user)
+    message.success(successMessage)
+    navigate('/dashboard', { replace: true })
+  }
+
   const handleSubmit = async (values) => {
     setLoading(true)
     try {
       const res = await login(values)
-      const { token, refreshToken, user } = res.data
-      setToken(token)
-      setRefreshToken(refreshToken)
-      setUser(user)
-      message.success('登录成功')
-      navigate('/dashboard', { replace: true })
+      handleLoginSuccess(res, '登录成功')
     } catch (err) {
       message.error(err.message || '登录失败')
     } finally {
@@ -34,12 +38,7 @@ export default function Login() {
     setLoading(true)
     try {
       const res = await login({ username: DEFAULT_USERNAME, password: DEFAULT_PASSWORD })
-      const { token, refreshToken, user } = res.data
-      setToken(token)
-      setRefreshToken(refreshToken)
-      setUser(user)
-      message.success('管理员登录成功')
-      navigate('/dashboard', { replace: true })
+      handleLoginSuccess(res, '管理员登录成功')
     } catch (err) {
       message.error(err.message || '管理员登录失败，请检查后端是否已创建 admin 用户')
     } finally {
@@ -52,7 +51,7 @@ export default function Login() {
       <div className="login-card" style={{ background: '#fff' }}>
         <div className="login-title">
           <h1>iStudySpot</h1>
-          <p>管理后台</p>
+          <p>管理员后台</p>
         </div>
         <Form
           form={form}
@@ -81,7 +80,7 @@ export default function Login() {
           onClick={handleQuickLogin}
           style={{ marginTop: -8 }}
         >
-          管理员快捷登录 (admin)
+          管理员快速登录
         </Button>
       </div>
     </div>

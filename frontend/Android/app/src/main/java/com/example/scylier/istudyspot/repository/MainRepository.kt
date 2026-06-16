@@ -17,6 +17,8 @@ class MainRepository {
     suspend fun getStudyRooms(page: Int = 1, pageSize: Int = 20, status: String? = null, keyword: String? = null) =
         apiManager.getStudyRooms(page, pageSize, status, keyword)
     suspend fun getStudyRoomDetail(id: Long) = apiManager.getStudyRoomDetail(id)
+    suspend fun getStudyRoomGuides() = apiManager.getStudyRoomGuides()
+    suspend fun getStudyRoomGuideDetail(studyRoomId: Long) = apiManager.getStudyRoomGuideDetail(studyRoomId)
 
     suspend fun getStudyRoomSeats(id: Long, status: String? = null, type: String? = null) =
         apiManager.getStudyRoomSeats(id, status, type)

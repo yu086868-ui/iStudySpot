@@ -8,6 +8,14 @@ export function getMyReservations(params) {
   return request.get('/api/reservations/my', { params })
 }
 
+export function getAdminReservations(params) {
+  return request.get('/api/admin/orders', { params })
+}
+
+export function getAdminReservationDetail(id) {
+  return request.get(`/api/admin/orders/${id}`)
+}
+
 export function getReservationDetail(id) {
   return request.get(`/api/reservations/${id}`)
 }

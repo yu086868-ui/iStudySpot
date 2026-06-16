@@ -59,4 +59,29 @@ public interface OrderMapper {
 
     @Select("SELECT * FROM `order` WHERE user_id = #{userId} AND status IN ('pending', 'paid', 'in_use', 'completed') ORDER BY create_time DESC")
     List<Order> findByUserIdWithCheckin(@Param("userId") Long userId);
+
+    @Select("""
+            <script>
+            SELECT *
+            FROM `order`
+            <where>
+                <if test="status != null and status != ''">
+                    status = #{status}
+                </if>
+                <if test="keyword != null and keyword != ''">
+                    <if test="status != null and status != ''">AND</if>
+                    (
+                        order_no LIKE CONCAT('%', #{keyword}, '%')
+                        OR study_room_name LIKE CONCAT('%', #{keyword}, '%')
+                        OR room_name LIKE CONCAT('%', #{keyword}, '%')
+                        OR seat_number LIKE CONCAT('%', #{keyword}, '%')
+                        OR seat_position LIKE CONCAT('%', #{keyword}, '%')
+                        OR CAST(user_id AS CHAR) LIKE CONCAT('%', #{keyword}, '%')
+                    )
+                </if>
+            </where>
+            ORDER BY create_time DESC, id DESC
+            </script>
+            """)
+    List<Order> findForAdmin(@Param("keyword") String keyword, @Param("status") String status);
 }

@@ -4,6 +4,7 @@ import com.ycyu.istudyspotbackend.entity.User;
 import org.apache.ibatis.annotations.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Mapper
 public interface UserMapper {
@@ -58,4 +59,28 @@ public interface UserMapper {
             "VALUES(#{openId}, #{nickname}, #{avatar}, #{status}, NOW())")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insertWxUser(User user);
+}
+    @Select("""
+            <script>
+            SELECT *
+            FROM user
+            <where>
+                <if test="status != null">
+                    status = #{status}
+                </if>
+                <if test="keyword != null and keyword != ''">
+                    <if test="status != null">AND</if>
+                    (
+                        username LIKE CONCAT('%', #{keyword}, '%')
+                        OR nickname LIKE CONCAT('%', #{keyword}, '%')
+                        OR phone LIKE CONCAT('%', #{keyword}, '%')
+                        OR email LIKE CONCAT('%', #{keyword}, '%')
+                        OR student_id LIKE CONCAT('%', #{keyword}, '%')
+                    )
+                </if>
+            </where>
+            ORDER BY create_time DESC, id DESC
+            </script>
+            """)
+    List<User> findForAdmin(@Param("keyword") String keyword, @Param("status") Integer status);
 }

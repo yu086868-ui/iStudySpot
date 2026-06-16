@@ -11,3 +11,5 @@ export function getStudyRoomDetail(id) {
 export function getStudyRoomStatistics(id, params) {
   return request.get(`/api/studyrooms/${id}/statistics`, { params })
 }
+
+export { getStudyRoomGuides, getStudyRoomGuideDetail } from './guides'

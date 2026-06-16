@@ -51,14 +51,14 @@ data class FunctionItemData(
 )
 
 val mainFeatures = listOf(
-    FunctionItemData("booking", "预约座位", Icons.Default.BookOnline, PrimaryContainer),
+    FunctionItemData("booking", "预订", Icons.Default.BookOnline, PrimaryContainer),
     FunctionItemData("checkin", "签到", Icons.Default.CheckCircle, PrimaryContainer),
     FunctionItemData("guide", "场馆导览", Icons.Default.Map, PrimaryContainer),
-    FunctionItemData("my_booking", "我的预约", Icons.AutoMirrored.Filled.ReceiptLong, PrimaryContainer),
+    FunctionItemData("my_booking", "我的订单", Icons.AutoMirrored.Filled.ReceiptLong, PrimaryContainer),
     FunctionItemData("study_record", "学习记录", Icons.Default.Timer, PrimaryContainer),
-    FunctionItemData("ai_agent", "AI Agent", Icons.Default.AutoAwesome, PrimaryContainer),
-    FunctionItemData("ai_chat", "AI 咨询", Icons.Default.SmartToy, PrimaryContainer),
-    FunctionItemData("notification", "通知提醒", Icons.Default.Notifications, PrimaryContainer),
+    FunctionItemData("ai_agent", "ai在线客服", Icons.Default.AutoAwesome, PrimaryContainer),
+    // FunctionItemData("ai_chat", "AI, Icons.Default.SmartToy, PrimaryContainer),
+    FunctionItemData("notification", "通知", Icons.Default.Notifications, PrimaryContainer),
 )
 
 @Composable
@@ -100,7 +100,7 @@ fun HomeScreen(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "智慧自习室管理平台",
+                    text = "自习室预订系统?",
                     style = MaterialTheme.typography.bodyLarge,
                     color = extendedColors.onGradientVariant
                 )
@@ -142,7 +142,7 @@ fun HomeScreen(
         Spacer(modifier = Modifier.height(20.dp))
 
         Text(
-            text = "功能导航",
+            text = "系统功能",
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(horizontal = 24.dp)

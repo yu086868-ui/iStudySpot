@@ -19,3 +19,5 @@ export function customerServiceChat(data) {
 export function getCustomerServiceHistory(sessionId) {
   return request.get('/api/customer-service/history', { params: { sessionId } })
 }
+
+export { getAgentToolCatalog, sendAgentMessage, executeAgentTool } from './agent'

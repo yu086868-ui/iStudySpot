@@ -22,11 +22,9 @@ import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.HeadsetMic
-import androidx.compose.material.icons.filled.Nightlight
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
@@ -34,7 +32,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -49,8 +46,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.example.scylier.istudyspot.ui.theme.LocalExtendedColors
-import com.example.scylier.istudyspot.ui.theme.LocalThemeMode
-import com.example.scylier.istudyspot.ui.theme.ThemeMode
 import com.example.scylier.istudyspot.viewmodel.ProfileUiState
 
 @Composable
@@ -63,10 +58,9 @@ fun ProfileScreen(
     onStudyRecord: () -> Unit = {},
     onCustomerService: () -> Unit = {},
     onCardCollection: () -> Unit = {},
-    onThemeChange: (Boolean) -> Unit = {}
+    onPreferencesClick: () -> Unit = {}
 ) {
     var showLogoutDialog by remember { mutableStateOf(false) }
-    val themeMode = LocalThemeMode.current
     val extendedColors = LocalExtendedColors.current
 
     if (showLogoutDialog) {
@@ -80,10 +74,14 @@ fun ProfileScreen(
                         showLogoutDialog = false
                         onLogout()
                     }
-                ) { Text("确认退出") }
+                ) {
+                    Text("退出登录")
+                }
             },
             dismissButton = {
-                TextButton(onClick = { showLogoutDialog = false }) { Text("取消") }
+                TextButton(onClick = { showLogoutDialog = false }) {
+                    Text("取消")
+                }
             }
         )
     }
@@ -172,13 +170,6 @@ fun ProfileScreen(
                         label = "我的订单",
                         onClick = onOrderListClick
                     )
-                    MenuDivider()
-                    MenuItemRow(
-                        icon = Icons.Default.AccountBalanceWallet,
-                        label = "我的钱包",
-                        onClick = onCardCollection
-                    )
-                    MenuDivider()
                     MenuItemRow(
                         icon = Icons.AutoMirrored.Filled.TrendingUp,
                         label = "学习报告",
@@ -187,7 +178,7 @@ fun ProfileScreen(
                     MenuDivider()
                     MenuItemRow(
                         icon = Icons.Default.HeadsetMic,
-                        label = "在线客服",
+                        label = "ai在线客服",
                         onClick = onCustomerService
                     )
                     MenuDivider()
@@ -209,12 +200,7 @@ fun ProfileScreen(
                     MenuItemRow(
                         icon = Icons.Default.Settings,
                         label = "偏好设置",
-                        onClick = {}
-                    )
-                    MenuDivider()
-                    ThemeToggleRow(
-                        isDark = themeMode == ThemeMode.DARK,
-                        onToggle = onThemeChange
+                        onClick = onPreferencesClick
                     )
                 }
             }
@@ -238,8 +224,7 @@ fun ProfileScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp)
-        )
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
@@ -292,43 +277,6 @@ private fun MenuItemRow(
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-    }
-}
-
-@Composable
-private fun ThemeToggleRow(isDark: Boolean, onToggle: (Boolean) -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.primaryContainer),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Nightlight,
-                    contentDescription = "深色模式",
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(22.dp)
-                )
-            }
-            Spacer(modifier = Modifier.width(16.dp))
-            Text(
-                text = "深色模式",
-                style = MaterialTheme.typography.bodyLarge
-            )
-        }
-        Switch(
-            checked = isDark,
-            onCheckedChange = onToggle
-        )
     }
 }
 
