@@ -20,8 +20,17 @@
 | `order`           | 订单表         | user, seat        |
 | `order_detail`    | 订单明细表     | order             |
 | `payment_log`     | 支付流水表     | order, user       |
+| `payment`         | 支付表         | order, user       |
 | `seat_status_log` | 座位状态流水表 | seat, order, user |
 | `blacklist`       | 黑名单表       | user, study_room  |
+| `card`            | AI卡片表       | 无                |
+| `rule`            | 规则表         | study_room        |
+| `announcement`    | 公告表         | 无                |
+| `check_in_record` | 签到记录表     | user, seat        |
+| `achievement`     | 成就定义表     | 无                |
+| `user_achievement`| 用户成就表     | user, achievement |
+| `violation_record`| 违规记录表     | user, order       |
+| `seat_layout_item`| 座位布局元素表 | study_room, area, seat |
 
 ### 1.3数据库ER图
 
@@ -191,6 +200,136 @@
 | expire_time | datetime     |                            | 解除时间                 |
 | create_time | datetime     | NOT NULL                   | 创建时间                 |
 | update_time | datetime     |                            | 更新时间                 |
+
+### 2.11 支付表 (payment)
+
+| 字段名          | 类型          | 约束                       | 说明                                |
+| --------------- | ------------- | -------------------------- | ----------------------------------- |
+| id              | bigint        | PRIMARY KEY AUTO_INCREMENT | 支付ID                              |
+| payment_no      | varchar(32)   | UNIQUE NOT NULL            | 支付流水号                          |
+| order_id        | bigint        | FOREIGN KEY                | 订单ID                              |
+| user_id         | bigint        | FOREIGN KEY                | 用户ID                              |
+| amount          | decimal(10,2) | NOT NULL                   | 支付金额                            |
+| payment_method  | varchar(20)   | NOT NULL                   | 支付方式：wechat/alipay/balance     |
+| status          | varchar(20)   | NOT NULL                   | 状态：pending/success/failed        |
+| payment_url     | varchar(500)  |                            | 支付链接                            |
+| pay_time        | datetime      |                            | 支付时间                            |
+| created_at      | datetime      | NOT NULL DEFAULT NOW       | 创建时间                            |
+| updated_at      | datetime      | NOT NULL DEFAULT NOW       | 更新时间                            |
+
+### 2.12 AI卡片表 (card)
+
+| 字段名          | 类型          | 约束                       | 说明                                |
+| --------------- | ------------- | -------------------------- | ----------------------------------- |
+| uuid            | varchar(36)   | PRIMARY KEY                | 卡片唯一ID                          |
+| user_id         | varchar(36)   | NOT NULL                   | 用户ID                              |
+| card_id         | varchar(8)    | NOT NULL                   | 卡片模板/生成编号                   |
+| create_time     | datetime      | NOT NULL                   | 生成时间                            |
+| study_duration  | int           | NOT NULL                   | 学习时长（分钟）                    |
+| rarity          | varchar(10)   | NOT NULL                   | 稀有度：N/R/SR/SSR/UR/LR           |
+| border_theme    | varchar(50)   | NOT NULL                   | 边框主题                            |
+| card_theme      | varchar(50)   | NOT NULL                   | 卡面主题                            |
+| theme_category  | varchar(50)   | NOT NULL                   | 内容主题                            |
+| markdown        | text          | NOT NULL                   | AI生成的文本内容                    |
+| image_url       | varchar(500)  | NOT NULL                   | 图片地址                            |
+
+### 2.13 规则表 (rule)
+
+| 字段名          | 类型          | 约束                       | 说明                                |
+| --------------- | ------------- | -------------------------- | ----------------------------------- |
+| id              | bigint        | PRIMARY KEY AUTO_INCREMENT | 规则ID                              |
+| study_room_id   | bigint        |                            | 自习室ID（null表示通用规则）        |
+| category        | varchar(50)   | NOT NULL                   | 分类：booking/checkin/leave等       |
+| title           | varchar(100)  | NOT NULL                   | 规则标题                            |
+| content         | text          | NOT NULL                   | 规则内容                            |
+| priority        | int           | DEFAULT 0                  | 优先级                              |
+| create_time     | datetime      | NOT NULL DEFAULT NOW       | 创建时间                            |
+| update_time     | datetime      | NOT NULL DEFAULT NOW       | 更新时间                            |
+
+### 2.14 公告表 (announcement)
+
+| 字段名          | 类型          | 约束                       | 说明                                |
+| --------------- | ------------- | -------------------------- | ----------------------------------- |
+| id              | bigint        | PRIMARY KEY AUTO_INCREMENT | 公告ID                              |
+| title           | varchar(200)  | NOT NULL                   | 公告标题                            |
+| content         | text          | NOT NULL                   | 公告内容                            |
+| type            | varchar(50)   | NOT NULL                   | 类型：notice/maintenance/event      |
+| priority        | varchar(20)   | NOT NULL                   | 优先级：low/medium/high             |
+| publish_time    | datetime      | NOT NULL                   | 发布时间                            |
+| expire_time     | datetime      |                            | 过期时间                            |
+| author          | varchar(100)  |                            | 作者                                |
+| status          | varchar(20)   | NOT NULL                   | 状态：published/draft/archived      |
+
+### 2.15 签到记录表 (check_in_record)
+
+| 字段名          | 类型          | 约束                       | 说明                                |
+| --------------- | ------------- | -------------------------- | ----------------------------------- |
+| id              | bigint        | PRIMARY KEY AUTO_INCREMENT | 记录ID                              |
+| user_id         | bigint        | NOT NULL                   | 用户ID                              |
+| reservation_id  | bigint        | NOT NULL                   | 预约ID                              |
+| study_room_id   | bigint        |                            | 自习室ID                            |
+| seat_id         | bigint        | NOT NULL                   | 座位ID                              |
+| check_in_time   | datetime      | NOT NULL                   | 签到时间                            |
+| check_out_time  | datetime      |                            | 签退时间                            |
+| duration        | int           |                            | 时长（分钟）                        |
+| status          | varchar(20)   | NOT NULL                   | 状态：active/completed              |
+
+### 2.16 成就定义表 (achievement)
+
+| 字段名          | 类型          | 约束                       | 说明                                |
+| --------------- | ------------- | -------------------------- | ----------------------------------- |
+| id              | bigint        | PRIMARY KEY AUTO_INCREMENT | 成就ID                              |
+| code            | varchar(50)   | UNIQUE NOT NULL            | 成就编码                            |
+| name            | varchar(100)  | NOT NULL                   | 成就名称                            |
+| description     | varchar(500)  | NOT NULL                   | 成就描述                            |
+| icon            | varchar(50)   |                            | 图标标识                            |
+| category        | varchar(50)   | DEFAULT 'study'            | 分类                                |
+| threshold       | int           | DEFAULT 0                  | 解锁阈值                            |
+
+### 2.17 用户成就表 (user_achievement)
+
+| 字段名             | 类型          | 约束                       | 说明                                |
+| ------------------ | ------------- | -------------------------- | ----------------------------------- |
+| id                 | bigint        | PRIMARY KEY AUTO_INCREMENT | 记录ID                              |
+| user_id            | bigint        | NOT NULL                   | 用户ID                              |
+| achievement_code   | varchar(50)   | NOT NULL                   | 成就编码                            |
+| unlocked_at        | datetime      | NOT NULL DEFAULT NOW       | 解锁时间                            |
+
+### 2.18 违规记录表 (violation_record)
+
+| 字段名             | 类型          | 约束                       | 说明                                |
+| ------------------ | ------------- | -------------------------- | ----------------------------------- |
+| id                 | bigint        | PRIMARY KEY AUTO_INCREMENT | 记录ID                              |
+| user_id            | bigint        | NOT NULL                   | 用户ID                              |
+| type               | varchar(50)   | NOT NULL                   | 违规类型                            |
+| description        | varchar(500)  | NOT NULL                   | 违规描述                            |
+| related_order_id   | bigint        |                            | 关联订单ID                          |
+| status             | varchar(20)   | NOT NULL DEFAULT 'active'  | 状态                                |
+| created_at         | datetime      | NOT NULL DEFAULT NOW       | 创建时间                            |
+| appeal_time        | datetime      |                            | 申诉时间                            |
+| appeal_reason      | varchar(500)  |                            | 申诉理由                            |
+| appeal_result      | varchar(500)  |                            | 申诉处理结果                        |
+
+### 2.19 座位布局元素表 (seat_layout_item)
+
+| 字段名          | 类型          | 约束                       | 说明                                |
+| --------------- | ------------- | -------------------------- | ----------------------------------- |
+| id              | bigint        | PRIMARY KEY AUTO_INCREMENT | 布局元素ID                          |
+| room_id         | bigint        | FOREIGN KEY                | 自习室ID                            |
+| area_id         | bigint        | FOREIGN KEY                | 区域ID                              |
+| seat_id         | bigint        | FOREIGN KEY                | 关联座位ID                          |
+| item_type       | varchar(32)   | NOT NULL                   | 元素类型                            |
+| item_key        | varchar(64)   |                            | 布局元素唯一键                      |
+| label           | varchar(100)  |                            | 元素标签                            |
+| row_num         | int           | NOT NULL                   | 起始行                              |
+| col_num         | int           | NOT NULL                   | 起始列                              |
+| width_units     | int           | NOT NULL DEFAULT 1         | 横向占位                            |
+| height_units    | int           | NOT NULL DEFAULT 1         | 纵向占位                            |
+| rotation        | int           | NOT NULL DEFAULT 0         | 旋转角度                            |
+| z_index         | int           | NOT NULL DEFAULT 0         | 渲染层级                            |
+| metadata        | text          |                            | 额外信息(JSON)                      |
+| create_time     | datetime      | NOT NULL DEFAULT NOW       | 创建时间                            |
+| update_time     | datetime      | NOT NULL DEFAULT NOW       | 更新时间                            |
 
 ---
 
