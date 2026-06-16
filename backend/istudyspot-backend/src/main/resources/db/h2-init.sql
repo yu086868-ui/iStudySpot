@@ -12,7 +12,7 @@ DROP TABLE IF EXISTS payment_log;
 DROP TABLE IF EXISTS order_detail;
 DROP TABLE IF EXISTS blacklist;
 DROP TABLE IF EXISTS seat_status_log;
-DROP TABLE IF EXISTS `order`;
+DROP TABLE IF EXISTS order;
 DROP TABLE IF EXISTS price_strategy;
 DROP TABLE IF EXISTS seat;
 DROP TABLE IF EXISTS area;
@@ -137,7 +137,7 @@ CREATE INDEX idx_price_room_area ON price_strategy (room_id, area_id);
 -- =====================================================
 -- 6. 订单表（V6 + V16）
 -- =====================================================
-CREATE TABLE `order` (
+CREATE TABLE order (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     order_no VARCHAR(32) UNIQUE NOT NULL,
     user_id BIGINT NOT NULL,
@@ -191,7 +191,7 @@ CREATE TABLE order_detail (
     price DECIMAL(10,2) NOT NULL,
     amount DECIMAL(10,2) NOT NULL,
     create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (order_id) REFERENCES `order` (id) ON DELETE CASCADE
+    FOREIGN KEY (order_id) REFERENCES order (id) ON DELETE CASCADE
 );
 
 CREATE INDEX idx_order_detail_order_id ON order_detail (order_id);
@@ -210,7 +210,7 @@ CREATE TABLE payment_log (
     pay_time TIMESTAMP,
     refund_time TIMESTAMP,
     create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (order_id) REFERENCES `order` (id),
+    FOREIGN KEY (order_id) REFERENCES order (id),
     FOREIGN KEY (user_id) REFERENCES user (id)
 );
 
@@ -230,7 +230,7 @@ CREATE TABLE seat_status_log (
     end_time TIMESTAMP,
     create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (seat_id) REFERENCES seat (id) ON DELETE CASCADE,
-    FOREIGN KEY (order_id) REFERENCES `order` (id) ON DELETE SET NULL,
+    FOREIGN KEY (order_id) REFERENCES order (id) ON DELETE SET NULL,
     FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE SET NULL
 );
 
@@ -271,7 +271,7 @@ CREATE TABLE payment (
     pay_time TIMESTAMP,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (order_id) REFERENCES `order` (id),
+    FOREIGN KEY (order_id) REFERENCES order (id),
     FOREIGN KEY (user_id) REFERENCES user (id)
 );
 
@@ -623,13 +623,13 @@ INSERT INTO price_strategy (room_id, area_id, seat_type, week_days, start_time, 
 -- 用户数据
 -- -------------------------------------------------
 -- 测试用户（密码：123456，MD5: e10adc3949ba59abbe56e057f20f883e）
-INSERT INTO user (id, username, password, openid, nickname, avatar, avatar_url, phone, email, balance, points, status, credit_score) VALUES
+INSERT INTO user(id, username, password, openid, nickname, avatar, avatar_url, phone, email, balance, points, status, credit_score) VALUES
     (1, 'test', 'e10adc3949ba59abbe56e057f20f883e', NULL, '测试用户', NULL, NULL, '13800138000', 'test@example.com', 100.00, 0, 1, 100);
 
 -- 管理员用户（密码：admin123，MD5: f19b8dc2029cf707939e886e4b164681）
-INSERT INTO user (id, username, password, openid, nickname, avatar, avatar_url, phone, email, balance, points, status, credit_score) VALUES
+INSERT INTO user(id, username, password, openid, nickname, avatar, avatar_url, phone, email, balance, points, status, credit_score) VALUES
     (2, 'admin', 'f19b8dc2029cf707939e886e4b164681', NULL, '管理员', NULL, NULL, NULL, NULL, 0.00, 0, 1, 100);
 
 -- 模拟微信用户
-INSERT INTO user (id, username, password, openid, nickname, avatar, avatar_url, phone, email, balance, points, status, credit_score) VALUES
+INSERT INTO user(id, username, password, openid, nickname, avatar, avatar_url, phone, email, balance, points, status, credit_score) VALUES
     (3, NULL, NULL, 'oTestOpenId001', '微信用户1', 'https://example.com/avatar1.png', 'https://example.com/avatar1.png', NULL, NULL, 50.00, 100, 1, 100);
