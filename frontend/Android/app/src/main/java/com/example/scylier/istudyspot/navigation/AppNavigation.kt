@@ -384,7 +384,7 @@ fun AppNavigation(
                     onOrderListClick = { navController.navigate(NavRoutes.OrderList) },
                     onEditProfile = { navController.navigate(NavRoutes.ProfileEdit) },
                     onStudyRecord = { navController.navigate(NavRoutes.StudyRecord) },
-                    onCustomerService = { navController.navigate(NavRoutes.CustomerService) },
+                    onCustomerService = { navController.navigate(NavRoutes.Agent) },
                     onCardCollection = { navController.navigate(NavRoutes.CardCollection) },
                     onPreferencesClick = { navController.navigate(NavRoutes.Preferences) },
                     onLogout = {

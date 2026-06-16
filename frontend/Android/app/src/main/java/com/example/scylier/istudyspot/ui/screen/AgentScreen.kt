@@ -1,6 +1,7 @@
 package com.example.scylier.istudyspot.ui.screen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,18 +25,21 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.ElevatedButton
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -48,11 +53,11 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,10 +66,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.example.scylier.istudyspot.models.agent.AgentMessage
 import com.example.scylier.istudyspot.models.agent.AgentMessageRole
@@ -75,6 +82,7 @@ import com.example.scylier.istudyspot.repository.AgentConversationSummary
 import com.example.scylier.istudyspot.ui.components.AppTopBar
 import com.example.scylier.istudyspot.viewmodel.AgentViewModel
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -90,6 +98,16 @@ fun AgentScreen(
     val keyboardController = LocalSoftwareKeyboardController.current
     var inputText by remember { mutableStateOf("") }
     var deleteTarget by remember { mutableStateOf<AgentConversationSummary?>(null) }
+    val userMessageIndexes = remember(state.messages) {
+        state.messages.mapIndexedNotNull { index, message ->
+            if (message.role == AgentMessageRole.USER) index else null
+        }
+    }
+    val currentVisibleIndex by remember {
+        derivedStateOf { listState.firstVisibleItemIndex }
+    }
+    val previousQuestionIndex = userMessageIndexes.lastOrNull { it < currentVisibleIndex }
+    val nextQuestionIndex = userMessageIndexes.firstOrNull { it > currentVisibleIndex }
 
     LaunchedEffect(Unit) {
         if (!state.hasActiveConversation) {
@@ -160,23 +178,47 @@ fun AgentScreen(
                 )
             }
         ) { paddingValues ->
-            if (state.messages.isEmpty()) {
-                AgentMinimalEmptyState(modifier = Modifier.padding(paddingValues))
-            } else {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues)
-                        .background(MaterialTheme.colorScheme.background),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp)
-                ) {
-                    items(state.messages, key = { message -> message.id }) { message ->
-                        AgentMessageCard(
-                            message = message,
-                            viewModel = viewModel,
-                            onActionNavigate = onActionNavigate
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .background(MaterialTheme.colorScheme.background)
+            ) {
+                if (state.messages.isEmpty()) {
+                    AgentMinimalEmptyState(modifier = Modifier.fillMaxSize())
+                } else {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp)
+                    ) {
+                        items(state.messages, key = { message -> message.id }) { message ->
+                            AgentMessageCard(
+                                message = message,
+                                viewModel = viewModel,
+                                onActionNavigate = onActionNavigate
+                            )
+                        }
+                    }
+
+                    if (userMessageIndexes.size > 1) {
+                        AgentQuestionJumpPanel(
+                            canJumpUp = previousQuestionIndex != null,
+                            canJumpDown = nextQuestionIndex != null,
+                            onJumpUp = {
+                                previousQuestionIndex?.let { target ->
+                                    coroutineScope.launch { listState.animateScrollToItem(target) }
+                                }
+                            },
+                            onJumpDown = {
+                                nextQuestionIndex?.let { target ->
+                                    coroutineScope.launch { listState.animateScrollToItem(target) }
+                                }
+                            },
+                            modifier = Modifier
+                                .align(Alignment.CenterEnd)
+                                .padding(end = 12.dp)
                         )
                     }
                 }
@@ -189,7 +231,7 @@ fun AgentScreen(
         AlertDialog(
             onDismissRequest = { deleteTarget = null },
             title = { Text("删除会话") },
-            text = { Text("确定要删除「${target.title}」吗？删除后无法恢复。") },
+            text = { Text("确定要删除“${target.title}”吗？删除后无法恢复。") },
             confirmButton = {
                 ElevatedButton(
                     onClick = {
@@ -206,6 +248,72 @@ fun AgentScreen(
                 }
             }
         )
+    }
+}
+
+@Composable
+private fun AgentQuestionJumpPanel(
+    canJumpUp: Boolean,
+    canJumpDown: Boolean,
+    onJumpUp: () -> Unit,
+    onJumpDown: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var offsetX by remember { mutableStateOf(0f) }
+    var offsetY by remember { mutableStateOf(0f) }
+
+    Surface(
+        modifier = modifier
+            .offset {
+                IntOffset(
+                    x = offsetX.roundToInt(),
+                    y = offsetY.roundToInt()
+                )
+            }
+            .pointerInput(Unit) {
+                detectDragGestures { change, dragAmount ->
+                    offsetX += dragAmount.x
+                    offsetY += dragAmount.y
+                }
+            },
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.94f),
+        tonalElevation = 6.dp,
+        shadowElevation = 8.dp
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Text(
+                text = "提问",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Button(
+                onClick = onJumpUp,
+                enabled = canJumpUp,
+                shape = RoundedCornerShape(14.dp),
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowUp,
+                    contentDescription = "上一条提问"
+                )
+            }
+            Button(
+                onClick = onJumpDown,
+                enabled = canJumpDown,
+                shape = RoundedCornerShape(14.dp),
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowDown,
+                    contentDescription = "下一条提问"
+                )
+            }
+        }
     }
 }
 
@@ -400,9 +508,7 @@ private fun AgentHistoryDrawerItem(
 @Composable
 private fun AgentMinimalEmptyState(modifier: Modifier = Modifier) {
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(20.dp),
+        modifier = modifier.padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Card(
@@ -424,7 +530,7 @@ private fun AgentMinimalEmptyState(modifier: Modifier = Modifier) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = "直接输入问题开始聊。",
+                    text = "直接输入问题开始聊天。",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
