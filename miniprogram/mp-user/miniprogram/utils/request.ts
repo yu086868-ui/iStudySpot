@@ -1,8 +1,9 @@
 import type { ApiResponse } from '../typings/api';
 import logger from './logger';
 import metrics from '../services/metrics';
+import cache from './cache';
 
-const BASE_URL = 'https://192.168.21.3:8080/api/wx';
+const BASE_URL = 'http://localhost:8080/api/wx';
 
 // ==================== SSE 相关类型与工具函数 ====================
 
@@ -72,6 +73,12 @@ class Request {
       ...header
     };
 
+    // 从缓存读取token并添加到请求头
+    const token = cache.getToken();
+    if (token) {
+      requestHeader['Authorization'] = 'Bearer ' + token;
+    }
+
     var traceId = metrics.startRequest(url, method || 'GET');
     var requestStartTime = Date.now();
 
@@ -139,6 +146,12 @@ class Request {
       'Content-Type': 'application/json',
       'Accept': 'text/event-stream'
     };
+
+    // 从缓存读取token并添加到请求头
+    const token = cache.getToken();
+    if (token) {
+      requestHeader['Authorization'] = 'Bearer ' + token;
+    }
 
     var sseBuffer = '';
 
