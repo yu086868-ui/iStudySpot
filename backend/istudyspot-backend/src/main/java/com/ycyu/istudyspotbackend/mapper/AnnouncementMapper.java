@@ -19,4 +19,7 @@ public interface AnnouncementMapper {
 
     @Select("SELECT * FROM announcement WHERE status = 'published' AND priority = #{priority} ORDER BY publish_time DESC")
     List<Announcement> findByPriority(@Param("priority") String priority);
+
+    @Delete("DELETE FROM announcement WHERE id = #{id}")
+    int deleteById(@Param("id") Long id);
 }
