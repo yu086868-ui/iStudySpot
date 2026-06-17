@@ -9,6 +9,11 @@ spring:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: Asia/Shanghai
 
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/iseatspace?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai}
     username: ${SPRING_DATASOURCE_USERNAME:root}
@@ -49,6 +54,18 @@ deepseek:
     url: ${DEEPSEEK_API_URL:https://api.deepseek.com}
     model: ${DEEPSEEK_API_MODEL:deepseek-chat}
     timeout: 60000
+
+wx:
+  miniprogram:
+    app-id: ${WX_MINIPROGRAM_APP_ID:your-app-id}
+    app-secret: ${WX_MINIPROGRAM_APP_SECRET:your-app-secret}
+
+upload:
+  avatar-path: ./uploads/avatars
+
+card:
+  image:
+    storage-path: ./uploads/cards
 
 logging:
   level:

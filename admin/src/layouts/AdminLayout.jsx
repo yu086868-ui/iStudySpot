@@ -1,16 +1,13 @@
 import { useState } from 'react'
-import { Outlet, useNavigate, useLocation } from 'react-router-dom'
-import { Layout, Menu, Avatar, Dropdown, theme } from 'antd'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Avatar, Dropdown, Layout, Menu, theme } from 'antd'
 import {
   DashboardOutlined,
   UserOutlined,
   HomeOutlined,
   UnorderedListOutlined,
-  PayCircleOutlined,
   NotificationOutlined,
   FileTextOutlined,
-  GiftOutlined,
-  RobotOutlined,
   HeartOutlined,
   LogoutOutlined,
   MenuFoldOutlined,
@@ -26,22 +23,26 @@ const menuItems = [
   { key: '/users', icon: <UserOutlined />, label: '用户管理' },
   { key: '/studyrooms', icon: <HomeOutlined />, label: '自习室管理' },
   { key: '/orders', icon: <UnorderedListOutlined />, label: '订单管理' },
-  { key: '/payments', icon: <PayCircleOutlined />, label: '支付管理' },
   { key: '/announcements', icon: <NotificationOutlined />, label: '公告管理' },
-  { key: '/rules', icon: <FileTextOutlined />, label: '规则管理' },
-  { key: '/cards', icon: <GiftOutlined />, label: '卡片管理' },
-  { key: '/ai-chat', icon: <RobotOutlined />, label: 'AI 聊天' },
+  { key: '/rules', icon: <FileTextOutlined />, label: '规则内容' },
   { key: '/system/health', icon: <HeartOutlined />, label: '系统健康' },
 ]
+
+function resolveSelectedKey(pathname) {
+  if (pathname.startsWith('/studyrooms/')) {
+    return '/studyrooms'
+  }
+  return menuItems.find((item) => pathname === item.key || pathname.startsWith(`${item.key}/`))?.key || '/dashboard'
+}
 
 export default function AdminLayout() {
   const [collapsed, setCollapsed] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
-  const { token: { colorBgContainer, borderRadiusLG } } = theme.useToken()
+  const {
+    token: { colorBgContainer, borderRadiusLG },
+  } = theme.useToken()
   const user = getUser()
-
-  const selectedKey = '/' + location.pathname.split('/').filter(Boolean).slice(0, location.pathname.includes('seats') ? 2 : 1).join('/')
 
   const handleLogout = async () => {
     try {
@@ -61,36 +62,40 @@ export default function AdminLayout() {
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Sider trigger={null} collapsible collapsed={collapsed} theme="dark">
-        <div style={{
-          height: 64,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#fff',
-          fontSize: collapsed ? 16 : 20,
-          fontWeight: 'bold',
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-        }}>
+        <div
+          style={{
+            height: 64,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#fff',
+            fontSize: collapsed ? 16 : 20,
+            fontWeight: 'bold',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+          }}
+        >
           {collapsed ? 'iSS' : 'iStudySpot'}
         </div>
         <Menu
           theme="dark"
           mode="inline"
-          selectedKeys={[selectedKey]}
+          selectedKeys={[resolveSelectedKey(location.pathname)]}
           items={menuItems}
           onClick={({ key }) => navigate(key)}
         />
       </Sider>
       <Layout>
-        <Header style={{
-          padding: '0 24px',
-          background: colorBgContainer,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
-        }}>
+        <Header
+          style={{
+            padding: '0 24px',
+            background: colorBgContainer,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+          }}
+        >
           <div style={{ cursor: 'pointer', fontSize: 18 }} onClick={() => setCollapsed(!collapsed)}>
             {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
           </div>
@@ -101,14 +106,16 @@ export default function AdminLayout() {
             </div>
           </Dropdown>
         </Header>
-        <Content style={{
-          margin: 24,
-          padding: 24,
-          background: colorBgContainer,
-          borderRadius: borderRadiusLG,
-          minHeight: 280,
-          overflow: 'auto',
-        }}>
+        <Content
+          style={{
+            margin: 24,
+            padding: 24,
+            background: colorBgContainer,
+            borderRadius: borderRadiusLG,
+            minHeight: 280,
+            overflow: 'auto',
+          }}
+        >
           <Outlet />
         </Content>
       </Layout>

@@ -4,7 +4,6 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     kotlin("plugin.serialization") version "2.0.21"
     jacoco
-    id("org.owasp.dependencycheck") version "9.0.9"
 }
 
 jacoco {

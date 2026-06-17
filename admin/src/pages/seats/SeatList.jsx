@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Table, Card, Tag, Button, Typography, message, Select, Space } from 'antd'
 import { ArrowLeftOutlined } from '@ant-design/icons'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getSeatList } from '../../api/seats'
-import { formatDateTime, statusColor, statusLabel } from '../../utils'
+import { formatDateTime, formatMoney, statusColor, statusLabel } from '../../utils'
 
 const { Title } = Typography
 
@@ -41,28 +41,28 @@ export default function SeatList() {
       title: '类型',
       dataIndex: 'seatType',
       key: 'seatType',
-      render: (v) => <Tag color={v === 2 ? 'gold' : 'default'}>{v === 2 ? 'VIP' : '普通'}</Tag>,
+      render: (value) => <Tag color={Number(value) === 2 ? 'gold' : 'default'}>{Number(value) === 2 ? 'VIP' : '普通'}</Tag>,
     },
     {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
-      render: (v) => <Tag color={statusColor(v)}>{statusLabel(v)}</Tag>,
+      render: (value) => <Tag color={statusColor(value)}>{statusLabel(value)}</Tag>,
     },
-    { title: '价格/时', dataIndex: 'pricePerHour', key: 'pricePerHour', render: (v) => v ? `¥${v}` : '-' },
+    { title: '价格/小时', dataIndex: 'pricePerHour', key: 'pricePerHour', render: (value) => (value ? formatMoney(value) : '-') },
     {
       title: '设施',
       key: 'facilities',
-      render: (_, r) => (
+      render: (_, record) => (
         <Space size={4}>
-          {r.hasPower === 1 && <Tag color="blue">插座</Tag>}
-          {r.hasLamp === 1 && <Tag color="cyan">台灯</Tag>}
-          {r.isWindow === 1 && <Tag color="green">靠窗</Tag>}
+          {Number(record.hasPower) === 1 && <Tag color="blue">插座</Tag>}
+          {Number(record.hasLamp) === 1 && <Tag color="cyan">台灯</Tag>}
+          {Number(record.isWindow) === 1 && <Tag color="green">靠窗</Tag>}
         </Space>
       ),
     },
     { title: '描述', dataIndex: 'description', key: 'description', ellipsis: true },
-    { title: '更新时间', dataIndex: 'updateTime', key: 'updateTime', render: (v) => formatDateTime(v) },
+    { title: '更新时间', dataIndex: 'updateTime', key: 'updateTime', render: formatDateTime },
   ]
 
   return (
@@ -70,19 +70,19 @@ export default function SeatList() {
       <Space style={{ marginBottom: 16 }}>
         <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/studyrooms')}>返回自习室列表</Button>
       </Space>
-      <Title level={4}>座位管理 - 自习室 #{studyRoomId}</Title>
+      <Title level={4}>座位列表 - 自习室 #{studyRoomId}</Title>
       <Card>
         <Space style={{ marginBottom: 16 }}>
           <Select
             placeholder="状态筛选"
             value={statusFilter}
-            onChange={v => setStatusFilter(v)}
+            onChange={setStatusFilter}
             allowClear
-            style={{ width: 120 }}
+            style={{ width: 140 }}
             options={[
               { label: '可用', value: 'available' },
               { label: '已预约', value: 'booked' },
-              { label: '占用', value: 'occupied' },
+              { label: '使用中', value: 'in_use' },
               { label: '不可用', value: 'unavailable' },
             ]}
           />
@@ -93,10 +93,9 @@ export default function SeatList() {
           loading={loading}
           columns={columns}
           dataSource={data}
-          pagination={{ pageSize: 20, showTotal: (t) => `共 ${t} 条` }}
+          pagination={{ pageSize: 20, showTotal: (total) => `共 ${total} 条` }}
         />
       </Card>
     </div>
   )
 }
-

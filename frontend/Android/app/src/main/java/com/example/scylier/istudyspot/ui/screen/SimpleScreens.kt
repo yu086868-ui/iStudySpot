@@ -1,4 +1,4 @@
-package com.example.scylier.istudyspot.ui.screen
+﻿package com.example.scylier.istudyspot.ui.screen
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -97,7 +97,7 @@ import com.example.scylier.istudyspot.ui.components.AppTopBar
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun GuideScreen(
+fun LegacyGuideScreen(
     facilities: List<Facility>,
     location: String,
     openingHours: String,
@@ -947,23 +947,14 @@ private fun NotificationCard(
         NotificationType.REMINDER -> MaterialTheme.colorScheme.secondaryContainer
         NotificationType.ACTIVITY -> MaterialTheme.colorScheme.errorContainer
     }
-    val typeLabel = when (notification.type) {
-        NotificationType.SYSTEM -> "系统"
-        NotificationType.BOOKING -> "预约"
-        NotificationType.REMINDER -> "提醒"
-        NotificationType.ACTIVITY -> "活动"
-    }
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = if (!notification.isRead)
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-            else
-                MaterialTheme.colorScheme.surface
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = if (!notification.isRead) 2.dp else 1.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -994,36 +985,14 @@ private fun NotificationCard(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.weight(1f)
                     ) {
-                        if (!notification.isRead) {
-                            Box(
-                                modifier = Modifier
-                                    .size(8.dp)
-                                    .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.primary)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                        }
                         Text(
                             text = notification.title,
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.onSurface
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(4.dp))
-                                .background(iconBg)
-                                .padding(horizontal = 6.dp, vertical = 2.dp)
-                        ) {
-                            Text(
-                                text = typeLabel,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = iconTint
-                            )
-                        }
                     }
                     Text(
-                        text = notification.time,
+                        text = notification.displayTime,
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

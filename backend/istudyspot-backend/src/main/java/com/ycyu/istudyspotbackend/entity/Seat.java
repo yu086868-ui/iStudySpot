@@ -20,6 +20,10 @@ public class Seat {
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
 
+    // 微信小程序接口新增字段
+    private String facilities;
+    private LocalDateTime lastUsedAt;
+
     // Getter and Setter
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -65,4 +69,10 @@ public class Seat {
 
     public LocalDateTime getUpdateTime() { return updateTime; }
     public void setUpdateTime(LocalDateTime updateTime) { this.updateTime = updateTime; }
+
+    public String getFacilities() { return facilities; }
+    public void setFacilities(String facilities) { this.facilities = facilities; }
+
+    public LocalDateTime getLastUsedAt() { return lastUsedAt; }
+    public void setLastUsedAt(LocalDateTime lastUsedAt) { this.lastUsedAt = lastUsedAt; }
 }

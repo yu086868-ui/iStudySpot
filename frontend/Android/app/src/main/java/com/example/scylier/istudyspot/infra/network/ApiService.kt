@@ -28,6 +28,8 @@ import com.example.scylier.istudyspot.models.studyroom.SeatDetail
 import com.example.scylier.istudyspot.models.studyroom.SeatInfo
 import com.example.scylier.istudyspot.models.studyroom.SeatLayoutData
 import com.example.scylier.istudyspot.models.studyroom.StudyRoomDetail
+import com.example.scylier.istudyspot.models.studyroom.StudyRoomGuideDetail
+import com.example.scylier.istudyspot.models.studyroom.StudyRoomGuideSummary
 import com.example.scylier.istudyspot.models.studyroom.StudyRoomListResponse
 import com.example.scylier.istudyspot.models.todo.CreateTodoRequest
 import com.example.scylier.istudyspot.models.todo.Todo
@@ -63,6 +65,12 @@ interface ApiService {
 
     @GET("/api/studyrooms/{id}")
     suspend fun getStudyRoomDetail(@Path("id") id: Long): Response<BaseResponse<StudyRoomDetail>>
+
+    @GET("/api/studyrooms/guides")
+    suspend fun getStudyRoomGuides(): Response<BaseResponse<List<StudyRoomGuideSummary>>>
+
+    @GET("/api/studyrooms/guides/{studyRoomId}")
+    suspend fun getStudyRoomGuideDetail(@Path("studyRoomId") studyRoomId: Long): Response<BaseResponse<StudyRoomGuideDetail>>
 
     // 座位相关 API
     @GET("/api/studyrooms/{studyRoomId}/seats")

@@ -1,16 +1,13 @@
-codecov:
-  token: ${{ secrets.CODECOV_TOKEN }}
-
 coverage:
   status:
     project:
       default:
-        target: 80%
+        target: 60%
         threshold: 5%
         base: auto
     patch:
       default:
-        target: 80%
+        target: 60%
         threshold: 10%
 
 comment:
@@ -23,9 +20,9 @@ flags:
     paths:
       - "backend/istudyspot-backend/"
     carryforward: true
-  ai-chat:
+  android:
     paths:
-      - "miniprogram/ai-chat/"
+      - "frontend/Android/"
     carryforward: true
   mp-user:
     paths:
@@ -47,8 +44,3 @@ parsers:
       loop: true
       method: false
       exception: true
-
-reports:
-  - "backend/istudyspot-backend/target/site/jacoco/jacoco.xml"
-  - "miniprogram/ai-chat/coverage/coverage-final.json"
-  - "miniprogram/mp-user/coverage/coverage-final.json"

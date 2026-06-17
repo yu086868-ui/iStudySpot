@@ -7,3 +7,7 @@ export function getSeatList(studyRoomId, params) {
 export function getSeatDetail(id) {
   return request.get(`/api/seats/${id}`)
 }
+
+export function getSeatLayout(studyRoomId) {
+  return request.get(`/api/studyrooms/${studyRoomId}/seat-layout`)
+}
