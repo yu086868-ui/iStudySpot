@@ -116,13 +116,7 @@ Android 主要 API 区域：
 - 自习室与座位：`/api/studyrooms`、`/api/studyrooms/{id}`、`/api/studyrooms/{id}/seats`、`/api/studyrooms/{id}/seat-layout`、`/api/seats/{id}`
 - 预约与签到：`/api/reservations`、`/api/reservations/my`、`/api/reservations/{id}`、`/api/checkin`、`/api/checkout`
 - 用户内容：`/api/users/me`、`/api/announcements`、`/api/rules`、`/api/todos`、`/api/achievements`、`/api/violations`
-- AI 与助手：`/api/characters`、`/api/chat`、`/api/agent/chat`、`/api/agent/tools/catalog`、`/api/customer-service/*`
-
-当前 Android 限制：
-
-- `ConfigManager` 会持久化访问 token，但不会持久化 refresh token；而 `ApiClient` 已包含 refresh token 字段。
-- AI、Agent、客服流程在 App 中主要使用普通请求/响应端点，虽然后端也提供了流式端点。
-- 当前没有 Room/DataStore 数据库层；轻量持久化通过 SharedPreferences 和本地 store 完成。
+- AI 与助手：`/api/characters`、`/api/chat`、`/api/agent/chat`、`/api/agent/tools/catalog`、`/api/customer-service/*
 
 ### 5.3 Backend API
 
