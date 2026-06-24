@@ -2,11 +2,15 @@
 
 本文基于 arc42 组织 iStudySpot 的架构说明，整合当前仓库中的 Android App、Backend API、Web 管理员端，以及 `docs/design/structurizr-backend-android.dsl` 中的 Structurizr/C4 模型。
 
-最后更新日期：2026-06-17
+最后更新日期：2026-06-21
 
 ## 1. 引言与目标
 
+作者：黄益政（Android、Web 管理端与整体文档组织）；余逸晨（Backend API 与后端能力描述）
+
 ### 1.1 需求概览
+
+作者：黄益政（Android、Web 管理端与整体范围）；余逸晨（Backend API）
 
 iStudySpot 是面向自习室预约与学习场景的系统，本文覆盖三个主要端：
 
@@ -17,6 +21,8 @@ iStudySpot 是面向自习室预约与学习场景的系统，本文覆盖三个
 系统还包含微信小程序目录和 `/api/wx/*` 后端接口，但本文按本次架构范围聚焦 Android、Backend、管理员 Web 三端；小程序仅作为后端已暴露接口的一部分在边界中说明。
 
 ### 1.2 质量目标
+
+作者：黄益政（客户端与管理端质量目标）；余逸晨（后端、安全与可观测性质量目标）
 
 | 优先级 | 质量目标 | 在本系统中的含义 |
 | --- | --- | --- |
@@ -29,6 +35,8 @@ iStudySpot 是面向自习室预约与学习场景的系统，本文覆盖三个
 
 ### 1.3 干系人
 
+作者：黄益政（Android、管理端与整体干系人）；余逸晨（后端与部署干系人）
+
 | 干系人 | 关注点 |
 | --- | --- |
 | 学生用户 | 在移动端快速查找自习室、选择座位、完成预约和查看学习相关信息。 |
@@ -40,7 +48,11 @@ iStudySpot 是面向自习室预约与学习场景的系统，本文覆盖三个
 
 ## 2. 约束条件
 
+作者：黄益政（Android、Web 管理端与文档范围）；余逸晨（后端、数据库、AI 与部署约束）
+
 ### 2.1 技术约束
+
+作者：黄益政（Android 与 Web 管理端）；余逸晨（Backend、数据库、缓存、AI 与部署）
 
 | 领域 | 约束 |
 | --- | --- |
@@ -54,6 +66,8 @@ iStudySpot 是面向自习室预约与学习场景的系统，本文覆盖三个
 
 ### 2.2 组织约束
 
+作者：黄益政（整体文档组织）；余逸晨（后端模块化单体约束）
+
 - 仓库是多应用工作区，而不是一个统一构建系统。
 - Backend 是模块化单体，不是一组可以独立部署的微服务。
 - Structurizr 作为架构模型来源，主要文件是 `docs/design/structurizr-backend-android.dsl`。
@@ -61,11 +75,17 @@ iStudySpot 是面向自习室预约与学习场景的系统，本文覆盖三个
 
 ## 3. 上下文与范围
 
+作者：黄益政（系统上下文与前端范围）；余逸晨（后端边界与外部依赖）
+
 ### 3.1 系统上下文
+
+作者：黄益政
 
 ![9064b594f702bb00afab7644f13271d6](./assets/9064b594f702bb00afab7644f13271d6.png)
 
 ### 3.2 外部系统
+
+作者：余逸晨
 
 | 外部系统 | 使用方 | 用途 |
 | --- | --- | --- |
@@ -76,6 +96,8 @@ iStudySpot 是面向自习室预约与学习场景的系统，本文覆盖三个
 | Redis | 部署编排 | 当前作为可用基础设施组件存在；在已检查的预约/座位服务中尚不是核心依赖。 |
 
 ## 4. 解决方案策略
+
+作者：黄益政（Android、Web 管理端与 C4/arc42 文档组织）；余逸晨（后端业务权威、JWT 与 AI/Agent 后端边界）
 
 整体架构采用务实的模块化单体策略：
 
@@ -88,11 +110,17 @@ iStudySpot 是面向自习室预约与学习场景的系统，本文覆盖三个
 
 ## 5. 构建块视图
 
+作者：黄益政（Android、Web 管理端与容器视图）；余逸晨（Backend API）
+
 ### 5.1 容器视图
+
+作者：黄益政（容器图整理）；余逸晨（后端容器内容）
 
 ![4a2b3aed50c12010f2031291d518ed66](./assets/4a2b3aed50c12010f2031291d518ed66.png)
 
 ### 5.2 Android App
+
+作者：黄益政
 
 ![86ad0ec9e82d1370d4bc8dbffad8a0ca](./assets/86ad0ec9e82d1370d4bc8dbffad8a0ca.png)
 
@@ -116,15 +144,11 @@ Android 主要 API 区域：
 - 自习室与座位：`/api/studyrooms`、`/api/studyrooms/{id}`、`/api/studyrooms/{id}/seats`、`/api/studyrooms/{id}/seat-layout`、`/api/seats/{id}`
 - 预约与签到：`/api/reservations`、`/api/reservations/my`、`/api/reservations/{id}`、`/api/checkin`、`/api/checkout`
 - 用户内容：`/api/users/me`、`/api/announcements`、`/api/rules`、`/api/todos`、`/api/achievements`、`/api/violations`
-- AI 与助手：`/api/characters`、`/api/chat`、`/api/agent/chat`、`/api/agent/tools/catalog`、`/api/customer-service/*`
-
-当前 Android 限制：
-
-- `ConfigManager` 会持久化访问 token，但不会持久化 refresh token；而 `ApiClient` 已包含 refresh token 字段。
-- AI、Agent、客服流程在 App 中主要使用普通请求/响应端点，虽然后端也提供了流式端点。
-- 当前没有 Room/DataStore 数据库层；轻量持久化通过 SharedPreferences 和本地 store 完成。
+- AI 与助手：`/api/characters`、`/api/chat`、`/api/agent/chat`、`/api/agent/tools/catalog`、`/api/customer-service/*
 
 ### 5.3 Backend API
+
+作者：余逸晨
 
 ![88c6711139e64392a314c85211a3a5b4](./assets/88c6711139e64392a314c85211a3a5b4.png)
 
@@ -154,6 +178,8 @@ Android 主要 API 区域：
 | 微信小程序 API | `Wx*Controller` | `/api/wx/*` 端点存在，但不属于本文三端重点范围。 |
 
 ### 5.4 Web 管理员端
+
+作者：黄益政
 
 ![7c975a6f31ea0b1daf10c58084e9fe5f](./assets/7c975a6f31ea0b1daf10c58084e9fe5f-1781674457505-5.png)
 
@@ -189,7 +215,11 @@ Android 主要 API 区域：
 
 ## 6. 运行时视图
 
+作者：黄益政（Android 与 Web 管理端运行时流程）；余逸晨（后端服务、数据库与 Agent 后端流程）
+
 ### 6.1 Android 登录与认证请求
+
+作者：黄益政（Android 调用链）；余逸晨（后端认证链路）
 
 ```mermaid
 sequenceDiagram
@@ -214,6 +244,8 @@ sequenceDiagram
 
 ### 6.2 座位布局与预约
 
+作者：黄益政（Android 页面与 ViewModel 流程）；余逸晨（后端座位与预约流程）
+
 ```mermaid
 sequenceDiagram
     participant Android as Android 自习室/座位界面
@@ -236,6 +268,8 @@ sequenceDiagram
 
 ### 6.3 支付、签到与签退
 
+作者：黄益政（Android 交互流程）；余逸晨（后端支付、签到与签退状态流转）
+
 ```mermaid
 sequenceDiagram
     participant Client as Android App
@@ -257,6 +291,8 @@ sequenceDiagram
 ```
 
 ### 6.4 Agent 只读助手
+
+作者：黄益政（Android AgentScreen 展示与交互）；余逸晨（后端 Agent 策略守卫、LLM 与工具执行）
 
 ```mermaid
 sequenceDiagram
@@ -287,6 +323,8 @@ sequenceDiagram
 
 ### 6.5 管理员仪表盘
 
+作者：黄益政（React 管理端流程）；余逸晨（后端管理接口与健康接口）
+
 ```mermaid
 sequenceDiagram
     participant Admin as 浏览器
@@ -307,6 +345,8 @@ sequenceDiagram
 ```
 
 ## 7. 部署视图
+
+作者：黄益政（管理员端容器与前端代理配置）；余逸晨（后端、数据库、Redis 与运行时环境）
 
 顶层 `docker-compose.yml` 部署主要运行时：
 
@@ -332,7 +372,11 @@ sequenceDiagram
 
 ## 8. 横切关注点
 
+作者：黄益政（客户端状态、管理端会话与 UI 存储）；余逸晨（后端认证、持久化、可观测性与 AI/Agent 安全）
+
 ### 8.1 认证与授权
+
+作者：黄益政（Android 与管理端 token 保存）；余逸晨（后端 JWT 与管理员权限校验）
 
 - JWT token 由后端 `JwtUtils` 生成，并从 `/api/auth/login` 返回。
 - 后端 `JwtInterceptor` 保护 `/api/**`，但会排除认证、自习室只读接口、公告、规则、部分 wx API 和卡牌图片路径等公开接口。
@@ -342,12 +386,16 @@ sequenceDiagram
 
 ### 8.2 错误处理
 
+作者：黄益政（Android 与管理端错误展示）；余逸晨（后端 Result 与 Agent 未授权响应）
+
 - 后端返回统一的 `Result` 风格结构，包含 `code`、`message` 和 `data`。
 - Android 将网络和业务错误映射为 `ApiResponse.Success` 或 `ApiResponse.Error`，再通过 ViewModel 状态和 Snackbar 暴露给 UI。
 - 管理员 Web 的 Axios 客户端会拒绝后端非 200/201 的业务状态码，并在 401 时跳转登录页。
 - `/api/agent/*` 的未授权响应使用更严格的结构化 payload。
 
 ### 8.3 持久化
+
+作者：余逸晨
 
 核心表和迁移包括：
 
@@ -361,12 +409,16 @@ Flyway 迁移文件存在于 `src/main/resources/db/migration`，但 `applicatio
 
 ### 8.4 可观测性与健康检查
 
+作者：余逸晨
+
 - `MetricsInterceptor` 记录请求数、成功/失败数、总响应时间和端点访问次数。
 - `HealthController` 暴露健康检查和就绪检查端点，供 Docker healthcheck 和管理员健康页面使用。
 - Sentry 依赖和配置已经存在，默认关闭，需通过环境变量启用。
 - `AlertConfig` 和 `AlertService` 提供错误率、响应时间和连续服务失败次数等阈值概念。
 
 ### 8.5 AI 与 Agent 安全
+
+作者：余逸晨
 
 - AI 角色行为和客服事实从 classpath JSON/rules 中加载。
 - `AIServiceImpl` 和 `AgentChatServiceImpl` 维护内存会话状态。
@@ -378,13 +430,19 @@ Flyway 迁移文件存在于 `src/main/resources/db/migration`，但 `applicatio
 
 ### 8.6 UI 状态与客户端存储
 
+作者：黄益政
+
 - Android 使用 ViewModel 中的 StateFlow，并在 Compose 页面中收集状态。
 - Android 使用 SharedPreferences 保存轻量数据；已检查代码中没有本地 SQL 数据库。
 - 管理员 Web 使用 LocalStorage 保存登录状态，并用页面级 React state 管理表格、筛选器和加载状态。
 
 ## 9. 架构决策
 
+作者：黄益政（Android、Web 管理端与架构文档组织）；余逸晨（后端与 Agent 决策）
+
 ### AD-001：后端采用模块化单体
+
+作者：余逸晨
 
 状态：已接受
 
@@ -401,6 +459,8 @@ Flyway 迁移文件存在于 `src/main/resources/db/migration`，但 `applicatio
 
 ### AD-002：使用 C4/Structurizr 作为架构模型
 
+作者：黄益政
+
 状态：已接受
 
 背景：仓库中包含详细的 Structurizr DSL，覆盖 C1、C2 和 C3 视图。
@@ -414,6 +474,8 @@ Flyway 迁移文件存在于 `src/main/resources/db/migration`，但 `applicatio
 - 当代码结构变化时，需要同步维护 C4 模型和 arc42 文档。
 
 ### AD-003：Android 使用 MVVM 和 Compose
+
+作者：黄益政
 
 状态：已接受
 
@@ -429,6 +491,8 @@ Flyway 迁移文件存在于 `src/main/resources/db/migration`，但 `applicatio
 
 ### AD-004：Web 管理员端使用 React/Ant Design
 
+作者：黄益政
+
 状态：已接受
 
 背景：管理员页面主要是运营表格、详情和健康检查视图。
@@ -442,6 +506,8 @@ Flyway 迁移文件存在于 `src/main/resources/db/migration`，但 `applicatio
 - 更强的角色模型和表单级校验是后续改进方向。
 
 ### AD-005：Agent 限制为只读工具
+
+作者：余逸晨
 
 状态：已接受
 
@@ -457,6 +523,8 @@ Flyway 迁移文件存在于 `src/main/resources/db/migration`，但 `applicatio
 
 ## 10. 质量需求
 
+作者：黄益政（Android、Web 管理端与 UI 质量场景）；余逸晨（后端正确性、安全性与可观测性场景）
+
 | 场景 | 质量属性 | 当前机制 |
 | --- | --- | --- |
 | 防止预约已被占用的座位 | 正确性 | `OrderServiceImpl.createOrder` 在事务中插入前检查时间冲突。 |
@@ -468,6 +536,8 @@ Flyway 迁移文件存在于 `src/main/resources/db/migration`，但 `applicatio
 | 渲染复杂座位图 | 易用性 | 后端返回包含 seats 和 layout items 的 `SeatLayoutResponse`；Android 在布局加载失败时回退到网格。 |
 
 ## 11. 风险与技术债
+
+作者：黄益政（Android、Web 管理端与文档风险）；余逸晨（后端、数据库、认证、支付与 AI 会话风险）
 
 | 编号 | 风险或技术债 | 影响 | 建议方向 |
 | --- | --- | --- | --- |
@@ -482,6 +552,8 @@ Flyway 迁移文件存在于 `src/main/resources/db/migration`，但 `applicatio
 | R9 | 支付实现会在本地直接标记成功。 | 可能不代表真实外部支付提供商集成。 | 区分 mock/local payment 与生产支付渠道集成。 |
 
 ## 12. 术语表
+
+作者：黄益政（客户端、C4 与文档术语）；余逸晨（后端、MyBatis、JWT、SSE 与 Agent tool 术语）
 
 | 术语 | 含义 |
 | --- | --- |
