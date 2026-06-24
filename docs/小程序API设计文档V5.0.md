@@ -1,10 +1,8 @@
-# 「this.baseURL + url」
-
-> BASE_URL从 /api/XXX 改成了 /api/wx/XXX
-
 # 小程序端 API 设计文档 V5.0
 
 > 说明：本文档为 iStudySpot 小程序的完整 API 设计，包含微信登录、自习室管理、座位预约、签到打卡、公告规则、AI卡片系统等核心功能模块。
+>
+> 路径约定：小程序端接口统一使用 `/api/wx/` 前缀，与 Android 端 `/api/` 接口隔离。
 
 ---
 
@@ -280,7 +278,7 @@ interface Card {
 
 #### 3.1.1 微信登录
 
-- **URL**: `/api/user/login`
+- **URL**: `/api/wx/user/login`
 - **方法**: POST
 
 **请求参数：**
@@ -331,7 +329,7 @@ interface Card {
 
 #### 3.1.2 获取当前用户信息
 
-- **URL**: `/api/user/profile`
+- **URL**: `/api/wx/user/profile`
 - **方法**: GET
 
 **响应：**
@@ -355,7 +353,7 @@ interface Card {
 
 #### 3.1.3 修改用户信息
 
-- **URL**: `/api/user/profile`
+- **URL**: `/api/wx/user/profile`
 - **方法**: PUT
 
 **请求参数：**
@@ -379,7 +377,7 @@ interface Card {
 
 #### 3.1.4 修改头像
 
-- **URL**: `/api/user/avatar`
+- **URL**: `/api/wx/user/avatar`
 - **方法**: POST
 - **Content-Type**: `multipart/form-data`
 
@@ -407,7 +405,7 @@ interface Card {
 
 用于 User 页面一次性加载。
 
-- **URL**: `/api/user/home`
+- **URL**: `/api/wx/user/home`
 - **方法**: GET
 
 **响应：**
@@ -435,7 +433,7 @@ interface Card {
 
 #### 3.2.1 获取自习室列表
 
-- **URL**: `/api/studyrooms`
+- **URL**: `/api/wx/studyrooms`
 - **方法**: GET
 
 **请求参数：**
@@ -481,7 +479,7 @@ interface Card {
 
 #### 3.2.2 获取自习室详情
 
-- **URL**: `/api/studyrooms/{id}`
+- **URL**: `/api/wx/studyrooms/{id}`
 - **方法**: GET
 
 **响应：**
@@ -523,7 +521,7 @@ interface Card {
 
 #### 3.3.1 获取座位列表
 
-- **URL**: `/api/studyrooms/{studyRoomId}/seats`
+- **URL**: `/api/wx/studyrooms/{studyRoomId}/seats`
 - **方法**: GET
 
 **请求参数：**
@@ -561,7 +559,7 @@ interface Card {
 
 #### 3.3.2 获取座位详情
 
-- **URL**: `/api/seats/{id}`
+- **URL**: `/api/wx/seats/{id}`
 - **方法**: GET
 
 **响应：**
@@ -590,7 +588,7 @@ interface Card {
 
 #### 3.4.1 创建预约
 
-- **URL**: `/api/reservations`
+- **URL**: `/api/wx/reservations`
 - **方法**: POST
 
 **请求参数：**
@@ -630,7 +628,7 @@ interface Card {
 
 #### 3.4.2 获取我的预约列表
 
-- **URL**: `/api/reservations/my`
+- **URL**: `/api/wx/reservations/my`
 - **方法**: GET
 
 **请求参数：**
@@ -676,7 +674,7 @@ interface Card {
 
 #### 3.4.3 获取预约详情
 
-- **URL**: `/api/reservations/{id}`
+- **URL**: `/api/wx/reservations/{id}`
 - **方法**: GET
 
 **响应：**
@@ -705,7 +703,7 @@ interface Card {
 
 #### 3.4.4 取消预约
 
-- **URL**: `/api/reservations/{id}/cancel`
+- **URL**: `/api/wx/reservations/{id}/cancel`
 - **方法**: POST
 
 **响应：**
@@ -721,7 +719,7 @@ interface Card {
 
 #### 3.4.5 获取预约规则
 
-- **URL**: `/api/reservations/rules`
+- **URL**: `/api/wx/reservations/rules`
 - **方法**: GET
 
 **响应：**
@@ -747,7 +745,7 @@ interface Card {
 
 #### 3.5.1 签到
 
-- **URL**: `/api/checkin`
+- **URL**: `/api/wx/checkin`
 - **方法**: POST
 
 **请求参数：**
@@ -778,7 +776,7 @@ interface Card {
 
 #### 3.5.2 签退
 
-- **URL**: `/api/checkout`
+- **URL**: `/api/wx/checkout`
 - **方法**: POST
 
 **请求参数：**
@@ -806,7 +804,7 @@ interface Card {
 
 #### 3.5.3 获取我的签到记录
 
-- **URL**: `/api/checkin/records`
+- **URL**: `/api/wx/checkin/records`
 - **方法**: GET
 
 **请求参数：**
@@ -849,7 +847,7 @@ interface Card {
 
 #### 3.5.4 获取当前签到状态
 
-- **URL**: `/api/checkin/current`
+- **URL**: `/api/wx/checkin/current`
 - **方法**: GET
 
 **响应：**
@@ -881,7 +879,7 @@ interface Card {
 
 #### 3.6.1 获取公告列表
 
-- **URL**: `/api/announcements`
+- **URL**: `/api/wx/announcements`
 - **方法**: GET
 
 **请求参数：**
@@ -924,7 +922,7 @@ interface Card {
 
 #### 3.6.2 获取公告详情
 
-- **URL**: `/api/announcements/{id}`
+- **URL**: `/api/wx/announcements/{id}`
 - **方法**: GET
 
 **响应：**
@@ -953,7 +951,7 @@ interface Card {
 
 #### 3.7.1 获取规则列表
 
-- **URL**: `/api/rules`
+- **URL**: `/api/wx/rules`
 - **方法**: GET
 
 **请求参数：**
@@ -988,7 +986,7 @@ interface Card {
 
 #### 3.7.2 获取规则详情
 
-- **URL**: `/api/rules/{id}`
+- **URL**: `/api/wx/rules/{id}`
 - **方法**: GET
 
 **响应：**
@@ -1016,7 +1014,7 @@ interface Card {
 
 卡片系统作为主学习系统的扩展模块，根据一次有效学习记录，自动生成可收藏的 AI 卡片。
 
-**基础路径**：`/api/card`
+**基础路径**：`/api/wx/card`
 
 **接口列表：**
 
@@ -1032,7 +1030,7 @@ interface Card {
 
 #### 3.8.1 同步生成卡片
 
-- **URL**: `/api/card/generate`
+- **URL**: `/api/wx/card/generate`
 - **方法**: POST
 
 **请求参数：**
@@ -1076,7 +1074,7 @@ interface Card {
 **示例：**
 
 ```bash
-curl -X POST http://localhost:8080/api/card/generate \
+curl -X POST http://localhost:8080/api/wx/card/generate \
   -H "Content-Type: application/json" \
   -d '{"userID": "user_001", "studyDuration": 60}'
 ```
@@ -1085,7 +1083,7 @@ curl -X POST http://localhost:8080/api/card/generate \
 
 #### 3.8.2 流式生成卡片（SSE）
 
-- **URL**: `/api/card/generate/stream`
+- **URL**: `/api/wx/card/generate/stream`
 - **方法**: POST
 - **协议**: SSE (Server-Sent Events)
 - **超时时间**: 120秒
@@ -1174,14 +1172,14 @@ event: data
 data: {"type":"text","content":"律"}
 
 event: complete
-data: {"success":true,"message":"generate success","card":{"uuid":"xxx","rarity":"UR","markdown":"# 自律\n> 时间是最好的见证\n---\n每一次坚持，都是对未来的投资。","imageURL":"/api/card/image/xxx.png",...}}
+data: {"success":true,"message":"generate success","card":{"uuid":"xxx","rarity":"UR","markdown":"# 自律\n> 时间是最好的见证\n---\n每一次坚持，都是对未来的投资。","imageURL":"/api/wx/card/image/xxx.png",...}}
 ```
 
 **前端对接示例：**
 
 ```javascript
 async function generateCardStream(userId, studyDuration) {
-  const response = await fetch('/api/card/generate/stream', {
+  const response = await fetch('/api/wx/card/generate/stream', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ userId, studyDuration })
@@ -1240,7 +1238,7 @@ async function generateCardStream(userId, studyDuration) {
 
 #### 3.8.3 获取卡片详情
 
-- **URL**: `/api/card/detail`
+- **URL**: `/api/wx/card/detail`
 - **方法**: GET
 
 **请求参数：**
@@ -1280,14 +1278,14 @@ async function generateCardStream(userId, studyDuration) {
 **示例：**
 
 ```bash
-curl http://localhost:8080/api/card/detail?id=xxx-xxx-xxx
+curl http://localhost:8080/api/wx/card/detail?id=xxx-xxx-xxx
 ```
 
 ---
 
 #### 3.8.4 获取用户卡片列表
 
-- **URL**: `/api/card/list`
+- **URL**: `/api/wx/card/list`
 - **方法**: GET
 
 **请求参数：**
@@ -1320,14 +1318,14 @@ curl http://localhost:8080/api/card/detail?id=xxx-xxx-xxx
 **示例：**
 
 ```bash
-curl http://localhost:8080/api/card/list?userID=user_001
+curl http://localhost:8080/api/wx/card/list?userID=user_001
 ```
 
 ---
 
 #### 3.8.5 获取卡片图片
 
-- **URL**: `/api/card/image/{path}`
+- **URL**: `/api/wx/card/image/{path}`
 - **方法**: GET
 - **Content-Type**: `image/png`
 
@@ -1345,7 +1343,7 @@ curl http://localhost:8080/api/card/list?userID=user_001
 **示例：**
 
 ```bash
-curl http://localhost:8080/api/card/image/2024/01/01/card_xxx.png
+curl http://localhost:8080/api/wx/card/image/2024/01/01/card_xxx.png
 ```
 
 ---
@@ -1405,7 +1403,7 @@ curl http://localhost:8080/api/card/image/2024/01/01/card_xxx.png
 // 微信登录
 wx.login({
   success: async (res) => {
-    const loginResponse = await fetch('/api/user/login', {
+    const loginResponse = await fetch('/api/wx/user/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -1430,7 +1428,7 @@ wx.login({
 3. **并发控制**: 同一用户同一时间段只能有一个有效预约
 4. **签到时效**: 预约开始时间后 15 分钟内可签到，超时自动取消
 5. **卡片认证**: 卡片接口已添加到白名单，无需登录即可访问
-6. **卡片图片存储**: 生成的图片存储在服务器本地，通过 `/api/card/image/` 访问
+6. **卡片图片存储**: 生成的图片存储在服务器本地，通过 `/api/wx/card/image/` 访问
 7. **SSE 超时**: 流式接口超时时间为 120 秒
 8. **编码格式**: 所有响应编码为 UTF-8
 
